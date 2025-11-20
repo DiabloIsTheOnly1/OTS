@@ -2,26 +2,36 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
+use App\Models\User;
+use App\Models\Branch;
+use App\Models\Department;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Create departments
+        $department = Department::create([
+            'department_name' => 'Human Resource',
+        ]);
 
-        User::create([
+        // Create branches
+        $branch1 = Branch::create(['branch_name' => 'HQKK']);
+        $branch2 = Branch::create(['branch_name' => 'UMKK1']);
+
+        // Create an admin user
+        $admin = User::create([
             'name' => 'Admin User',
             'username' => 'admin',
-            'password' => Hash::make('admin123'),
+            'password' => 'password', // auto-hashed
+            'department_id' => $department->id,
+        ]);
+
+        // Assign branches to admin
+        $admin->branches()->attach([
+            $branch1->id,
+            $branch2->id,
         ]);
     }
 }
