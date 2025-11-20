@@ -4,27 +4,34 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\OvertimeRequest;
+use App\Models\Branch;
+use App\Models\Department;
 
 class OvertimeRequestController extends Controller
 {
+    // Show the Employee Overtime Form
+    public function index()
+    {
+        $branches = Branch::all();
+        $departments = Department::all();
+
+        return view('overtime.form', compact('branches', 'departments'));
+    }
+
+    // Store the submitted Overtime Request
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'employee_name' => 'required|string',
-            'department' => 'nullable|string',
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'position' => 'required|string|max:255',
+            'branch_id' => 'required|exists:branches,id',
+            'department_id' => 'required|exists:departments,id',
             'date' => 'required|date',
-            'start_time' => 'required',
-            'end_time' => 'required',
-            'reason' => 'nullable|string',
+            'work_description' => 'required|string',
         ]);
 
-        // Calculate total hours
-        $start = strtotime($data['start_time']);
-        $end = strtotime($data['end_time']);
-        $data['total_hours'] = round(($end - $start) / 3600, 2);
+        OvertimeRequest::create($request->all());
 
-        OvertimeRequest::create($data);
-
-        return back()->with('success', 'Overtime request submitted successfully.');
+        return redirect()->back()->with('success', 'Overtime request submitted successfully!');
     }
 }

@@ -6,9 +6,7 @@ use App\Http\Controllers\HRController;
 use App\Http\Controllers\AuthController;
 
 // Employee OT form
-Route::get('/overtime/form', function () {
-    return view('overtime.form');   // resources/views/overtime/form.blade.php
-})->name('overtime.form');
+Route::get('/overtime', [OvertimeRequestController::class, 'index'])->name('overtime.index');
 Route::post('/overtime', [OvertimeRequestController::class, 'store'])->name('overtime.store');
 
 // HR Dashboard (public view)

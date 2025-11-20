@@ -3,26 +3,30 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\User;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class OvertimeRequest extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
-        'employee_name',
-        'department',
+        'name',
+        'position',
+        'branch_id',
+        'department_id',
         'date',
-        'start_time',
-        'end_time',
-        'total_hours',
-        'reason',
+        'work_description',
         'status',
-        'approved_by',
-        'approved_at',
     ];
 
-    // Relationship to User (HR who approved)
-    public function approver()
+    // Relationships
+    public function branch()
     {
-        return $this->belongsTo(User::class, 'approved_by');
+        return $this->belongsTo(Branch::class);
+    }
+
+    public function department()
+    {
+        return $this->belongsTo(Department::class);
     }
 }
