@@ -9,7 +9,7 @@ class AuthController extends Controller
 {
     public function loginPage()
     {
-        return view('hr.login');
+        return view('login');
     }
 
     public function login(Request $request)

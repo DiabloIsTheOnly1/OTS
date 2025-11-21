@@ -8,25 +8,33 @@ use App\Http\Controllers\BranchController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\UserController;
 
-Route::prefix('settings')->group(function () {
-    Route::get('/user', [UserController::class, 'index'])->name('settings.user');
-    Route::post('/user', [UserController::class, 'store'])->name('settings.user.store');
-    Route::post('/user/{id}', [UserController::class, 'update'])->name('settings.user.update');
-    Route::delete('/user/{id}', [UserController::class, 'destroy'])->name('settings.user.delete');
-});
+Route::prefix('settings')->middleware('auth')->group(function () {
 
-Route::prefix('settings')->group(function () {
-    Route::get('/department', [DepartmentController::class, 'index'])->name('settings.department');
-    Route::post('/department', [DepartmentController::class, 'store'])->name('settings.department.store');
-    Route::post('/department/{id}', [DepartmentController::class, 'update'])->name('settings.department.update');
-    Route::delete('/department/{id}', [DepartmentController::class, 'destroy'])->name('settings.department.delete');
-});
+    Route::get('/', function () {
+        return view('settings.index');
+    })->name('settings.index');
 
-Route::prefix('settings')->group(function () {
-    Route::get('/branch', [BranchController::class, 'index'])->name('settings.branch');
+    Route::get('/branch', [BranchController::class, 'index'])
+        ->name('settings.branch');
+
+    Route::get('/department', [DepartmentController::class, 'index'])
+        ->name('settings.department');
+
+    Route::get('/user', [UserController::class, 'index'])
+        ->name('settings.user');
+
+    // POST, PUT, DELETE keep same:
     Route::post('/branch', [BranchController::class, 'store'])->name('settings.branch.store');
-    Route::post('/branch/{id}', [BranchController::class, 'update'])->name('settings.branch.update');
+    Route::put('/branch/{id}', [BranchController::class, 'update'])->name('settings.branch.update');
     Route::delete('/branch/{id}', [BranchController::class, 'destroy'])->name('settings.branch.delete');
+
+    Route::post('/department', [DepartmentController::class, 'store'])->name('settings.department.store');
+    Route::put('/department/{id}', [DepartmentController::class, 'update'])->name('settings.department.update');
+    Route::delete('/department/{id}', [DepartmentController::class, 'destroy'])->name('settings.department.delete');
+
+    Route::post('/user', [UserController::class, 'store'])->name('settings.user.store');
+    Route::put('/user/{id}', [UserController::class, 'update'])->name('settings.user.update');
+    Route::delete('/user/{id}', [UserController::class, 'destroy'])->name('settings.user.delete');
 });
 
 // Employee OT form
@@ -45,7 +53,7 @@ Route::middleware('auth')->group(function () {
 
 
 // Login
-Route::get('/login', [AuthController::class, 'loginPage'])->name('hr.login');
+Route::get('/login', [AuthController::class, 'loginPage'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 

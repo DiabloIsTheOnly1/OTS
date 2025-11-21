@@ -1,6 +1,6 @@
-@extends('layouts.app')
+@extends('settings.index')
 
-@section('content')
+@section('settings-content')
 <div class="container mx-auto px-4 py-4 max-w-4xl">
 
     <!-- Header -->
@@ -56,7 +56,7 @@
                     <li class="flex justify-between items-center px-4 py-4 hover:bg-gray-50">
 
                         <span class="text-gray-800 font-medium">
-                            {{ $branch->branch_name }}
+                            {{ $branch->name }}
                         </span>
 
                         <div class="flex space-x-2">
@@ -64,7 +64,7 @@
                             <!-- Edit -->
                             <button class="edit-branch text-sm px-2 py-1 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200"
                                     data-id="{{ $branch->id }}"
-                                    data-name="{{ $branch->branch_name }}">
+                                    data-name="{{ $branch->name }}">
                                 <i class="fas fa-edit mr-1"></i> Edit
                             </button>
 

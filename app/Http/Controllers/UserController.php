@@ -14,7 +14,7 @@ class UserController extends Controller
     {
         $users = User::with(['department', 'branches'])->orderBy('id')->get();
         $departments = Department::orderBy('department_name')->get();
-        $branches = Branch::orderBy('branch_name')->get();
+        $branches = Branch::orderBy('name')->get();
 
         return view('settings.user', compact('users', 'departments', 'branches'));
     }

@@ -1,6 +1,6 @@
-@extends('layouts.app')
+@extends('settings.index')
 
-@section('content')
+@section('settings-content')
 <div class="container mx-auto px-4 py-4 max-w-4xl">
 
     <!-- Header -->
@@ -77,7 +77,7 @@
                                    name="branches[]"
                                    class="branch-checkbox"
                                    value="{{ $branch->id }}">
-                            <span>{{ $branch->branch_name }}</span>
+                            <span>{{ $branch->name }}</span>
                         </label>
                     @endforeach
                 </div>
@@ -119,7 +119,7 @@
                                 <div class="text-gray-500 text-sm">
                                     Branches:
                                     @if($user->branches->count())
-                                        {{ $user->branches->pluck('branch_name')->join(', ') }}
+                                        {{ $user->branches->pluck('name')->join(', ') }}
                                     @else
                                         -
                                     @endif
