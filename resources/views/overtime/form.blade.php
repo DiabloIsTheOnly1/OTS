@@ -11,6 +11,12 @@
         </div>
     @endif
 
+    @if(session('error'))
+        <div class="bg-red-100 text-red-700 p-3 rounded mb-4">
+            {{ session('error') }}
+        </div>
+    @endif
+
     <form action="{{ route('overtime.store') }}" method="POST" class="bg-white shadow border rounded p-6 space-y-5">
         @csrf
 
@@ -45,7 +51,7 @@
             <select name="department_id" class="w-full border p-2 rounded" required>
                 <option value="">Select Department</option>
                 @foreach($departments as $dept)
-                    <option value="{{ $dept->id }}">{{ $dept->name }}</option>
+                    <option value="{{ $dept->id }}">{{ $dept->department_name }}</option>
                 @endforeach
             </select>
         </div>
@@ -59,7 +65,7 @@
         <!-- Work Description -->
         <div>
             <label class="block font-semibold mb-1">Work to be completed during OT</label>
-            <textarea name="work_description" rows="4" class="w-full border p-2 rounded" required></textarea>
+            <textarea name="reason" rows="4" class="w-full border p-2 rounded" required>{{ old('reason') }}</textarea>
         </div>
 
         <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full">

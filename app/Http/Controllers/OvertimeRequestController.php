@@ -6,8 +6,6 @@ use Illuminate\Http\Request;
 use App\Models\OvertimeRequest;
 use App\Models\Branch;
 use App\Models\Department;
-use Illuminate\Support\Facades\Storage;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class OvertimeRequestController extends Controller
 {
@@ -20,52 +18,43 @@ class OvertimeRequestController extends Controller
         return view('overtime.form', compact('branches', 'departments'));
     }
 
-    // Store OT request + generate QR
+    // Store OT request
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'branch_id' => 'required|exists:branches,id',
-            'department_id' => 'required|exists:departments,id',
-            'date' => 'required|date',
-            'start_time' => 'required',
-            'end_time' => 'required',
+        $validated = $request->validate([
+            'name' => 'nullable|string|max:255',
+            'position' => 'nullable|string|max:255',
+            'branch_id' => 'nullable|exists:branch,id',
+            'department_id' => 'nullable|exists:departments,id',
+            'date' => 'nullable|date',
             'reason' => 'nullable|string',
         ]);
 
-        $ot = OvertimeRequest::create($request->all());
+        $overtime = OvertimeRequest::create($validated);
 
-        // Generate QR URL
-        $qrUrl = route('overtime.clockin', $ot->id);
-
-        // Generate QR PNG
-        $qrImage = QrCode::format('png')->size(300)->generate($qrUrl);
-
-        $fileName = 'qr_' . $ot->id . '.png';
-        Storage::disk('public')->put('qr/' . $fileName, $qrImage);
-
-        $ot->update(['qr_code' => 'qr/' . $fileName]);
-
-        return view('overtime.success', compact('ot'));
+        return view('overtime.success', [
+            'overtime' => $overtime,
+        ]);
     }
 
     // Clock-in via QR
     public function clockin($id)
-    {
-        $ot = OvertimeRequest::findOrFail($id);
+{
+    $overtime = OvertimeRequest::findOrFail($id);
 
-        if ($ot->clocked_in_at) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Already clocked in at ' . $ot->clocked_in_at,
-            ]);
-        }
-
-        $ot->update(['clocked_in_at' => now()]);
-
+    if ($overtime->clocked_in_at) {
         return response()->json([
-            'status' => 'success',
-            'message' => 'Clock-in successful at ' . now(),
+            'status' => 'error',
+            'message' => 'Already clocked in at ' . $overtime->clocked_in_at,
         ]);
     }
+
+    $overtime->update(['clocked_in_at' => now()]);
+
+    return response()->json([
+        'status' => 'success',
+        'message' => 'Clock-in successful at ' . now(),
+    ]);
+}
+
 }

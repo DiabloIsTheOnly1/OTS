@@ -30,7 +30,7 @@ Route::prefix('settings')->group(function () {
 });
 
 // Employee OT form
-Route::get('/overtime', [OvertimeRequestController::class, 'create'])->name('overtime.index');
+Route::get('/overtime', [OvertimeRequestController::class, 'create'])->name('overtime.create');
 Route::post('/overtime', [OvertimeRequestController::class, 'store'])->name('overtime.store');
 
 // HR Dashboard (public view)
@@ -52,11 +52,8 @@ Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 // Show QR after submitting
 Route::get('/overtime/{id}/qr', [OvertimeRequestController::class, 'showQR'])->name('overtime.qr');
 
-// Scan → Clock In page
-Route::get('/overtime/scan/{qr}', [OvertimeRequestController::class, 'scan'])->name('overtime.scan');
-
-// Clock In Now
-Route::post('/overtime/{id}/clock-in', [OvertimeRequestController::class, 'clockIn'])->name('overtime.clockin');
+Route::get('/overtime/clockin/{id}', [OvertimeRequestController::class, 'clockin'])
+    ->name('overtime.clockin');
 
 // Clock Out Now
 Route::post('/overtime/{id}/clock-out', [OvertimeRequestController::class, 'clockOut'])->name('overtime.clockout');

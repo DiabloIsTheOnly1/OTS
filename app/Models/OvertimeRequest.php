@@ -9,19 +9,20 @@ class OvertimeRequest extends Model
 {
     use HasFactory;
 
+    protected $table = 'overtime_requests';
+
     protected $fillable = [
         'name',
+        'position',
         'branch_id',
         'department_id',
         'date',
+        'reason',
         'start_time',
         'end_time',
-        'reason',
         'qr_code',
         'clocked_in_at',
         'status',
-        'approved_by',
-        'approved_at',
     ];
 
     protected $casts = [
