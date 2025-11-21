@@ -17,8 +17,8 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Create branches
-        $branch1 = Branch::create(['branch_name' => 'HQKK']);
-        $branch2 = Branch::create(['branch_name' => 'UMKK1']);
+        $branch1 = Branch::create(['name' => 'HQKK']);
+        $branch2 = Branch::create(['name' => 'UMKK1']);
 
         // Create an admin user
         $admin = User::create([

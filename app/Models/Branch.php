@@ -9,9 +9,10 @@ class Branch extends Model
 {
     use HasFactory;
 
+    protected $table = 'branch'; // <-- FIXED
+
     protected $fillable = ['name'];
 
-    // Relationship: Branch has many Overtime Requests
     public function overtimeRequests()
     {
         return $this->hasMany(OvertimeRequest::class);
