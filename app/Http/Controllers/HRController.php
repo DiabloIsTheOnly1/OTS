@@ -15,9 +15,9 @@ class HRController extends Controller
     {
         $query = OvertimeRequest::query();
 
-        // Filter by employee name
+        // Filter by employee name (db column is `name`)
         if ($request->filled('search')) {
-            $query->where('employee_name', 'like', '%' . $request->search . '%');
+            $query->where('name', 'like', '%' . $request->search . '%');
         }
 
         // Filter by status

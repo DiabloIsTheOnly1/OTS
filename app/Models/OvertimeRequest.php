@@ -11,12 +11,22 @@ class OvertimeRequest extends Model
 
     protected $fillable = [
         'name',
-        'position',
         'branch_id',
         'department_id',
         'date',
-        'work_description',
+        'start_time',
+        'end_time',
+        'reason',
+        'qr_code',
+        'clocked_in_at',
         'status',
+        'approved_by',
+        'approved_at',
+    ];
+
+    protected $casts = [
+        'date' => 'date',
+        'clocked_in_at' => 'datetime',
     ];
 
     // Relationships
@@ -28,5 +38,10 @@ class OvertimeRequest extends Model
     public function department()
     {
         return $this->belongsTo(Department::class);
+    }
+
+    public function approver()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
     }
 }

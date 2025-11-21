@@ -1,76 +1,71 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('layouts.app')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Overtime Request Form</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
+@section('content')
 
-<body>
-    <div class="container my-5">
+<div class="max-w-2xl mx-auto">
+    <h1 class="text-3xl font-bold text-blue-700 mb-6">Overtime Request Form</h1>
 
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="text-primary">Overtime Request Form</h1>
-            <a href="{{ route('hr.dashboard') }}" class="btn btn-secondary">← Back</a>
+    @if(session('success'))
+        <div class="bg-green-100 text-green-700 p-3 rounded mb-4">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    <form action="{{ route('overtime.store') }}" method="POST" class="bg-white shadow border rounded p-6 space-y-5">
+        @csrf
+
+        <!-- Name -->
+        <div>
+            <label class="block font-semibold mb-1">Name</label>
+            <input type="text" name="name" class="w-full border p-2 rounded"
+                   value="{{ old('name') }}" required>
         </div>
 
-        {{-- Messages --}}
-        @if (session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
-        @endif
-        @if (session('error'))
-            <div class="alert alert-danger">{{ session('error') }}</div>
-        @endif
-
-        {{-- Employee Overtime Form --}}
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <form method="POST" action="{{ route('overtime.store') }}">
-                    @csrf
-
-                    <div class="mb-3">
-                        <label class="form-label">Name</label>
-                        <input type="text" name="employee_name" class="form-control" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Department</label>
-                        <input type="text" name="department" class="form-control">
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Date</label>
-                        <input type="date" name="date" class="form-control" required>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Start Time</label>
-                            <input type="time" name="start_time" class="form-control" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">End Time</label>
-                            <input type="time" name="end_time" class="form-control" required>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Reason</label>
-                        <textarea name="reason" class="form-control" rows="3"></textarea>
-                    </div>
-
-                    <button type="submit" class="btn btn-success w-100">Submit Overtime Request</button>
-                </form>
-            </div>
+        <!-- Position -->
+        <div>
+            <label class="block font-semibold mb-1">Position</label>
+            <input type="text" name="position" class="w-full border p-2 rounded"
+                   value="{{ old('position') }}" required>
         </div>
 
-    </div>
+        <!-- Branch -->
+        <div>
+            <label class="block font-semibold mb-1">Branch</label>
+            <select name="branch_id" class="w-full border p-2 rounded" required>
+                <option value="">Select Branch</option>
+                @foreach($branches as $branch)
+                    <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+                @endforeach
+            </select>
+        </div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+        <!-- Department -->
+        <div>
+            <label class="block font-semibold mb-1">Department</label>
+            <select name="department_id" class="w-full border p-2 rounded" required>
+                <option value="">Select Department</option>
+                @foreach($departments as $dept)
+                    <option value="{{ $dept->id }}">{{ $dept->name }}</option>
+                @endforeach
+            </select>
+        </div>
 
-</html>
+        <!-- Date -->
+        <div>
+            <label class="block font-semibold mb-1">Date</label>
+            <input type="date" name="date" class="w-full border p-2 rounded" required>
+        </div>
+
+        <!-- Work Description -->
+        <div>
+            <label class="block font-semibold mb-1">Work to be completed during OT</label>
+            <textarea name="work_description" rows="4" class="w-full border p-2 rounded" required></textarea>
+        </div>
+
+        <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full">
+            Submit & Generate QR
+        </button>
+    </form>
+</div>
+
+@endsection
