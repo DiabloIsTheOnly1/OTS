@@ -6,37 +6,27 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('overtime_clocks', function (Blueprint $table) {
             $table->id();
 
-            // Foreign key to overtime_requests table
-            $table->foreignId('overtime_request_id')
-                  ->constrained()
-                  ->onDelete('cascade');
+            $table->unsignedBigInteger('overtime_request_id');
 
-            // Event type: clock-in or clock-out
-            $table->enum('type', ['in', 'out']);
-
-            // Actual timestamp of scan
-            $table->timestamp('scanned_at')->nullable();
-
-            // Additional metadata
-            $table->string('scanned_by')->nullable();
-            $table->string('ip_address')->nullable();
-            $table->string('device')->nullable();
+            $table->dateTime('clock_in')->nullable();
+            $table->dateTime('clock_out')->nullable();
+            $table->string('total_time_taken')->nullable(); // or integer (minutes)
 
             $table->timestamps();
+
+            // FK
+            $table->foreign('overtime_request_id')
+                ->references('id')
+                ->on('overtime_requests')
+                ->onDelete('cascade');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('overtime_clocks');

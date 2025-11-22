@@ -9,6 +9,42 @@ use App\Models\Department;
 
 class OvertimeRequestController extends Controller
 {
+    public function index(Request $request)
+    {
+        $query = OvertimeRequest::with(['branch', 'department'])
+            ->orderBy('date', 'desc')
+            ->orderBy('id', 'desc');
+
+        // --- Filters ---
+        if ($request->branch_id) {
+            $query->where('branch_id', $request->branch_id);
+        }
+
+        if ($request->name) {
+            $query->where('name', 'like', "%{$request->name}%");
+        }
+
+        if ($request->from) {
+            $query->whereDate('date', '>=', $request->from);
+        }
+
+        if ($request->to) {
+            $query->whereDate('date', '<=', $request->to);
+        }
+
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
+
+        $requests = $query->paginate(15);
+
+        return view('overtime.index', [
+            'requests' => $requests,
+            'branches' => Branch::all(),
+            'departments' => Department::all(),
+        ]);
+    }
+
     // Show OT request form
     public function create()
     {
@@ -39,22 +75,22 @@ class OvertimeRequestController extends Controller
 
     // Clock-in via QR
     public function clockin($id)
-{
-    $overtime = OvertimeRequest::findOrFail($id);
+    {
+        $overtime = OvertimeRequest::findOrFail($id);
 
-    if ($overtime->clocked_in_at) {
+        if ($overtime->clocked_in_at) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Already clocked in at ' . $overtime->clocked_in_at,
+            ]);
+        }
+
+        $overtime->update(['clocked_in_at' => now()]);
+
         return response()->json([
-            'status' => 'error',
-            'message' => 'Already clocked in at ' . $overtime->clocked_in_at,
+            'status' => 'success',
+            'message' => 'Clock-in successful at ' . now(),
         ]);
     }
-
-    $overtime->update(['clocked_in_at' => now()]);
-
-    return response()->json([
-        'status' => 'success',
-        'message' => 'Clock-in successful at ' . now(),
-    ]);
-}
 
 }
