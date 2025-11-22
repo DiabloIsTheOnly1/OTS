@@ -7,6 +7,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\OvertimeClockController;
 
 Route::prefix('settings')->middleware('auth')->group(function () {
 
@@ -60,8 +61,8 @@ Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 // Show QR after submitting
 Route::get('/overtime/{id}/qr', [OvertimeRequestController::class, 'showQR'])->name('overtime.qr');
 
-Route::get('/overtime/clockin/{id}', [OvertimeRequestController::class, 'clockin'])
-    ->name('overtime.clockin');
+//Clock In/Out via QR Code
+Route::get('/overtime/{id}/clock', [OvertimeClockController::class, 'clock'])
+    ->name('overtime.clock');
 
-// Clock Out Now
-Route::post('/overtime/{id}/clock-out', [OvertimeRequestController::class, 'clockOut'])->name('overtime.clockout');
+

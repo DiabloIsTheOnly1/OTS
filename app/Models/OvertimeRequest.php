@@ -45,4 +45,10 @@ class OvertimeRequest extends Model
     {
         return $this->belongsTo(User::class, 'approved_by');
     }
+
+public function clock()
+{
+    return $this->hasOne(\App\Models\OvertimeClock::class);
+}
+
 }
