@@ -2,47 +2,61 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\OvertimeRequest;
 use App\Models\OvertimeClock;
+use App\Models\OvertimeRequest;
+use Carbon\Carbon;
 
 class OvertimeClockController extends Controller
 {
-    public function clock($id)
+    public function clockIn($id)
     {
         $overtime = OvertimeRequest::findOrFail($id);
 
-        // Get existing clock record or create new
-        $clock = OvertimeClock::where('overtime_request_id', $overtime->id)->first();
+        // Check existing clock record
+        $clock = OvertimeClock::where('overtime_request_id', $id)->first();
 
-        if (!$clock) {
-            // Clock In
-            $clock = OvertimeClock::create([
-                'overtime_request_id' => $overtime->id,
-                'clock_in' => now(),
-            ]);
-
-            $message = 'Clocked In';
-            $scannedAt = $clock->clock_in;
-        } elseif (!$clock->clock_out) {
-            // Clock Out
-            $clock->clock_out = now();
-            $clock->total_time_taken = $clock->clock_in->diffInSeconds($clock->clock_out);
-            $clock->save();
-
-            $message = 'Clocked Out';
-            $scannedAt = $clock->clock_out;
-        } else {
-            // Already clocked out
-            $message = 'You have already clocked out';
-            $scannedAt = $clock->clock_out;
+        // Already clocked in?
+        if ($clock && $clock->clock_in) {
+            return back()->with('error', 'You already clocked in.');
         }
 
-        return view('overtime.clock_success', [
-            'overtime' => $overtime,
-            'clock' => $clock,
-            'message' => $message,
-            'scannedAt' => $scannedAt,
+        // Create or update clock record
+        if (!$clock) {
+            OvertimeClock::create([
+                'overtime_request_id' => $id,
+                'clock_in' => Carbon::now(),
+            ]);
+        } else {
+            $clock->update([
+                'clock_in' => Carbon::now(),
+            ]);
+        }
+
+        return back()->with('success', 'Clock-in successful.');
+    }
+
+    public function clockOut($id)
+    {
+        $overtime = OvertimeRequest::findOrFail($id);
+
+        $clock = OvertimeClock::where('overtime_request_id', $id)->first();
+
+        if (!$clock || !$clock->clock_in) {
+            return back()->with('error', 'You must clock in first.');
+        }
+
+        if ($clock->clock_out) {
+            return back()->with('error', 'You already clocked out.');
+        }
+
+        $clockOut = Carbon::now();
+        $hours = $clock->clock_in->diffInMinutes($clockOut) / 60;
+
+        $clock->update([
+            'clock_out' => $clockOut,
+            'total_time_taken' => round($hours, 2),
         ]);
+
+        return back()->with('success', 'Clock-out successful.');
     }
 }

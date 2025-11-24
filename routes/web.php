@@ -58,11 +58,22 @@ Route::get('/login', [AuthController::class, 'loginPage'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// Show QR after submitting
+// Overtime submission + detail page
+Route::post('/overtime/submit', [OvertimeRequestController::class, 'store'])->name('overtime.submit');
+Route::get('/overtime/{id}/details', [OvertimeRequestController::class, 'details'])->name('overtime.details');
+
+// Clock In / Clock Out
+Route::post('/clock-in/{id}', [OvertimeClockController::class, 'clockIn'])->name('clock.in');
+Route::post('/clock-out/{id}', [OvertimeClockController::class, 'clockOut'])->name('clock.out');
+
+
+/* Show QR after submitting
 Route::get('/overtime/{id}/qr', [OvertimeRequestController::class, 'showQR'])->name('overtime.qr');
 
 //Clock In/Out via QR Code
 Route::get('/overtime/{id}/clock', [OvertimeClockController::class, 'clock'])
     ->name('overtime.clock');
+
+*/
 
 

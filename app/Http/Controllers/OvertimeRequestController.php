@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\OvertimeRequest;
+use App\Models\OvertimeClock;
 use App\Models\Branch;
 use App\Models\Department;
 
@@ -30,11 +31,19 @@ class OvertimeRequestController extends Controller
             'reason' => 'nullable|string',
         ]);
 
-        $overtime = OvertimeRequest::create($validated);
+        $overtime = OvertimeRequest::create($request->all());
 
-        return view('overtime.success', [
-            'overtime' => $overtime,
-        ]);
+        $qrUrl = url('/overtime/' . $overtime->id . '/details');
+
+    return view('overtime.success', compact('overtime', 'qrUrl'));
+
+    }
+
+    public function details($id)
+    {
+         $overtime = OvertimeRequest::with('clock')->findOrFail($id);
+
+        return view('overtime.details', compact('overtime'));
     }
 
     // Clock-in via QR

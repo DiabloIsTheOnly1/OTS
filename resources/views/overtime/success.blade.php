@@ -15,7 +15,6 @@
             </div>
         </div>
 
-        {{-- Title --}}
         <h1 class="text-3xl font-bold text-green-700 mb-4">Request Submitted!</h1>
 
         {{-- QR CODE --}}
@@ -23,10 +22,8 @@
 
         <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
         <script>
-            const clockUrl = "{{ route('overtime.clock', $overtime->id) }}";
-
             new QRCode(document.getElementById("qrcode"), {
-                text: clockUrl,
+                text: "{{ $qrUrl }}",
                 width: 192,
                 height: 192,
                 colorDark : "#000000",
@@ -43,16 +40,16 @@
 
     </div>
 
-    {{-- Action Buttons --}}
+    {{-- Navigation --}}
     <div class="mt-6 flex flex-col gap-3">
-        <a href="{{ route('overtime.create') }}"
+        <a href="{{ $qrUrl }}"
            class="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition text-center">
-            Submit Another Request
+            Go to Details Page and Clock In/Out
         </a>
 
-        <a href="{{ route('hr.dashboard') }}"
+        <a href="{{ route('overtime.create') }}"
            class="text-blue-600 hover:underline text-center text-sm">
-            Back to Dashboard
+            Submit Another Request
         </a>
     </div>
 </div>
