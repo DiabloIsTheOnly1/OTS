@@ -28,7 +28,7 @@ class BranchController extends Controller
         ]);
 
         Branch::create([
-            'branch_name' => $request->branch_name,
+            'name' => $request->branch_name,
         ]);
 
         return redirect()->back()->with('success', 'Branch created successfully.');

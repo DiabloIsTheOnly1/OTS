@@ -11,7 +11,7 @@ class OvertimeRequestController extends Controller
 {
     public function index(Request $request)
     {
-        $query = OvertimeRequest::with(['branch', 'department'])
+        $query = OvertimeRequest::with(['branch', 'department', 'clock'])
             ->orderBy('date', 'desc')
             ->orderBy('id', 'desc');
 

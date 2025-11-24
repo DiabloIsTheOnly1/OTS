@@ -172,7 +172,7 @@
 
                             <!-- Total Time -->
                             <td class="px-4 py-3 text-sm font-medium text-blue-700">
-                                {{ $req->total_time_taken ? $req->total_time_taken . ' min' : '-' }}
+                                {{ $req->clock ? $req->clock->total_hm : '-' }}
                             </td>
 
                             <!-- Status -->
@@ -190,9 +190,9 @@
                             <td class="px-4 py-3 text-sm font-medium">
                                 <div class="flex items-center space-x-2">
 
-                                    <a href="{{ route('overtime.show', $req->id) }}"
+                                    <a href="{{ route('overtime.qr', $req->id) }}"
                                        class="px-2 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 text-xs">
-                                        <i class="fas fa-eye mr-1"></i> View
+                                        <i class="fas fa-eye mr-1"></i> QR
                                     </a>
 
                                     <a href="{{ route('overtime.edit', $req->id) }}"

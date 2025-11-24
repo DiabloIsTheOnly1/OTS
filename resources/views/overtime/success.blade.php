@@ -50,9 +50,9 @@
             Submit Another Request
         </a>
 
-        <a href="{{ route('hr.dashboard') }}"
+        <a href="{{ route('overtime.index') }}"
            class="text-blue-600 hover:underline text-center text-sm">
-            Back to Dashboard
+            Back to Request List
         </a>
     </div>
 </div>

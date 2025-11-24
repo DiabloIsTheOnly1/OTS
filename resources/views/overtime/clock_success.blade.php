@@ -39,8 +39,8 @@
         </div>
 
         <div class="mt-6">
-        <a href="{{ route('hr.dashboard') }}" class="text-blue-600 hover:underline text-sm">
-        Back to Dashboard
+        <a href="{{ route('overtime.index') }}" class="text-blue-600 hover:underline text-sm">
+        Back to Request List
          </a>
         </div>
 
