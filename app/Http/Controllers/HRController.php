@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\OvertimeRequest;
+use App\Models\User;
 
 class HRController extends Controller
 {
@@ -13,7 +14,8 @@ class HRController extends Controller
      */
     public function index(Request $request)
     {
-        $user = auth()->user();
+        /** @var User $user */
+        $user = Auth::user();
 
         // Get branches the user has access to
         $accessibleBranches = $user->branches()->pluck('branch.id')->toArray();

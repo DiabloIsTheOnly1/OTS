@@ -191,7 +191,7 @@
                                 <div class="flex items-center space-x-2">
 
                                     <a href="{{ route('overtime.qr', $req->id) }}"
-                                       class="px-2 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 text-xs">
+                                    class="px-2 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 text-xs flex items-center">
                                         <i class="fas fa-eye mr-1"></i> QR
                                     </a>
 

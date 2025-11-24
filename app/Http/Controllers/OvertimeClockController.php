@@ -8,6 +8,7 @@ use Carbon\Carbon;
 
 class OvertimeClockController extends Controller
 {
+
     public function clockIn($id)
     {
         $overtime = OvertimeRequest::findOrFail($id);
@@ -35,7 +36,7 @@ class OvertimeClockController extends Controller
         return back()->with('success', 'Clock-in successful.');
     }
 
-    public function clockOut($id)
+       public function clockOut($id)
     {
         $overtime = OvertimeRequest::findOrFail($id);
 
@@ -50,11 +51,15 @@ class OvertimeClockController extends Controller
         }
 
         $clockOut = Carbon::now();
-        $hours = $clock->clock_in->diffInMinutes($clockOut) / 60;
+        // Ensure clock_in is a Carbon instance (in case it's stored as string)
+        $clockIn = $clock->clock_in instanceof Carbon ? $clock->clock_in : Carbon::parse($clock->clock_in);
+
+        // Compute seconds and ensure non-negative integer (defensive)
+        $seconds = (int) max(0, $clockOut->diffInSeconds($clockIn));
 
         $clock->update([
             'clock_out' => $clockOut,
-            'total_time_taken' => round($hours, 2),
+            'total_time_taken' => $seconds,
         ]);
 
         return back()->with('success', 'Clock-out successful.');

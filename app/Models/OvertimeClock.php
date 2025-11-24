@@ -19,6 +19,7 @@ class OvertimeClock extends Model
     protected $casts = [
         'clock_in' => 'datetime',
         'clock_out' => 'datetime',
+        'total_time_taken' => 'integer',
     ];
 
     public function overtimeRequest()
@@ -31,7 +32,8 @@ class OvertimeClock extends Model
         if (!$this->total_time_taken)
             return null;
 
-        $seconds = $this->total_time_taken;
+        // Ensure we operate on a non-negative integer
+        $seconds = (int) abs($this->total_time_taken);
         $hours = floor($seconds / 3600);
         $minutes = floor(($seconds % 3600) / 60);
 

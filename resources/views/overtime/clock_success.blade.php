@@ -34,8 +34,8 @@
             <p><strong>Name:</strong> {{ $overtime->name }}</p>
             <p><strong>Date:</strong> {{ $overtime->date->format('d M Y') }}</p>
             @if($clock->total_time_taken)
-                <p><strong>Total Time:</strong> {{ gmdate('H:i:s', $clock->total_time_taken) }}</p>
-            @endif
+        <p><strong>Total Time:</strong> {{($clock->total_time_taken) }}</p>
+        @endif
         </div>
 
         <div class="mt-6">
