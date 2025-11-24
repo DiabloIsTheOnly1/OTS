@@ -55,7 +55,8 @@ class OvertimeClockController extends Controller
         $clockIn = $clock->clock_in instanceof Carbon ? $clock->clock_in : Carbon::parse($clock->clock_in);
 
         // Compute seconds and ensure non-negative integer (defensive)
-        $seconds = (int) max(0, $clockOut->diffInSeconds($clockIn));
+        // $seconds = (int) max(0, $clockOut->diffInSeconds($clockIn));
+        $seconds = $clockIn->diffInSeconds($clockIn);
 
         $clock->update([
             'clock_out' => $clockOut,

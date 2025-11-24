@@ -17,11 +17,14 @@ class HRController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        // Get branches the user has access to
+        // Branch and department access lists
         $accessibleBranches = $user->branches()->pluck('branch.id')->toArray();
+        $accessibleDepartments = $user->department()->pluck('departments.id')->toArray();
 
+        // Base query: filter by user's branch + department
         $query = OvertimeRequest::with(['clock', 'department', 'approver'])
-            ->whereIn('branch_id', $accessibleBranches);
+            ->whereIn('branch_id', $accessibleBranches)
+            ->whereIn('department_id', $accessibleDepartments);
 
         // Filter by employee name
         if ($request->filled('search')) {
@@ -35,17 +38,28 @@ class HRController extends Controller
 
         // Filter by selected branch
         if ($request->filled('branch_id')) {
-            $query->where('branch_id', $request->branch_id);
+            // ensure selected branch is allowed
+            if (in_array($request->branch_id, $accessibleBranches)) {
+                $query->where('branch_id', $request->branch_id);
+            }
+        }
+
+        // Filter by selected department
+        if ($request->filled('department_id')) {
+            if (in_array($request->department_id, $accessibleDepartments)) {
+                $query->where('department_id', $request->department_id);
+            }
         }
 
         $requests = $query->orderBy('status', 'asc')
             ->orderBy('date', 'desc')
             ->get();
 
-        // Get user's available branches for filter dropdown
+        // For dropdown filters
         $branches = $user->branches()->get();
+        $departments = $user->department()->get();
 
-        return view('hr.dashboard', compact('requests', 'branches'));
+        return view('hr.dashboard', compact('requests', 'branches', 'departments'));
     }
 
 

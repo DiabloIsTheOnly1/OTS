@@ -34,7 +34,7 @@
             <p><strong>Name:</strong> {{ $overtime->name }}</p>
             <p><strong>Date:</strong> {{ $overtime->date->format('d M Y') }}</p>
             @if($clock->total_time_taken)
-        <p><strong>Total Time:</strong> {{($clock->total_time_taken) }}</p>
+        <p><strong>Total Time:</strong> {{($clock->total_hm) }}</p>
         @endif
         </div>
 

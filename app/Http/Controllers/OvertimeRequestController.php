@@ -11,12 +11,36 @@ use App\Models\Department;
 
 class OvertimeRequestController extends Controller
 {
+    public function selectPage()
+    {
+        $branches = Branch::all(); // but filter only branches user has access to
+        $departments = Department::all();
+
+        return view('overtime.select', compact('branches', 'departments'));
+    }
+
+    public function setFilters(Request $request)
+    {
+        session([
+            'ot_branch_id' => $request->branch_id,
+            'ot_department_id' => $request->department_id,
+        ]);
+
+        return redirect()->route('overtime.index');
+    }
+
     public function index(Request $request)
     {
-        $query = OvertimeRequest::with(['branch', 'department', 'clock'])
-            ->orderBy('date', 'desc')
-            ->orderBy('id', 'desc');
+        // Default filters from session
+        $branchId = session('ot_branch_id');
+        $departmentId = session('ot_department_id');
 
+        // $branches = Branch::whereIn('id', auth()->user()->branches->pluck('id'))->get();
+        // $departments = Department::all();
+
+        $query = OvertimeRequest::with(['branch', 'department', 'clock'])
+            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($departmentId, fn($q) => $q->where('department_id', $departmentId));
         // --- Filters ---
         if ($request->branch_id) {
             $query->where('branch_id', $request->branch_id);
@@ -72,13 +96,13 @@ class OvertimeRequestController extends Controller
 
         $qrUrl = url('/overtime/' . $overtime->id . '/details');
 
-    return view('overtime.success', compact('overtime', 'qrUrl'));
+        return view('overtime.success', compact('overtime', 'qrUrl'));
 
     }
 
     public function details($id)
     {
-         $overtime = OvertimeRequest::with('clock')->findOrFail($id);
+        $overtime = OvertimeRequest::with('clock')->findOrFail($id);
 
         return view('overtime.details', compact('overtime'));
     }
@@ -126,7 +150,7 @@ public function clockin($id)
             $clockIn = $clock->clock_in instanceof \Carbon\Carbon ? $clock->clock_in : \Carbon\Carbon::parse($clock->clock_in);
 
             // Compute absolute non-negative difference
-            $seconds = (int) max(0, $clockOut->diffInSeconds($clockIn));
+            $seconds = $clockIn->diffInSeconds($clockOut);
             $clock->total_time_taken = $seconds;
         }
 

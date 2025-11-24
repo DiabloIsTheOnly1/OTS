@@ -25,7 +25,7 @@
     @if($overtime->clock)
         <p><strong>Clock In:</strong> {{ $overtime->clock->clock_in ?? 'Not yet' }}</p>
         <p><strong>Clock Out:</strong> {{ $overtime->clock->clock_out ?? 'Not yet' }}</p>
-        <p><strong>Total:</strong> {{ $overtime->clock->total_time_taken ?? '0' }} hours</p>
+        <p><strong>Total:</strong> {{ $overtime->clock->total_hm ?? '0' }} hours</p>
     @endif
 </div>
 

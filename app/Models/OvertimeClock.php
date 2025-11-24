@@ -19,7 +19,6 @@ class OvertimeClock extends Model
     protected $casts = [
         'clock_in' => 'datetime',
         'clock_out' => 'datetime',
-        'total_time_taken' => 'integer',
     ];
 
     public function overtimeRequest()
