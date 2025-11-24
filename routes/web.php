@@ -66,6 +66,8 @@ Route::get('/overtime/{id}/details', [OvertimeRequestController::class, 'details
 Route::post('/clock-in/{id}', [OvertimeClockController::class, 'clockIn'])->name('clock.in');
 Route::post('/clock-out/{id}', [OvertimeClockController::class, 'clockOut'])->name('clock.out');
 
+Route::resource('overtime', OvertimeRequestController::class);
+
 
 /* Show QR after submitting
 Route::get('/overtime/{id}/qr', [OvertimeRequestController::class, 'showQR'])->name('overtime.qr');
