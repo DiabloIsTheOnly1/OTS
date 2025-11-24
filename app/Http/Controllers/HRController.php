@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth; 
+use Illuminate\Support\Facades\Auth;
 use App\Models\OvertimeRequest;
 
 class HRController extends Controller
@@ -13,9 +13,15 @@ class HRController extends Controller
      */
     public function index(Request $request)
     {
-        $query = OvertimeRequest::query();
+        $user = auth()->user();
 
-        // Filter by employee name (db column is `name`)
+        // Get branches the user has access to
+        $accessibleBranches = $user->branches()->pluck('branch.id')->toArray();
+
+        $query = OvertimeRequest::with(['clock', 'department', 'approver'])
+            ->whereIn('branch_id', $accessibleBranches);
+
+        // Filter by employee name
         if ($request->filled('search')) {
             $query->where('name', 'like', '%' . $request->search . '%');
         }
@@ -25,12 +31,21 @@ class HRController extends Controller
             $query->where('status', $request->status);
         }
 
-        $requests = $query->orderBy('status', 'asc')
-                          ->orderBy('date', 'desc')
-                          ->get();
+        // Filter by selected branch
+        if ($request->filled('branch_id')) {
+            $query->where('branch_id', $request->branch_id);
+        }
 
-        return view('hr.dashboard', compact('requests'));
+        $requests = $query->orderBy('status', 'asc')
+            ->orderBy('date', 'desc')
+            ->get();
+
+        // Get user's available branches for filter dropdown
+        $branches = $user->branches()->get();
+
+        return view('hr.dashboard', compact('requests', 'branches'));
     }
+
 
     /**
      * Approve an overtime request.

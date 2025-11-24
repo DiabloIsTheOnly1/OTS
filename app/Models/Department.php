@@ -9,7 +9,7 @@ class Department extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name'];
+    protected $fillable = ['department_name'];
 
     // Relationship: Department has many Overtime Requests
     public function overtimeRequests()

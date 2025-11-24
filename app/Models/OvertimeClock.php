@@ -25,4 +25,17 @@ class OvertimeClock extends Model
     {
         return $this->belongsTo(OvertimeRequest::class);
     }
+
+    public function getTotalHmAttribute()
+    {
+        if (!$this->total_time_taken)
+            return null;
+
+        $seconds = $this->total_time_taken;
+        $hours = floor($seconds / 3600);
+        $minutes = floor(($seconds % 3600) / 60);
+
+        return sprintf('%dh %dm', $hours, $minutes);
+    }
+
 }

@@ -39,7 +39,7 @@ Route::prefix('settings')->middleware('auth')->group(function () {
 });
 
 // Employee OT form
-Route::get('/overtime', [OvertimeRequestController::class, 'create'])->name('overtime.create');
+Route::get('/overtime/request-form', [OvertimeRequestController::class, 'create'])->name('overtime.create');
 Route::post('/overtime', [OvertimeRequestController::class, 'store'])->name('overtime.store');
 
 // HR Dashboard (public view)
