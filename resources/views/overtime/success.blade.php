@@ -16,6 +16,7 @@
         </div>
 
         <h1 class="text-3xl font-bold text-green-700 mb-4">Request Submitted!</h1>
+        <p class="text-gray-700 font-bold mb-6">Please scan to go to details page and clock in/out.</p>
 
         {{-- QR CODE --}}
         <div id="qrcode" class="mx-auto w-48 h-48 cursor-pointer mb-4" title="Scan to Clock In / Clock Out"></div>
@@ -42,10 +43,6 @@
 
     {{-- Navigation --}}
     <div class="mt-6 flex flex-col gap-3">
-        <a href="{{ $qrUrl }}"
-           class="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition text-center">
-            Go to Details Page and Clock In/Out
-        </a>
 
         <a href="{{ route('overtime.create') }}"
            class="text-blue-600 hover:underline text-center text-sm">
