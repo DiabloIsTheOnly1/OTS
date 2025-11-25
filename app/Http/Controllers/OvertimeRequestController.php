@@ -107,63 +107,63 @@ class OvertimeRequestController extends Controller
         return view('overtime.details', compact('overtime'));
     }
 
-// Clock-in via QR
-public function clockin($id)
-{
-    $overtime = OvertimeRequest::findOrFail($id);
+    // Clock-in via QR
+    public function clockin($id)
+    {
+        $overtime = OvertimeRequest::findOrFail($id);
 
-    $clock = OvertimeClock::firstOrCreate([
-        'overtime_request_id' => $overtime->id
-    ]);
+        $clock = OvertimeClock::firstOrCreate([
+            'overtime_request_id' => $overtime->id
+        ]);
 
-    // Only clock in if not already done
-    if (!$clock->clock_in) {
-        $clock->clock_in = now();
-        $clock->save();
-        $message = 'Clocked In';
-        $scannedAt = $clock->clock_in;
-    } else {
-        $message = 'Already Clocked In';
-        $scannedAt = $clock->clock_in;
-    }
-
-    return view('overtime.clock_success', compact('overtime', 'clock', 'message', 'scannedAt'));
-}
-
-    public function clockOut($id)
-{
-    $overtime = OvertimeRequest::findOrFail($id);
-
-    // Get the clock entry
-    $clock = OvertimeClock::firstOrCreate([
-        'overtime_request_id' => $overtime->id
-    ]);
-
-    // Only clock out if not already done
-    if (!$clock->clock_out) {
-        $clock->clock_out = now();
-
-        // Calculate total time in seconds if clock_in exists
-        if ($clock->clock_in && $clock->clock_out) {
-            // Ensure Carbon instances (handle string values returned from DB)
-            $clockOut = $clock->clock_out instanceof \Carbon\Carbon ? $clock->clock_out : \Carbon\Carbon::parse($clock->clock_out);
-            $clockIn = $clock->clock_in instanceof \Carbon\Carbon ? $clock->clock_in : \Carbon\Carbon::parse($clock->clock_in);
-
-            // Compute absolute non-negative difference
-            $seconds = $clockIn->diffInSeconds($clockOut);
-            $clock->total_time_taken = $seconds;
+        // Only clock in if not already done
+        if (!$clock->clock_in) {
+            $clock->clock_in = now();
+            $clock->save();
+            $message = 'Clocked In';
+            $scannedAt = $clock->clock_in;
+        } else {
+            $message = 'Already Clocked In';
+            $scannedAt = $clock->clock_in;
         }
 
-        $clock->save();
-        $message = 'Clocked Out';
-        $scannedAt = $clock->clock_out;
-    } else {
-        $message = 'You have already clocked out';
-        $scannedAt = $clock->clock_out;
+        return view('overtime.clock_success', compact('overtime', 'clock', 'message', 'scannedAt'));
     }
 
-    return view('overtime.clock_success', compact('overtime', 'clock', 'message', 'scannedAt'));
-}
+    public function clockOut($id)
+    {
+        $overtime = OvertimeRequest::findOrFail($id);
+
+        // Get the clock entry
+        $clock = OvertimeClock::firstOrCreate([
+            'overtime_request_id' => $overtime->id
+        ]);
+
+        // Only clock out if not already done
+        if (!$clock->clock_out) {
+            $clock->clock_out = now();
+
+            // Calculate total time in seconds if clock_in exists
+            if ($clock->clock_in && $clock->clock_out) {
+                // Ensure Carbon instances (handle string values returned from DB)
+                $clockOut = $clock->clock_out instanceof \Carbon\Carbon ? $clock->clock_out : \Carbon\Carbon::parse($clock->clock_out);
+                $clockIn = $clock->clock_in instanceof \Carbon\Carbon ? $clock->clock_in : \Carbon\Carbon::parse($clock->clock_in);
+
+                // Compute absolute non-negative difference
+                $seconds = $clockIn->diffInSeconds($clockOut);
+                $clock->total_time_taken = $seconds;
+            }
+
+            $clock->save();
+            $message = 'Clocked Out';
+            $scannedAt = $clock->clock_out;
+        } else {
+            $message = 'You have already clocked out';
+            $scannedAt = $clock->clock_out;
+        }
+
+        return view('overtime.clock_success', compact('overtime', 'clock', 'message', 'scannedAt'));
+    }
 
 
     public function qr($id)
