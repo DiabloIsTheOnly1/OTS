@@ -27,8 +27,8 @@ class HRController extends Controller
             ->whereIn('department_id', $accessibleDepartments);
 
         // Filter by employee name
-        if ($request->filled('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%');
+        if ($request->filled('name')) {
+            $query->where('name', 'like', '%' . $request->name . '%');
         }
 
         // Filter by status
@@ -37,19 +37,30 @@ class HRController extends Controller
         }
 
         // Filter by selected branch
-        if ($request->filled('branch_id')) {
-            // ensure selected branch is allowed
-            if (in_array($request->branch_id, $accessibleBranches)) {
-                $query->where('branch_id', $request->branch_id);
-            }
+        if ($request->filled('branch_id') && in_array($request->branch_id, $accessibleBranches)) {
+            $query->where('branch_id', $request->branch_id);
         }
 
         // Filter by selected department
-        if ($request->filled('department_id')) {
-            if (in_array($request->department_id, $accessibleDepartments)) {
-                $query->where('department_id', $request->department_id);
-            }
+        if ($request->filled('department_id') && in_array($request->department_id, $accessibleDepartments)) {
+            $query->where('department_id', $request->department_id);
         }
+
+        // ------------------------------
+        // ⏳ DATE FILTERING
+        // ------------------------------
+
+        // From date
+        if ($request->filled('from')) {
+            $query->whereDate('date', '>=', $request->from);
+        }
+
+        // To date
+        if ($request->filled('to')) {
+            $query->whereDate('date', '<=', $request->to);
+        }
+
+        // ------------------------------
 
         $requests = $query->orderBy('status', 'asc')
             ->orderBy('date', 'desc')
@@ -61,6 +72,7 @@ class HRController extends Controller
 
         return view('hr.dashboard', compact('requests', 'branches', 'departments'));
     }
+
 
 
     /**

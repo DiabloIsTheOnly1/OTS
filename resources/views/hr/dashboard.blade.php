@@ -2,51 +2,85 @@
 
 @section('content')
     <h1 class="text-3xl font-bold text-blue-700 mb-8 tracking-tight">
-        HR Dashboard — Overtime Requests
+        Overtime Requests
     </h1>
 
     {{-- Filters --}}
-    <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 bg-white p-4 rounded-xl shadow">
+    <div class="bg-white rounded-xl shadow-sm p-6 mb-4">
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
 
-        {{-- Search --}}
-        <div>
-            <label class="text-xs text-gray-500">Search Employee</label>
-            <input type="text" name="search" placeholder="Employee name..." value="{{ request('search') }}"
-                class="border p-2 rounded w-full focus:ring-blue-500 focus:border-blue-500">
-        </div>
+            <!-- Branch -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Branch</label>
+                <select name="branch_id" class="mt-1 px-3 py-1 border w-full rounded-lg border-gray-300 shadow-sm">
+                    <option value="">All</option>
+                    @foreach ($branches as $branch)
+                        <option value="{{ $branch->id }}" {{ request('branch_id') == $branch->id ? 'selected' : '' }}>
+                            {{ $branch->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
 
-        {{-- Status --}}
-        <div>
-            <label class="text-xs text-gray-500">Status</label>
-            <select name="status" class="border p-2 rounded w-full focus:ring-blue-500 focus:border-blue-500">
-                <option value="">All Status</option>
-                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Approved</option>
-                <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Rejected</option>
-            </select>
-        </div>
+            <!-- Department -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Department</label>
+                <select name="department_id" class="mt-1 px-3 py-1 border w-full rounded-lg border-gray-300 shadow-sm">
+                    <option value="">All</option>
+                    @foreach ($departments as $dept)
+                        <option value="{{ $dept->id }}" {{ request('department_id') == $dept->id ? 'selected' : '' }}>
+                            {{ $dept->department_name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
 
-        {{-- Branch Filter --}}
-        <div>
-            <label class="text-xs text-gray-500">Branch</label>
-            <select name="branch_id" class="border p-2 rounded w-full focus:ring-blue-500 focus:border-blue-500">
-                <option value="">All Branches</option>
+            <!-- Employee Name -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Employee</label>
+                <input type="text" name="name" value="{{ request('name') }}"
+                    class="mt-1 px-3 py-1 border w-full rounded-lg border-gray-300 shadow-sm">
+            </div>
 
-                @foreach ($branches as $b)
-                    <option value="{{ $b->id }}" {{ request('branch_id') == $b->id ? 'selected' : '' }}>
-                        {{ $b->name }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
+            <!-- From -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700">From</label>
+                <input type="date" name="from" value="{{ request('from') }}"
+                    class="mt-1 px-3 py-1 border w-full rounded-lg border-gray-300 shadow-sm">
+            </div>
 
-        {{-- Button --}}
-        <div class="flex items-end">
-            <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 w-full">
-                Apply Filter
-            </button>
-        </div>
-    </form>
+            <!-- To -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700">To</label>
+                <input type="date" name="to" value="{{ request('to') }}"
+                    class="mt-1 px-3 py-1 border w-full rounded-lg border-gray-300 shadow-sm">
+            </div>
+
+            <!-- Status -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Status</label>
+                <select name="status" class="mt-1 px-3 py-1 border w-full rounded-lg border-gray-300 shadow-sm">
+                    <option value="">All</option>
+                    <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                    <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Approved</option>
+                    <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Rejected</option>
+                </select>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex space-x-2 mt-2 md:mt-0">
+                <button type="submit"
+                    class="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-sm text-white rounded-lg shadow-sm">
+                    Filter
+                </button>
+
+                <a href="{{ route('hr.dashboard') }}"
+                    class="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-sm text-gray-700 rounded-lg shadow-sm">
+                    Reset
+                </a>
+            </div>
+        </form>
+    </div>
 
     {{-- Table --}}
     <div class="bg-white shadow-xl rounded-xl overflow-hidden">

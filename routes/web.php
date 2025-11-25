@@ -62,16 +62,11 @@ Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::post('/overtime/submit', [OvertimeRequestController::class, 'store'])->name('overtime.submit');
 Route::get('/overtime/{id}/details', [OvertimeRequestController::class, 'details'])->name('overtime.details');
 
-// Clock In / Clock Out
-// Route::post('/clock-in/{id}', [OvertimeClockController::class, 'clockIn'])->name('clock.in');
-// Route::post('/clock-out/{id}', [OvertimeClockController::class, 'clockOut'])->name('clock.out');
-
-Route::get('/overtime/select', [OvertimeRequestController::class, 'selectPage'])->name('overtime.select');
+Route::get('/', [OvertimeRequestController::class, 'selectPage'])->name('overtime.select');
+Route::resource('overtime', OvertimeRequestController::class);
 
 Route::post('/overtime/set-filters', [OvertimeRequestController::class, 'setFilters'])
     ->name('overtime.setFilters');
-
-Route::resource('overtime', OvertimeRequestController::class);
 
 // Clock In
 Route::post('/overtime/clock-in/{overtime}', [OvertimeRequestController::class, 'clockIn'])
@@ -82,7 +77,7 @@ Route::post('overtime/clock-out/{id}', [OvertimeRequestController::class, 'clock
 
 
 //Show QR
-Route::get('/overtime/{id}/qr', [OvertimeRequestController::class, 'qr'])->name('overtime.qr');
+Route::get('/overtime/{id}/qr', [OvertimeRequestController::class, 'qr'])->name('overtime.success');
 
 
 

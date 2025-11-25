@@ -171,7 +171,7 @@ class OvertimeRequestController extends Controller
         $overtime = OvertimeRequest::with(['branch', 'department'])->findOrFail($id);
         $qrUrl = url('/overtime/' . $overtime->id . '/details');
 
-        return view('overtime.qr', compact('overtime', 'qrUrl'));
+        return view('overtime.success', compact('overtime', 'qrUrl'));
     }
 
 }

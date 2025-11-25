@@ -19,7 +19,7 @@
 
     <!-- FORM -->
     <form action="{{ route('overtime.store') }}" method="POST"
-          class="bg-white shadow border rounded p-6 space-y-6">
+          class="bg-white shadow border rounded p-6 space-y-4">
         @csrf
 
         <!-- 2 columns -->
@@ -28,21 +28,21 @@
             <!-- Name -->
             <div>
                 <label class="block font-semibold mb-1">Name</label>
-                <input type="text" name="name" class="w-full border p-2 rounded"
+                <input type="text" name="name" class="w-full border p-1 rounded"
                        value="{{ old('name') }}" required>
             </div>
 
             <!-- Position -->
             <div>
                 <label class="block font-semibold mb-1">Position</label>
-                <input type="text" name="position" class="w-full border p-2 rounded"
+                <input type="text" name="position" class="w-full border p-1 rounded"
                        value="{{ old('position') }}" required>
             </div>
 
             <!-- Branch -->
             <div>
                 <label class="block font-semibold mb-1">Branch</label>
-                <select name="branch_id" class="w-full border p-2 rounded" required>
+                <select name="branch_id" class="w-full border p-1 rounded" required>
                     <option value="">Select Branch</option>
                     @foreach($branches as $branch)
                         <option value="{{ $branch->id }}">{{ $branch->name }}</option>
@@ -53,7 +53,7 @@
             <!-- Department -->
             <div>
                 <label class="block font-semibold mb-1">Department</label>
-                <select name="department_id" class="w-full border p-2 rounded" required>
+                <select name="department_id" class="w-full border p-1 rounded" required>
                     <option value="">Select Department</option>
                     @foreach($departments as $dept)
                         <option value="{{ $dept->id }}">{{ $dept->department_name }}</option>
@@ -64,13 +64,13 @@
             <!-- Date -->
             <div>
                 <label class="block font-semibold mb-1">Date</label>
-                <input type="date" name="date" class="w-full border p-2 rounded" required>
+                <input type="date" name="date" class="w-full border p-1 rounded" required>
             </div>
 
             <!-- Work Description (full width) -->
             <div class="md:col-span-2">
                 <label class="block font-semibold mb-1">Work to be completed during OT</label>
-                <textarea name="reason" rows="4" class="w-full border p-2 rounded" required>{{ old('reason') }}</textarea>
+                <textarea name="reason" rows="4" class="w-full border p-1 rounded" required>{{ old('reason') }}</textarea>
             </div>
         </div>
 

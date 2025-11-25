@@ -75,7 +75,7 @@
                     class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
 
                     <!-- Branch -->
-                    <div>
+                    {{-- <div>
                         <label class="block text-sm font-medium text-gray-700">Branch</label>
                         <select name="branch_id" class="mt-1 px-3 py-1 border w-full rounded-lg border-gray-300 shadow-sm">
                             <option value="">All</option>
@@ -86,7 +86,7 @@
                                 </option>
                             @endforeach
                         </select>
-                    </div>
+                    </div> --}}
 
                     <!-- Employee Name -->
                     <div>
@@ -193,15 +193,15 @@
                                 <td class="px-4 py-3 text-sm font-medium">
                                     <div class="flex items-center space-x-2">
 
-                                        <a href="{{ route('overtime.qr', $req->id) }}"
+                                        <a href="{{ route('overtime.success', $req->id) }}"
                                             class="px-2 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 text-xs flex items-center">
                                             <i class="fas fa-eye mr-1"></i> QR
                                         </a>
 
-                                        <a href="{{ route('overtime.edit', $req->id) }}"
+                                        {{-- <a href="{{ route('overtime.edit', $req->id) }}"
                                             class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200 text-xs">
                                             <i class="fas fa-edit mr-1"></i> Edit
-                                        </a>
+                                        </a> --}}
 
                                     </div>
                                 </td>
