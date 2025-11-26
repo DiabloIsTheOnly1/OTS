@@ -20,8 +20,6 @@ class OvertimeRequest extends Model
         'reason',
         'start_time',
         'end_time',
-        'qr_code',
-        'clocked_in_at',
         'status',
     ];
 
@@ -46,9 +44,15 @@ class OvertimeRequest extends Model
         return $this->belongsTo(User::class, 'approved_by');
     }
 
-public function clock()
-{
-    return $this->hasOne(\App\Models\OvertimeClock::class);
-}
+    public function rejector()
+    {
+        return $this->belongsTo(User::class, 'rejected_by');
+    }
+
+    public function clocks()
+    {
+        return $this->hasMany(\App\Models\OvertimeClock::class);
+    }
+
 
 }

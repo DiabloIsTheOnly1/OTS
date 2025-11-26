@@ -43,13 +43,17 @@ Route::get('/overtime/request-form', [OvertimeRequestController::class, 'create'
 Route::post('/overtime', [OvertimeRequestController::class, 'store'])->name('overtime.store');
 
 // HR Dashboard (public view)
-Route::get('/hr/dashboard', [HRController::class, 'index'])
-    ->name('hr.dashboard');
 
 // Admin-only actions
 Route::middleware('auth')->group(function () {
+    Route::get('/hr/dashboard', [HRController::class, 'index'])
+        ->name('hr.dashboard');
     Route::post('/hr/overtime/{id}/approve', [HRController::class, 'approve'])->name('hr.overtime.approve');
     Route::post('/hr/overtime/{id}/reject', [HRController::class, 'reject'])->name('hr.overtime.reject');
+
+    Route::post('/hr/overtime/{id}/remarks', [HRController::class, 'updateRemarks'])
+        ->name('hr.overtime.remarks');
+
 });
 
 

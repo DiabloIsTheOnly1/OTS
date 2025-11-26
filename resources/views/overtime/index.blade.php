@@ -57,7 +57,7 @@
             </header>
 
             <!-- Branch / Department Summary - Side by Side -->
-            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="mb-2 grid grid-cols-1 md:grid-cols-2 gap-4">
 
                 <!-- Branch Card -->
                 <div class="bg-white shadow-sm rounded-xl p-4 border border-gray-100 flex items-center space-x-3">
@@ -103,7 +103,7 @@
                     class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
 
                     <!-- Branch -->
-                    {{-- <div>
+                    <div>
                         <label class="block text-sm font-medium text-gray-700">Branch</label>
                         <select name="branch_id" class="mt-1 px-3 py-1 border w-full rounded-lg border-gray-300 shadow-sm">
                             <option value="">All</option>
@@ -114,7 +114,7 @@
                                 </option>
                             @endforeach
                         </select>
-                    </div> --}}
+                    </div>
 
                     <!-- Employee Name -->
                     <div>
@@ -200,7 +200,7 @@
 
                                 <!-- Total Time -->
                                 <td class="px-4 py-3 text-sm font-medium text-blue-700">
-                                    {{ $req->clock ? $req->clock->total_hm : '-' }}
+                                    {{ $req->total_hm ?? '00:00' }}
                                 </td>
 
                                 <!-- Status -->

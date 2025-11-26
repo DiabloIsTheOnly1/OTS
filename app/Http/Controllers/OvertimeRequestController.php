@@ -44,9 +44,15 @@ class OvertimeRequestController extends Controller
         $branchId = session('ot_branch_id');
         $departmentId = session('ot_department_id');
 
-        $query = OvertimeRequest::with(['branch', 'department', 'clock'])
+        // Load request + all clock sessions
+        $query = OvertimeRequest::with(['branch', 'department', 'clocks'])
             ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
             ->when($departmentId, fn($q) => $q->where('department_id', $departmentId));
+
+        // --- Filters ---
+        if ($request->branch_id) {
+            $query->where('branch_id', $request->branch_id);
+        }
 
         // Filters (GET)
         if ($request->name) {
@@ -67,6 +73,17 @@ class OvertimeRequestController extends Controller
 
         $requests = $query->paginate(15);
 
+        /**
+         * Add total hours to each request
+         */
+        foreach ($requests as $req) {
+            $totalSec = $req->clocks->sum('total_time_taken');
+            $hours = floor($totalSec / 3600);
+            $minutes = floor(($totalSec % 3600) / 60);
+
+            $req->total_hm = sprintf('%02d:%02d', $hours, $minutes);
+        }
+
         return view('overtime.index', [
             'requests' => $requests,
             'branches' => Branch::all(),
@@ -75,6 +92,7 @@ class OvertimeRequestController extends Controller
             'department' => $department,
         ]);
     }
+
 
     // Show OT request form
     public function create()
@@ -123,7 +141,7 @@ class OvertimeRequestController extends Controller
 
     public function details($id)
     {
-        $overtime = OvertimeRequest::with('clock')->findOrFail($id);
+        $overtime = OvertimeRequest::with('clocks')->findOrFail($id);
 
         return view('overtime.details', compact('overtime'));
     }
@@ -133,57 +151,66 @@ class OvertimeRequestController extends Controller
     {
         $overtime = OvertimeRequest::findOrFail($id);
 
-        $clock = OvertimeClock::firstOrCreate([
-            'overtime_request_id' => $overtime->id
-        ]);
+        // Check if there is an unfinished clock entry
+        $lastClock = OvertimeClock::where('overtime_request_id', $overtime->id)
+            ->whereNull('clock_out')
+            ->latest()
+            ->first();
 
-        // Only clock in if not already done
-        if (!$clock->clock_in) {
-            $clock->clock_in = now();
-            $clock->save();
-            $message = 'Clocked In';
-            $scannedAt = $clock->clock_in;
-        } else {
-            $message = 'Already Clocked In';
-            $scannedAt = $clock->clock_in;
+        if ($lastClock) {
+            return back()->with('error', 'Please clock out before clocking in again.');
         }
 
-        return view('overtime.clock_success', compact('overtime', 'clock', 'message', 'scannedAt'));
+        // Create new clock entry
+        $clock = OvertimeClock::create([
+            'overtime_request_id' => $overtime->id,
+            'clock_in' => now(),
+        ]);
+
+        return view('overtime.clock_success', [
+            'overtime' => $overtime,
+            'clock' => $clock,
+            'message' => 'Clocked In',
+            'scannedAt' => $clock->clock_in,
+        ]);
     }
+
 
     public function clockOut($id)
     {
         $overtime = OvertimeRequest::findOrFail($id);
 
-        // Get the clock entry
-        $clock = OvertimeClock::firstOrCreate([
-            'overtime_request_id' => $overtime->id
-        ]);
+        // Get the latest incomplete clock entry
+        $clock = OvertimeClock::where('overtime_request_id', $overtime->id)
+            ->whereNull('clock_out')
+            ->latest()
+            ->first();
 
-        // Only clock out if not already done
-        if (!$clock->clock_out) {
-            $clock->clock_out = now();
-
-            // Calculate total time in seconds if clock_in exists
-            if ($clock->clock_in && $clock->clock_out) {
-                // Ensure Carbon instances (handle string values returned from DB)
-                $clockOut = $clock->clock_out instanceof \Carbon\Carbon ? $clock->clock_out : \Carbon\Carbon::parse($clock->clock_out);
-                $clockIn = $clock->clock_in instanceof \Carbon\Carbon ? $clock->clock_in : \Carbon\Carbon::parse($clock->clock_in);
-
-                // Compute absolute non-negative difference
-                $seconds = $clockIn->diffInSeconds($clockOut);
-                $clock->total_time_taken = $seconds;
-            }
-
-            $clock->save();
-            $message = 'Clocked Out';
-            $scannedAt = $clock->clock_out;
-        } else {
-            $message = 'You have already clocked out';
-            $scannedAt = $clock->clock_out;
+        if (!$clock) {
+            return back()->with('error', 'No active clock-in found.');
         }
 
-        return view('overtime.clock_success', compact('overtime', 'clock', 'message', 'scannedAt'));
+        $clock->clock_out = now();
+
+        // Calculate total seconds for this session
+        $start = $clock->clock_in instanceof \Carbon\Carbon
+            ? $clock->clock_in
+            : \Carbon\Carbon::parse($clock->clock_in);
+
+        $end = $clock->clock_out instanceof \Carbon\Carbon
+            ? $clock->clock_out
+            : \Carbon\Carbon::parse($clock->clock_out);
+
+        $clock->total_time_taken = $start->diffInSeconds($end);
+
+        $clock->save();
+
+        return view('overtime.clock_success', [
+            'overtime' => $overtime,
+            'clock' => $clock,
+            'message' => 'Clocked Out',
+            'scannedAt' => $clock->clock_out,
+        ]);
     }
 
 

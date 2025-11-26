@@ -88,16 +88,13 @@
             <thead class="bg-blue-50 text-gray-700 border-b">
                 <tr>
                     <th class="p-3 text-left font-semibold">Date</th>
-                    <th class="p-3 text-left font-semibold">Branch</th>
-                    <th class="p-3 text-left font-semibold">Name</th>
-                    <th class="p-3 text-left font-semibold">Dept</th>
-                    <th class="p-3 text-left font-semibold">Clock In</th>
-                    <th class="p-3 text-left font-semibold">Clock Out</th>
-                    <th class="p-3 text-left font-semibold">Hours</th>
+                    <th class="p-3 text-left font-semibold">Employee</th>
+                    <th class="p-3 text-left font-semibold">Clock in/Out</th>
+                    <th class="p-3 text-center font-semibold">Total Hours</th>
                     <th class="p-3 text-left font-semibold">Reason</th>
-                    <th class="p-3 text-left font-semibold">Status</th>
-                    <th class="p-3 text-left font-semibold">Approved By</th>
-                    <th class="p-3 text-left font-semibold text-center">Actions</th>
+                    <th class="p-3 text-center font-semibold">Status</th>
+                    <th class="p-3 font-semibold text-center">Approval</th>
+                    <th class="p-3 text-left font-semibold">Remarks</th>
                 </tr>
             </thead>
 
@@ -114,24 +111,54 @@
 
                     <tr class="{{ $bg }} border-b hover:bg-gray-100 transition">
                         <td class="p-3">{{ $r->date->format('d M Y') }}</td>
-                        <td class="p-3">{{ $r->branch->name }}</td>
-                        <td class="p-3 font-semibold text-gray-800">{{ $r->name }}</td>
-                        <td class="p-3">{{ $r->department?->department_name ?? '-' }}</td>
-
-                        {{-- Clock In --}}
                         <td class="p-3">
-                            {{ $r->clock?->clock_in ? $r->clock->clock_in->format('H:i') : '-' }}
+                            <div class="space-y-1">
+                                <p class="font-semibold text-gray-900 text-sm">{{ $r->name }}</p>
+                                <div class="flex items-center space-x-1 text-xs text-gray-500">
+                                    <span>{{ $r->branch?->name ?? '-' }}</span>
+                                    <span>•</span>
+                                    <span>{{ $r->department?->department_name ?? '-' }}</span>
+                                </div>
+                            </div>
                         </td>
 
-                        {{-- Clock Out --}}
+                        {{-- Sessions --}}
                         <td class="p-3">
-                            {{ $r->clock?->clock_out ? $r->clock->clock_out->format('H:i') : '-' }}
+                            <div class="space-y-2">
+                                @forelse ($r->clocks as $session)
+                                    <div class="px-2 py-1 bg-gray-50 rounded-lg border border-gray-200">
+                                        <div class="flex items-center justify-between text-sm">
+                                            <div class="flex items-center space-x-3">
+                                                <div class="flex items-center space-x-1">
+                                                    <span class="font-medium text-gray-600">In:</span>
+                                                    <span
+                                                        class="text-gray-900">{{ $session->clock_in ? $session->clock_in->format('H:i') : '-' }}</span>
+                                                </div>
+                                                <div class="flex items-center space-x-1">
+                                                    <span class="font-medium text-gray-600">Out:</span>
+                                                    <span
+                                                        class="text-gray-900">{{ $session->clock_out ? $session->clock_out->format('H:i') : '-' }}</span>
+                                                </div>
+                                            </div>
+                                            <div class="font-medium text-blue-600 text-xs bg-blue-50 px-2 py-1 rounded">
+                                                {{ $session->total_hm }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <span class="text-gray-400 text-sm">-</span>
+                                @endforelse
+                            </div>
                         </td>
 
-                        <td class="p-3">{{ $r->clock?->total_hm ?? '-' }}</td>
+                        {{-- Total Hours --}}
+                        <td class="p-3 font-semibold text-blue-700 text-center">
+                            {{ $r->total_hm }}
+                        </td>
+
                         <td class="p-3">{{ $r->reason ?? '-' }}</td>
 
-                        <td class="p-3">
+                        <td class="p-3 text-center">
                             <span
                                 class="px-3 py-1 rounded-full text-xs font-semibold
                         @if ($r->status == 'pending') bg-yellow-200 text-yellow-800
@@ -141,10 +168,8 @@
                             </span>
                         </td>
 
-                        <td class="p-3">{{ $r->approver?->username ?? '-' }}</td>
-
                         <td class="p-3 text-center">
-                            @if (auth()->check() && $r->status == 'pending')
+                            @if ($r->status === 'pending')
                                 <div class="flex gap-2 justify-center">
                                     <form action="{{ route('hr.overtime.approve', $r->id) }}" method="POST">
                                         @csrf
@@ -162,9 +187,56 @@
                                     </form>
                                 </div>
                             @else
-                                <span class="text-gray-400 text-xs">No actions</span>
+                                {{-- Show approver or rejector --}}
+                                @if ($r->status === 'approved')
+                                    <p class="text-xs">Approved by</p>
+                                    <span class="font-semibold text-gray-800">
+                                        {{ $r->approver?->username ?? '-' }}
+                                    </span>
+                                @else
+                                    <p class="text-xs">Rejected by</p>
+                                    <span class="font-semibold text-gray-800">
+                                        {{ $r->approver?->username ?? '-' }}
+                                    </span>
+                                @endif
                             @endif
                         </td>
+
+                        <td class="p-3 relative group">
+
+                            {{-- Display text mode --}}
+                            <div class="flex items-center gap-2 remark-display">
+                                <span class="text-gray-800">
+                                    {{ $r->remarks ?: '-' }}
+                                </span>
+
+                                {{-- Edit icon (hidden until hover) --}}
+                                <button type="button"
+                                    class="hidden group-hover:inline-block text-blue-600 hover:text-blue-800 text-xs remark-edit-btn">
+                                    ✏️
+                                </button>
+                            </div>
+
+                            {{-- Edit mode --}}
+                            <form action="{{ route('hr.overtime.remarks', $r->id) }}" method="POST"
+                                class="hidden remark-edit-form mt-1 flex items-center gap-1">
+                                @csrf
+
+                                <input type="text" name="remarks" value="{{ $r->remarks }}"
+                                    class="border rounded px-2 py-1 text-sm w-32">
+
+                                <button type="submit"
+                                    class="bg-blue-500 text-white text-xs px-2 py-1 rounded hover:bg-blue-600">
+                                    Save
+                                </button>
+
+                                {{-- Cancel --}}
+                                <button type="button" class="text-gray-500 text-xs px-2 py-1 remark-cancel-btn">
+                                    Cancel
+                                </button>
+                            </form>
+                        </td>
+
                     </tr>
 
                 @empty
@@ -177,4 +249,30 @@
             </tbody>
         </table>
     </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            document.querySelectorAll("td").forEach(cell => {
+                const editBtn = cell.querySelector(".remark-edit-btn");
+                const displayDiv = cell.querySelector(".remark-display");
+                const form = cell.querySelector(".remark-edit-form");
+                const cancelBtn = cell.querySelector(".remark-cancel-btn");
+
+                if (!editBtn || !form) return;
+
+                // Enter edit mode
+                editBtn.addEventListener("click", () => {
+                    displayDiv.classList.add("hidden");
+                    form.classList.remove("hidden");
+                });
+
+                // Cancel edit mode
+                cancelBtn.addEventListener("click", () => {
+                    form.classList.add("hidden");
+                    displayDiv.classList.remove("hidden");
+                });
+            });
+        });
+    </script>
+
 @endsection

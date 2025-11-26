@@ -17,63 +17,53 @@ class HRController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        // Branch and department access lists
         $accessibleBranches = $user->branches()->pluck('branch.id')->toArray();
         $accessibleDepartments = $user->department()->pluck('departments.id')->toArray();
 
-        // Base query: filter by user's branch + department
-        $query = OvertimeRequest::with(['clock', 'department', 'approver'])
+        $query = OvertimeRequest::with(['clocks', 'department', 'approver', 'rejector'])
             ->whereIn('branch_id', $accessibleBranches)
             ->whereIn('department_id', $accessibleDepartments);
 
-        // Filter by employee name
+        // Filters
         if ($request->filled('name')) {
             $query->where('name', 'like', '%' . $request->name . '%');
         }
-
-        // Filter by status
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
-
-        // Filter by selected branch
         if ($request->filled('branch_id') && in_array($request->branch_id, $accessibleBranches)) {
             $query->where('branch_id', $request->branch_id);
         }
-
-        // Filter by selected department
         if ($request->filled('department_id') && in_array($request->department_id, $accessibleDepartments)) {
             $query->where('department_id', $request->department_id);
         }
-
-        // ------------------------------
-        // ⏳ DATE FILTERING
-        // ------------------------------
-
-        // From date
         if ($request->filled('from')) {
             $query->whereDate('date', '>=', $request->from);
         }
-
-        // To date
         if ($request->filled('to')) {
             $query->whereDate('date', '<=', $request->to);
         }
-
-        // ------------------------------
 
         $requests = $query->orderBy('status', 'asc')
             ->orderBy('date', 'desc')
             ->get();
 
-        // For dropdown filters
+        // ---- Compute total time for all sessions ----
+        foreach ($requests as $r) {
+            $totalSeconds = $r->clocks->sum('total_time_taken');
+
+            $hours = floor($totalSeconds / 3600);
+            $minutes = floor(($totalSeconds % 3600) / 60);
+
+            $r->total_hm = sprintf('%02d:%02d', $hours, $minutes);
+        }
+
+        // Dropdowns
         $branches = $user->branches()->get();
         $departments = $user->department()->get();
 
         return view('hr.dashboard', compact('requests', 'branches', 'departments'));
     }
-
-
 
     /**
      * Approve an overtime request.
@@ -102,4 +92,24 @@ class HRController extends Controller
 
         return redirect()->back()->with('success', 'Overtime request rejected.');
     }
+
+    public function updateRemarks(Request $request, $id)
+    {
+        $request->validate([
+            'remarks' => 'nullable|string|max:255',
+        ]);
+
+        $ot = OvertimeRequest::findOrFail($id);
+
+        // Only allow editing while pending
+        // if ($ot->status !== 'pending') {
+        //     return back()->with('error', 'Cannot update remarks after approval/rejection.');
+        // }
+
+        $ot->remarks = $request->remarks;
+        $ot->save();
+
+        return back()->with('success', 'Remarks updated.');
+    }
+
 }

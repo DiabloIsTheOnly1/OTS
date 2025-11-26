@@ -29,8 +29,8 @@ return new class extends Migration
             $table->timestamp('approved_at')->nullable();
 
             // New fields for rejection
-            $table->unsignedBigInteger('rejected_by')->nullable();
-            $table->timestamp('rejected_at')->nullable();
+            // $table->unsignedBigInteger('rejected_by')->nullable();
+            // $table->timestamp('rejected_at')->nullable();
 
             $table->text('remarks')->nullable();
 
@@ -40,6 +40,7 @@ return new class extends Migration
             $table->foreign('branch_id')->references('id')->on('branch')->onDelete('cascade');
             $table->foreign('department_id')->references('id')->on('departments')->onDelete('cascade');
             $table->foreign('approved_by')->references('id')->on('users')->nullOnDelete();
+
         });
     }
 
