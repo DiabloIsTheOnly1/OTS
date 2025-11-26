@@ -45,7 +45,10 @@
                 <select name="branch_id" class="w-full border p-1 rounded" required>
                     <option value="">Select Branch</option>
                     @foreach($branches as $branch)
-                        <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+                        <<option value="{{ $branch->id }}"
+                        {{ ($selectedBranch == $branch->id) ? 'selected' : '' }}>
+                        {{ $branch->name }}
+                    </option>
                     @endforeach
                 </select>
             </div>
@@ -56,7 +59,10 @@
                 <select name="department_id" class="w-full border p-1 rounded" required>
                     <option value="">Select Department</option>
                     @foreach($departments as $dept)
-                        <option value="{{ $dept->id }}">{{ $dept->department_name }}</option>
+                        <<option value="{{ $dept->id }}"
+                        {{ ($selectedDepartment == $dept->id) ? 'selected' : '' }}>
+                        {{ $dept->department_name }}
+                    </option>
                     @endforeach
                 </select>
             </div>

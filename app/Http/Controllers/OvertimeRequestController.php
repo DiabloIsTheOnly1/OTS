@@ -21,6 +21,12 @@ class OvertimeRequestController extends Controller
 
     public function setFilters(Request $request)
     {
+
+        $request->validate([
+            'branch_id' => 'required',
+            'department_id' => 'required',
+        ]);
+
         session([
             'ot_branch_id' => $request->branch_id,
             'ot_department_id' => $request->department_id,
@@ -31,21 +37,18 @@ class OvertimeRequestController extends Controller
 
     public function index(Request $request)
     {
-        // Default filters from session
+        $branch = Branch::find(session('ot_branch_id'));
+        $department = Department::find(session('ot_department_id'));
+
+        // Default filters
         $branchId = session('ot_branch_id');
         $departmentId = session('ot_department_id');
-
-        // $branches = Branch::whereIn('id', auth()->user()->branches->pluck('id'))->get();
-        // $departments = Department::all();
 
         $query = OvertimeRequest::with(['branch', 'department', 'clock'])
             ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
             ->when($departmentId, fn($q) => $q->where('department_id', $departmentId));
-        // --- Filters ---
-        if ($request->branch_id) {
-            $query->where('branch_id', $request->branch_id);
-        }
 
+        // Filters (GET)
         if ($request->name) {
             $query->where('name', 'like', "%{$request->name}%");
         }
@@ -68,6 +71,8 @@ class OvertimeRequestController extends Controller
             'requests' => $requests,
             'branches' => Branch::all(),
             'departments' => Department::all(),
+            'branch' => $branch,
+            'department' => $department,
         ]);
     }
 
@@ -77,8 +82,24 @@ class OvertimeRequestController extends Controller
         $branches = Branch::all();
         $departments = Department::all();
 
-        return view('overtime.form', compact('branches', 'departments'));
+        $selectedBranch = session('ot_branch_id');
+        $selectedDepartment = session('ot_department_id');
+
+        if (session()->has('ot_branch_id')) {
+            $branch = Branch::find(session('ot_branch_id'));
+        } 
+    
+        if (session()->has('ot_department_id')) {
+            $departments = Department::where('id', session('ot_department_id'))->get();
+        } 
+        
+        return view('overtime.form', compact('branches', 'departments', 'selectedBranch', 'selectedDepartment'));
     }
+
+
+
+
+
 
     // Store OT request
     public function store(Request $request)
@@ -174,4 +195,7 @@ class OvertimeRequestController extends Controller
         return view('overtime.success', compact('overtime', 'qrUrl'));
     }
 
-}
+   
+    }
+
+

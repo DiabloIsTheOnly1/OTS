@@ -58,15 +58,22 @@ Route::get('/login', [AuthController::class, 'loginPage'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 
+
+Route::get('/overtime/index', [OvertimeRequestController::class, 'index'])
+    ->name('overtime.index');
+
 // Overtime submission + detail page
 Route::post('/overtime/submit', [OvertimeRequestController::class, 'store'])->name('overtime.submit');
 Route::get('/overtime/{id}/details', [OvertimeRequestController::class, 'details'])->name('overtime.details');
 
-Route::get('/', [OvertimeRequestController::class, 'selectPage'])->name('overtime.select');
-Route::resource('overtime', OvertimeRequestController::class);
+// 1. Filter selection page
+Route::get('/', [OvertimeRequestController::class, 'selectPage'])
+    ->name('overtime.select');
 
+// 2. Set filters (POST)
 Route::post('/overtime/set-filters', [OvertimeRequestController::class, 'setFilters'])
     ->name('overtime.setFilters');
+
 
 // Clock In
 Route::post('/overtime/clock-in/{overtime}', [OvertimeRequestController::class, 'clockIn'])
@@ -83,13 +90,6 @@ Route::get('/overtime/{id}/qr', [OvertimeRequestController::class, 'qr'])->name(
 
 
 
-/* Show QR after submitting
-Route::get('/overtime/{id}/qr', [OvertimeRequestController::class, 'showQR'])->name('overtime.qr');
 
-//Clock In/Out via QR Code
-Route::get('/overtime/{id}/clock', [OvertimeClockController::class, 'clock'])
-    ->name('overtime.clock');
-
-*/
 
 

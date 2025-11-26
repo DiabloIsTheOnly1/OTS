@@ -26,7 +26,7 @@
                 <!-- Branch -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Branch</label>
-                    <select name="branch_id" class="w-full px-3 py-2 border rounded-lg">
+                    <select id="branch_id" name="branch_id" class="w-full px-3 py-2 border rounded-lg">
                         <option value="">Select Branch</option>
                         @foreach ($branches as $branch)
                             <option value="{{ $branch->id }}">{{ $branch->name }}</option>
@@ -37,7 +37,7 @@
                 <!-- Department -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Department</label>
-                    <select name="department_id" class="w-full px-3 py-2 border rounded-lg">
+                    <select id="department_id" name="department_id" class="w-full px-3 py-2 border rounded-lg">
                         <option value="">All Departments</option>
                         @foreach ($departments as $dept)
                             <option value="{{ $dept->id }}">{{ $dept->department_name }}</option>
@@ -45,10 +45,36 @@
                     </select>
                 </div>
 
-                <button class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg mt-4">
+                <button id="submitBtn" type="submit" class="w-full text-white py-2 rounded-lg mt-4 bg-gray-300 cursor-not-allowed" disabled>
                     Continue
                 </button>
             </form>
+
+            <script>
+            const branch_id = document.getElementById('branch_id');
+            const department_id = document.getElementById('department_id');
+            const submitBtn = document.getElementById('submitBtn');
+
+            function validateForm() {
+
+                if (branch_id.value && department_id.value) {
+                    // Enable button
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('bg-gray-400', 'cursor-not-allowed');
+                    submitBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                } else {
+                    // Disable button
+                    submitBtn.disabled = true;
+                    submitBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                    submitBtn.classList.add('bg-gray-400', 'cursor-not-allowed');
+                }
+            }
+
+            branch_id.addEventListener('change', validateForm);
+            department_id.addEventListener('change', validateForm);
+            </script>
+
+
         </div>
     </div>
     @endsection

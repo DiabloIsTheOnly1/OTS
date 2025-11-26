@@ -56,6 +56,34 @@
                 </a>
             </header>
 
+            <!-- Branch / Department Summary - Side by Side -->
+            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                <!-- Branch Card -->
+                <div class="bg-white shadow-sm rounded-xl p-4 border border-gray-100 flex items-center space-x-3">
+                    <div class="p-2 rounded-lg bg-blue-50 text-blue-600">
+                        <i class="fas fa-building text-lg"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Branch</p>
+                        <p class="text-lg font-semibold text-gray-800">{{ $branch->name }}</p>
+                    </div>
+                </div>
+
+                <!-- Department Card -->
+                <div class="bg-white shadow-sm rounded-xl p-4 border border-gray-100 flex items-center space-x-3">
+                    <div class="p-2 rounded-lg bg-green-50 text-green-600">
+                        <i class="fas fa-sitemap text-lg"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Department</p>
+                        <p class="text-lg font-semibold text-gray-800">{{ $department->department_name }}</p>
+                    </div>
+                </div>
+
+            </div>
+
+
             <!-- Flash Messages -->
             @if (session('success'))
                 <div class="mb-4 p-3 bg-green-100 text-green-800 rounded">
