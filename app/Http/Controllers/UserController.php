@@ -22,18 +22,20 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name'           => 'required|string|max:255',
-            'username'       => 'required|string|max:100|unique:users,username',
-            'password'       => 'required|string|min:4',
-            'department_id'  => 'nullable|exists:departments,id',
-            'branches'       => 'array',
+            'name' => 'required|string|max:255',
+            'username' => 'required|string|max:100|unique:users,username',
+            'password' => 'required|string|min:4',
+            'department_id' => 'nullable|exists:departments,id',
+            'branches' => 'array',
+            'access_all_departments' => 'boolean',
         ]);
 
         $user = User::create([
-            'name'          => $request->name,
-            'username'      => $request->username,
-            'password'      => $request->password,
+            'name' => $request->name,
+            'username' => $request->username,
+            'password' => $request->password,
             'department_id' => $request->department_id,
+            'access_all_departments' => $request->access_all_departments ? 1 : 0,
         ]);
 
         $user->branches()->sync($request->branches ?? []);
@@ -46,16 +48,18 @@ class UserController extends Controller
         $user = User::findOrFail($id);
 
         $request->validate([
-            'name'          => 'required|string|max:255',
-            'username'      => 'required|string|max:100|unique:users,username,' . $user->id,
-            'password'      => 'nullable|string|min:4',
+            'name' => 'required|string|max:255',
+            'username' => 'required|string|max:100|unique:users,username,' . $user->id,
+            'password' => 'nullable|string|min:4',
             'department_id' => 'nullable|exists:departments,id',
-            'branches'      => 'array',
+            'branches' => 'array',
+            'access_all_departments' => 'boolean',
         ]);
 
         $user->name = $request->name;
         $user->username = $request->username;
         $user->department_id = $request->department_id;
+        $user->access_all_departments = $request->access_all_departments ? 1 : 0;
 
         if ($request->filled('password')) {
             $user->password = $request->password;

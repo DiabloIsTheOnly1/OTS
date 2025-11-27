@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\OvertimeRequest;
 use App\Models\User;
+use App\Models\Department;
 
 class HRController extends Controller
 {
@@ -17,14 +18,32 @@ class HRController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
+        // -------------------------------
+        // Branch access (same as before)
+        // -------------------------------
         $accessibleBranches = $user->branches()->pluck('branch.id')->toArray();
-        $accessibleDepartments = $user->department()->pluck('departments.id')->toArray();
 
+        // -------------------------------
+        // Department access
+        // -------------------------------
+        if ($user->access_all_departments) {
+            // user can view every department
+            $accessibleDepartments = Department::pluck('id')->toArray();
+        } else {
+            // user restricted to his assigned department
+            $accessibleDepartments = [$user->department_id];
+        }
+
+        // -------------------------------
+        // Base query with access limits
+        // -------------------------------
         $query = OvertimeRequest::with(['clocks', 'department', 'approver', 'rejector'])
             ->whereIn('branch_id', $accessibleBranches)
             ->whereIn('department_id', $accessibleDepartments);
 
+        // -------------------------------
         // Filters
+        // -------------------------------
         if ($request->filled('name')) {
             $query->where('name', 'like', '%' . $request->name . '%');
         }
@@ -44,11 +63,16 @@ class HRController extends Controller
             $query->whereDate('date', '<=', $request->to);
         }
 
+        // -------------------------------
+        // Fetch results
+        // -------------------------------
         $requests = $query->orderBy('status', 'asc')
             ->orderBy('date', 'desc')
             ->get();
 
-        // ---- Compute total time for all sessions ----
+        // -------------------------------
+        // Compute total time for each request
+        // -------------------------------
         foreach ($requests as $r) {
             $totalSeconds = $r->clocks->sum('total_time_taken');
 
@@ -58,9 +82,14 @@ class HRController extends Controller
             $r->total_hm = sprintf('%02d:%02d', $hours, $minutes);
         }
 
-        // Dropdowns
+        // -------------------------------
+        // Dropdown lists
+        // -------------------------------
         $branches = $user->branches()->get();
-        $departments = $user->department()->get();
+
+        $departments = $user->access_all_departments
+            ? Department::all()
+            : Department::where('id', $user->department_id)->get();
 
         return view('hr.dashboard', compact('requests', 'branches', 'departments'));
     }

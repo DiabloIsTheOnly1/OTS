@@ -36,6 +36,8 @@ return new class extends Migration {
                 ->constrained('departments')
                 ->nullOnDelete();
 
+            $table->boolean('access_all_departments')->default(false);
+
             $table->rememberToken();
             $table->timestamps();
         });
