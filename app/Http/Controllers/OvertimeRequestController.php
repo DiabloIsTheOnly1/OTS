@@ -77,11 +77,23 @@ class OvertimeRequestController extends Controller
          * Add total hours to each request
          */
         foreach ($requests as $req) {
+            // --- Total H:M ---
             $totalSec = $req->clocks->sum('total_time_taken');
             $hours = floor($totalSec / 3600);
             $minutes = floor(($totalSec % 3600) / 60);
-
             $req->total_hm = sprintf('%02d:%02d', $hours, $minutes);
+
+            // --- Clock In (earliest) ---
+            $firstClockIn = $req->clocks->min('clock_in');
+            $req->clock_in_display = $firstClockIn
+                ? date('H:i', strtotime($firstClockIn))
+                : '-';
+
+            // --- Clock Out (latest) ---
+            $lastClockOut = $req->clocks->max('clock_out');
+            $req->clock_out_display = $lastClockOut
+                ? date('H:i', strtotime($lastClockOut))
+                : '-';
         }
 
         return view('overtime.index', [
@@ -105,12 +117,12 @@ class OvertimeRequestController extends Controller
 
         if (session()->has('ot_branch_id')) {
             $branch = Branch::find(session('ot_branch_id'));
-        } 
-    
+        }
+
         if (session()->has('ot_department_id')) {
             $departments = Department::where('id', session('ot_department_id'))->get();
-        } 
-        
+        }
+
         return view('overtime.form', compact('branches', 'departments', 'selectedBranch', 'selectedDepartment'));
     }
 
@@ -222,7 +234,7 @@ class OvertimeRequestController extends Controller
         return view('overtime.success', compact('overtime', 'qrUrl'));
     }
 
-   
-    }
+
+}
 
 

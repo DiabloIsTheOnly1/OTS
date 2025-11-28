@@ -1,5 +1,8 @@
-<nav class="bg-gradient-to-r from-gray-900 to-blue-900 text-white shadow-lg">
+<nav x-data="{ open: false }"
+     class="bg-gradient-to-r from-gray-900 to-blue-900 text-white shadow-lg">
     <div class="max-w-10xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <!-- MAIN NAVBAR -->
         <div class="flex justify-between items-center py-3">
 
             {{-- OT Logo --}}
@@ -32,6 +35,7 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
                         <span class="text-sm font-medium">Logout</span>
                     </a>
+
                 @else
                     {{-- Login Button (Desktop) --}}
                     <a href="{{ route('login') }}" class="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 py-2 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105 min-w-max">
@@ -87,5 +91,30 @@
                 </div>
             </details>
         </div>
+
+        <!-- MOBILE DROPDOWN MENU -->
+        <div x-show="open" x-transition.origin.top class="sm:hidden bg-gray-800 rounded-lg p-3 space-y-2">
+
+            @auth
+                <a href="{{ route('hr.dashboard') }}"
+                    class="block bg-blue-700 hover:bg-blue-800 px-4 py-2 rounded-md text-sm">Request List</a>
+
+                <a href="{{ route('settings.index') }}"
+                    class="block bg-blue-700 hover:bg-blue-800 px-4 py-2 rounded-md text-sm">Settings</a>
+
+                <a href="{{ route('logout') }}"
+                    class="block bg-red-600 hover:bg-red-700 px-4 py-2 rounded-md text-sm">Logout</a>
+
+                <div class="bg-gray-700 px-4 py-2 rounded-md text-sm">
+                    Logged in as <strong>{{ auth()->user()->username }}</strong>
+                </div>
+
+            @else
+                <a href="{{ route('login') }}"
+                    class="block bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md text-sm">Login</a>
+            @endauth
+
+        </div>
+
     </div>
 </nav>
