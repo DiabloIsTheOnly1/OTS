@@ -1,53 +1,78 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-2xl mx-auto bg-white shadow rounded-xl p-6">
+<div class="max-w-3xl mx-auto bg-white shadow-lg rounded-2xl p-8 mt-6">
 
-    <h2 class="text-xl font-bold mb-4">Overtime Request Details</h2>
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">Overtime Request Details</h2>
 
     {{-- Messages --}}
     @if(session('success'))
-        <div class="p-3 mb-3 bg-green-100 text-green-700 rounded">{{ session('success') }}</div>
+        <div class="p-3 mb-4 bg-green-100 text-green-700 border border-green-300 rounded-lg">
+            {{ session('success') }}
+        </div>
     @endif
 
     @if(session('error'))
-        <div class="p-3 mb-3 bg-red-100 text-red-700 rounded">{{ session('error') }}</div>
+        <div class="p-3 mb-4 bg-red-100 text-red-700 border border-red-300 rounded-lg">
+            {{ session('error') }}
+        </div>
     @endif
 
     {{-- Details --}}
-    <div class="mb-6">
-    <p><strong>Name:</strong> {{ $overtime->name }}</p>
-    <p><strong>Branch:</strong> {{ $overtime->branch->name ?? 'N/A' }}</p>
-    <p><strong>Department:</strong> {{ $overtime->department->department_name ?? 'N/A' }}</p>
-    <p><strong>Date:</strong> {{ $overtime->date->format('d M Y') }}</p>
-    <p><strong>Reason:</strong> {{ $overtime->reason }}</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-4 mb-8">
 
-    @if($overtime->clock)
-        <p><strong>Clock In:</strong> {{ $overtime->clock->clock_in ?? 'Not yet' }}</p>
-        <p><strong>Clock Out:</strong> {{ $overtime->clock->clock_out ?? 'Not yet' }}</p>
-        <p><strong>Total:</strong> {{ $overtime->clock->total_hm ?? '0' }} hours</p>
-    @endif
-</div>
+        <p><span class="font-semibold text-gray-700">Name:</span><br>
+            <span class="text-gray-900">{{ $overtime->name }}</span>
+        </p>
 
-    {{-- QR --}}
-    {{-- <div class="text-center mb-6">
-        <img src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&data={{ urlencode($qrUrl) }}" class="mx-auto">
-        <p class="text-sm mt-2">Scan to view this page</p>
-    </div> }}--]]
+        <p><span class="font-semibold text-gray-700">Branch:</span><br>
+            <span class="text-gray-900">{{ $overtime->branch->name ?? 'N/A' }}</span>
+        </p>
+
+        <p><span class="font-semibold text-gray-700">Department:</span><br>
+            <span class="text-gray-900">{{ $overtime->department->department_name ?? 'N/A' }}</span>
+        </p>
+
+        <p><span class="font-semibold text-gray-700">Date:</span><br>
+            <span class="text-gray-900">{{ $overtime->date->format('d M Y') }}</span>
+        </p>
+
+        <div class="sm:col-span-2">
+            <p><span class="font-semibold text-gray-700">Reason:</span><br>
+                <span class="text-gray-900">{{ $overtime->reason }}</span>
+            </p>
+        </div>
+
+        @if($overtime->clock)
+            <p><span class="font-semibold text-gray-700">Clock In:</span><br>
+                <span class="text-gray-900">{{ $overtime->clock->clock_in ?? 'Not yet' }}</span>
+            </p>
+
+            <p><span class="font-semibold text-gray-700">Clock Out:</span><br>
+                <span class="text-gray-900">{{ $overtime->clock->clock_out ?? 'Not yet' }}</span>
+            </p>
+
+            <p class="sm:col-span-2">
+                <span class="font-semibold text-gray-700">Total Time:</span><br>
+                <span class="text-gray-900">{{ $overtime->clock->total_hm ?? '0' }} hours</span>
+            </p>
+        @endif
+
+    </div>
 
     {{-- Buttons --}}
-    <div class="flex gap-4 justify-center">
+    <div class="flex  justify-center gap-4 mt-4">
 
         <form action="{{ route('clock.in', $overtime->id) }}" method="POST">
             @csrf
-            <button class="bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700">
+            <button class="w-full sm:w-auto bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition">
                 Clock In
             </button>
         </form>
 
         <form action="{{ route('clock.out', $overtime->id) }}" method="POST">
             @csrf
-            <button class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700">
+            <button class="w-full sm:w-auto bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition">
                 Clock Out
             </button>
         </form>
@@ -55,4 +80,5 @@
     </div>
 
 </div>
+
 @endsection

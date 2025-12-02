@@ -70,7 +70,8 @@
             <!-- Date -->
             <div>
                 <label class="block font-semibold mb-1">Date</label>
-                <input type="date" name="date" class="w-full border p-1 rounded" required>
+                <input type="date" name="date" class="w-full border p-1 rounded"
+                       value="{{ old('date', now()->toDateString()) }}" required>
             </div>
 
             <!-- Work Description (full width) -->

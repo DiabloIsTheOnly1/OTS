@@ -16,19 +16,19 @@
             <a href="{{ route('settings.branch') }}"
                class="px-4 py-2 rounded-lg text-sm font-medium transition
                {{ request()->routeIs('settings.branch') ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200' }}">
-                <i class="fas fa-code-branch mr-2"></i> Branch Management
+                <i class="fas fa-code-branch mr-2"></i> Branch
             </a>
 
             <a href="{{ route('settings.department') }}"
                class="px-4 py-2 rounded-lg text-sm font-medium transition
                {{ request()->routeIs('settings.department') ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200' }}">
-                <i class="fas fa-building mr-2"></i> Department Management
+                <i class="fas fa-building mr-2"></i> Department
             </a>
 
             <a href="{{ route('settings.user') }}"
                class="px-4 py-2 rounded-lg text-sm font-medium transition
                {{ request()->routeIs('settings.user') ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200' }}">
-                <i class="fas fa-users mr-2"></i> User Management
+                <i class="fas fa-users mr-2"></i> User
             </a>
 
         </nav>
