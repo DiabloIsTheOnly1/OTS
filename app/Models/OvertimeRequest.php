@@ -17,6 +17,7 @@ class OvertimeRequest extends Model
         'branch_id',
         'department_id',
         'date',
+        'work_done',
         'reason',
         'start_time',
         'end_time',

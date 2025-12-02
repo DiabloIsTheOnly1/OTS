@@ -74,9 +74,15 @@
                        value="{{ old('date', now()->toDateString()) }}" required>
             </div>
 
+            <!-- Work completed for the day -->
+            <div class="md:col-span-2">
+                <label class="block font-semibold mb-1">Work done for the day</label>
+                <textarea name="work_done" rows="4" class="w-full border p-1 rounded" required>{{ old('work_done') }}</textarea>
+            </div>
+
             <!-- Work Description (full width) -->
             <div class="md:col-span-2">
-                <label class="block font-semibold mb-1">Work to be completed during OT</label>
+                <label class="block font-semibold mb-1">Work to be completed during OT & _/HR</label>
                 <textarea name="reason" rows="4" class="w-full border p-1 rounded" required>{{ old('reason') }}</textarea>
             </div>
         </div>

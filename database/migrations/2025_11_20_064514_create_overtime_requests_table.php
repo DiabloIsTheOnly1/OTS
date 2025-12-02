@@ -19,6 +19,7 @@ return new class extends Migration
 
             $table->date('date');
             $table->text('reason')->nullable();
+            $table->text('work_done')->nullable();
 
             $table->time('start_time')->nullable();
             $table->time('end_time')->nullable();

@@ -140,6 +140,7 @@ class OvertimeRequestController extends Controller
             'branch_id' => 'nullable|exists:branch,id',
             'department_id' => 'nullable|exists:departments,id',
             'date' => 'nullable|date',
+            'work_done' => 'nullable|string',
             'reason' => 'nullable|string',
         ]);
 
