@@ -37,8 +37,12 @@
             <span class="text-gray-900">{{ $overtime->date->format('d M Y') }}</span>
         </p>
 
-        <div class="sm:col-span-2">
-            <p><span class="font-semibold text-gray-700">Reason:</span><br>
+         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:col-span-2">
+            <p><span class="font-semibold text-gray-700">Work done for the day:</span><br>
+                <span class="text-gray-900">{{ $overtime->work_done }}</span>
+            </p>
+      
+            <p><span class="font-semibold text-gray-700">Work to be completed during OT & _/HR:</span><br>
                 <span class="text-gray-900">{{ $overtime->reason }}</span>
             </p>
         </div>
