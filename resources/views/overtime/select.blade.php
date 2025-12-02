@@ -45,7 +45,9 @@
                     </select>
                 </div>
 
-                <button id="submitBtn" type="submit" class="w-full text-white py-2 rounded-lg mt-4 bg-gray-300 cursor-not-allowed" disabled>
+                <button id="submitBtn" type="submit"
+                    class="w-full text-white py-2 rounded-lg mt-4 bg-gray-400 cursor-not-allowed"
+                    disabled>
                     Continue
                 </button>
             </form>
@@ -56,22 +58,22 @@
             const submitBtn = document.getElementById('submitBtn');
 
             function validateForm() {
-
                 if (branch_id.value && department_id.value) {
-                    // Enable button
+                    // ✅ Enable button and make it BLUE
                     submitBtn.disabled = false;
                     submitBtn.classList.remove('bg-gray-400', 'cursor-not-allowed');
-                    submitBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                    submitBtn.classList.add('bg-blue-600', 'hover:bg-blue-700', 'cursor-pointer');
                 } else {
-                    // Disable button
+                    // ✅ Disable button and return to GRAY
                     submitBtn.disabled = true;
-                    submitBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                    submitBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700', 'cursor-pointer');
                     submitBtn.classList.add('bg-gray-400', 'cursor-not-allowed');
                 }
             }
 
             branch_id.addEventListener('change', validateForm);
             department_id.addEventListener('change', validateForm);
+
             </script>
 
 
