@@ -51,11 +51,13 @@
                     <p class="text-gray-600 mt-2 text-sm md:text-base">Manage employee overtime requests</p>
                 </div>
 
-                <a href="{{ route('overtime.create') }}"
+                {{-- Old New Request --}}
+                {{-- <a href="{{ route('overtime.create') }}"
                     class="mt-4 md:mt-0 inline-flex items-center justify-center px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition w-full md:w-auto">
                     <i class="fas fa-plus-circle mr-2"></i> New Request
-                </a>
-            </header>
+                </a> --}}
+
+                </header>
 
             <!-- Branch / Department Summary -->
             <div class="mb-2 grid grid-cols-1 md:grid-cols-2 gap-4">

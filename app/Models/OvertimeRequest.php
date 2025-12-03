@@ -27,6 +27,9 @@ class OvertimeRequest extends Model
     protected $casts = [
         'date' => 'date',
         'clocked_in_at' => 'datetime',
+        'clocked_out_at' => 'datetime',
+        'start_time' => 'datetime:H:i',
+        'end_time' => 'datetime:H:i',
     ];
 
     // Relationships

@@ -126,11 +126,6 @@ class OvertimeRequestController extends Controller
         return view('overtime.form', compact('branches', 'departments', 'selectedBranch', 'selectedDepartment'));
     }
 
-
-
-
-
-
     // Store OT request
     public function store(Request $request)
     {
@@ -140,6 +135,9 @@ class OvertimeRequestController extends Controller
             'branch_id' => 'nullable|exists:branch,id',
             'department_id' => 'nullable|exists:departments,id',
             'date' => 'nullable|date',
+            'reg_no' => 'nullable|string|max:100',
+            'start_time' => 'nullable|date_format:H:i',
+            'end_time' => 'nullable|date_format:H:i|after:start_time',
             'work_done' => 'nullable|string',
             'reason' => 'nullable|string',
         ]);
