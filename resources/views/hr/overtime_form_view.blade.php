@@ -19,18 +19,14 @@
 
                 <div>
                     <label class="block font-semibold text-gray-600 mb-1">Name</label>
-                    <input type="text" class="w-full border p-2 rounded bg-gray-50" value="{{ $overtime->name }}" readonly>
+                    <input type="text" class="w-full border p-2 rounded bg-gray-50" 
+                           value="{{ $overtime->staff->staff_name ?? 'N/A' }}" readonly>
                 </div>
 
                 <div>
                     <label class="block font-semibold text-gray-600 mb-1">Position</label>
-                    <input type="text" class="w-full border p-2 rounded bg-gray-50" value="{{ $overtime->position }}" readonly>
-                </div>
-
-                <div>
-                    <label class="block font-semibold text-gray-600 mb-1">Employee ID / Reg No</label>
-                    <input type="text" class="w-full border p-2 rounded bg-gray-50 font-mono" 
-                           value="{{ $overtime->reg_no ?? '-' }}" readonly>
+                    <input type="text" class="w-full border p-2 rounded bg-gray-50" 
+                           value="{{ $overtime->staff->position ?? 'N/A' }}" readonly>
                 </div>
 
                 <div>
@@ -51,40 +47,64 @@
                            value="{{ $overtime->department?->department_name ?? '-' }}" readonly>
                 </div>
 
-                <!-- PLANNED OVERTIME SCHEDULE -->
-                <div class="md:col-span-2 bg-amber-50 border border-amber-200 rounded-lg p-4">
-                    <h3 class="font-bold text-amber-800 mb-3 flex items-center">
-                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>
+                <!-- COMPACT PLANNED OVERTIME SCHEDULE -->
+                <div class="md:col-span-2 bg-amber-50 border border-amber-300 rounded-lg p-5">
+                    <h3 class="font-bold text-amber-900 text-lg mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                        </svg>
                         Planned Overtime Schedule
                     </h3>
+
                     <div class="grid grid-cols-3 gap-4 text-center">
                         <div>
-                            <p class="text-xs text-gray-600">Start Time</p>
-                            <p class="font-bold text-lg text-amber-700">
-                                {{ $overtime->start_time?->format('H:i') ?? '-' }}
-                            </p>
+                            <p class="text-xs text-amber-700 font-medium uppercase tracking-wider">Start</p>
+                            <p class="text-2xl font-bold text-amber-800">{{ $overtime->start_time?->format('H:i') ?? '-' }}</p>
                         </div>
                         <div class="flex items-center justify-center">
-                            <span class="text-2xl text-amber-600">→</span>
+                            <span class="text-3xl text-amber-600">→</span>
                         </div>
                         <div>
-                            <p class="text-xs text-gray-600">End Time</p>
-                            <p class="font-bold text-lg text-amber-700">
-                                {{ $overtime->end_time?->format('H:i') ?? '-' }}
-                            </p>
+                            <p class="text-xs text-amber-700 font-medium uppercase tracking-wider">End</p>
+                            <p class="text-2xl font-bold text-amber-800">{{ $overtime->end_time?->format('H:i') ?? '-' }}</p>
                         </div>
                     </div>
-                    <div class="mt-3 text-center">
-                        <span class="inline-block bg-amber-700 text-white px-6 py-2 rounded-full font-bold text-lg">
-                            {{ $overtime->total_hours ? number_format($overtime->total_hours, 2) . ' hours' : '-' }}
-                        </span>
+
+                    <!-- Compact Total Hours -->
+                    <div class="mt-4 text-center">
+                        <div class="inline-block bg-amber-700 text-white px-8 py-3 rounded-full font-bold text-2xl">
+                            @if($overtime->total_hours && $overtime->total_hours > 0)
+                                @php
+                                    $hours   = floor($overtime->total_hours);
+                                    $minutes = round(($overtime->total_hours - $hours) * 60);
+                                @endphp
+                                {{ $hours }}h {{ $minutes > 0 ? $minutes . 'm' : '' }}
+                            @else
+                                <span class="text-amber-200">—</span>
+                            @endif
+                        </div>
                     </div>
                 </div>
 
-                <!-- Work Details -->
-                <div class="md:col-span-2">
-                    <label class="block font-semibold text-gray-600 mb-1">Type of Work </label>
-                    <textarea rows="3" class="w-full border p-3 rounded bg-gray-50 text-sm" readonly>{{ $overtime->reason }}</textarea>
+                <!-- REG NO + TYPE OF WORK (Reg No on top, Type of Work FULL WIDTH) -->
+                <div class="md:col-span-2 space-y-6">
+
+                    <!-- Reg No -->
+                    <div class="space-y-2">
+                        <label class="block font-semibold text-gray-700">Reg No</label>
+                        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg p-4 text-center">
+                            <p class="text-2xl font-bold font-mono tracking-widest text-blue-800">
+                                {{ $overtime->staff->reg_no ?? '—' }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Type of Work – FULL WIDTH & SPACIOUS -->
+                    <div class="space-y-2">
+                        <label class="block font-semibold text-gray-700 text-lg">Type of Work</label>
+                        <textarea rows="5" class="w-full border border-gray-300 p-5 rounded-lg bg-gray-50 text-sm resize-none font-medium focus:ring-2 focus:ring-blue-400" readonly>
+{{ trim($overtime->type_of_work) ?: 'No details provided' }}</textarea>
+                    </div>
                 </div>
 
             </div>
@@ -92,12 +112,12 @@
 
         <!-- BLOCK 2: Clock Sessions + Summary -->
         <div class="bg-white shadow border rounded-lg p-6 space-y-6">
-            <h2 class="text-xl font-semibold Craftsman text-gray-800 border-b pb-3">Actual Clock Records</h2>
+            <h2 class="text-xl font-semibold text-gray-800 border-b pb-3">Actual Clock Records</h2>
 
             <!-- Actual Total Hours -->
-            <div class="bg-blue-50 border border-blue-200 rounded-lg p-5 text-center">
-                <p class="text-sm text-blue-600 font-semibold">Total Actual OT Hours</p>
-                <p class="text-4xl font-bold text-blue-700 mt-2">
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
+                <p class="text-sm text-blue-600 font-semibold uppercase tracking-wider">Total Actual OT Hours</p>
+                <p class="text-6xl font-bold text-blue-700 mt-2">
                     {{ $overtime->total_hm ?? '00:00' }}
                 </p>
                 @if($overtime->total_hours && $overtime->clocks->sum('total_time_taken') > 0)
@@ -107,7 +127,7 @@
                         $actualMinutes = $actualSeconds / 60;
                         $diff = $actualMinutes - $plannedMinutes;
                     @endphp
-                    <p class="text-sm mt-3 {{ $diff > 0 ? 'text-red-600' : 'text-green-600' }}">
+                    <p class="text-lg mt-4 font-medium {{ $diff > 0 ? 'text-red-600' : 'text-green-600' }}">
                         {{ $diff > 0 ? '+' : '' }}{{ round($diff) }} min 
                         {{ $diff > 0 ? 'over' : 'under' }} planned
                     </p>
@@ -139,7 +159,7 @@
             <!-- Approved By -->
             <div>
                 <label class="block font-semibold text-gray-600 mb-1">Approved / Handled By</label>
-                <input type="text" class="w-full border p-2 rounded bg-gray-50" 
+                <input type="text" class="w-full border p-3 rounded bg-gray-50 text-lg" 
                        value="{{ $overtime->approver?->name ?? $overtime->approver?->username ?? 'Pending' }}" readonly>
             </div>
         </div>
@@ -148,9 +168,9 @@
     <!-- BACK BUTTON -->
     <div class="mt-12 flex justify-center">
         <a href="{{ url()->previous() }}"
-           class="inline-flex items-center gap-3 bg-gray-200 text-gray-800 px-10 py-4 rounded-xl hover:bg-gray-300 active:bg-gray-400 transition-all font-bold text-base shadow-md hover:shadow-lg">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+           class="inline-flex items-center gap-3 bg-gray-200 text-gray-800 px-12 py-4 rounded-xl hover:bg-gray-300 transition-all font-bold text-lg shadow-md hover:shadow-lg">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
             </svg>
             Back
         </a>

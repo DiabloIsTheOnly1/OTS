@@ -21,6 +21,7 @@ class OvertimeRequest extends Model
         'type_of_work',
         'reg_no',
         'status',
+        'total_hours',
     ];
 
     protected $casts = [

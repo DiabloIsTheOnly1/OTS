@@ -22,7 +22,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-4 mb-8">
 
         <p><span class="font-semibold text-gray-700">Name:</span><br>
-            <span class="text-gray-900">{{ $overtime->name }}</span>
+            <span class="text-gray-900">{{ $overtime->staff->staff_name ?? 'N/A' }}</span>
         </p>
 
         <p><span class="font-semibold text-gray-700">Branch:</span><br>
@@ -38,14 +38,10 @@
         </p>
 
          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:col-span-2">
-            <p><span class="font-semibold text-gray-700">Work done for the day:</span><br>
-                <span class="text-gray-900">{{ $overtime->work_done }}</span>
+            <p><span class="font-semibold text-gray-700">Type of Work:</span><br>
+                <span class="text-gray-900">{{ $overtime->type_of_work }}</span>
             </p>
-      
-            <p><span class="font-semibold text-gray-700">Work to be completed during OT & _/HR:</span><br>
-                <span class="text-gray-900">{{ $overtime->reason }}</span>
-            </p>
-        </div>
+         </div>
 
         @if($overtime->clock)
             <p><span class="font-semibold text-gray-700">Clock In:</span><br>
