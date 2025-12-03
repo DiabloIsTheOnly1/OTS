@@ -7,7 +7,9 @@ use App\Models\OvertimeRequest;
 use App\Models\OvertimeClock;
 use App\Models\Branch;
 use App\Models\Department;
-
+use App\Models\Staff;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 class OvertimeRequestController extends Controller
 {
@@ -109,25 +111,38 @@ class OvertimeRequestController extends Controller
     // Show OT request form
     public function create()
     {
-        $branches = Branch::all();
-        $departments = Department::all();
+        $user = auth()->user();
 
-        $selectedBranch = session('ot_branch_id');
-        $selectedDepartment = session('ot_department_id');
+        // 1. Get user's branches
+        $userBranchIds = $user->branches()->pluck('branch.id')->toArray();
 
-        if (session()->has('ot_department_id')) {
-            $departments = Department::where('id', session('ot_department_id'))->get();
+        // 2. Determine which departments user can access
+        if ($user->access_all_departments) {
+            // User can access all departments
+            $departmentIds = Department::pluck('id')->toArray();
+            $departments = Department::all();
+        } else {
+            // User only belongs to ONE department
+            $departmentIds = [$user->department_id];
+            $departments = Department::whereIn('id', $departmentIds)->get();
         }
 
-        // empty model for create mode
+        // 3. Branch list = only user's branches
+        $branches = Branch::whereIn('id', $userBranchIds)->get();
+
+        // 4. Filter staff by user's branch + allowed department(s)
+        $staffs = Staff::whereIn('branch_id', $userBranchIds)
+            ->whereIn('department_id', $departmentIds)
+            ->get();
+
+        // Empty model for create mode
         $overtime = new OvertimeRequest();
 
         return view('overtime.form', compact(
             'overtime',
             'branches',
             'departments',
-            'selectedBranch',
-            'selectedDepartment'
+            'staffs'
         ));
     }
 
@@ -135,16 +150,15 @@ class OvertimeRequestController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'nullable|string|max:255',
-            'position' => 'nullable|string|max:255',
-            'branch_id' => 'nullable|exists:branch,id',
-            'department_id' => 'nullable|exists:departments,id',
-            'date' => 'nullable|date',
+            'staff_id' => 'required|exists:staff,id',
+            'branch_id' => 'required|exists:branch,id',
+            'department_id' => 'required|exists:departments,id',
+            'date' => 'required|date',
             'reg_no' => 'nullable|string|max:100',
-            'start_time' => 'nullable|date_format:H:i',
-            'end_time' => 'nullable|date_format:H:i|after:start_time',
-            'work_done' => 'nullable|string',
-            'reason' => 'nullable|string',
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i|after:start_time',
+            'type_of_work' => 'nullable|string',
+            
         ]);
 
         $overtime = OvertimeRequest::create($validated);

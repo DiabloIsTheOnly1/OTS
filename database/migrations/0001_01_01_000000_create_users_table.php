@@ -57,6 +57,22 @@ return new class extends Migration {
             $table->timestamp('created_at')->nullable();
         });
 
+        Schema::create('staff', function (Blueprint $table) {
+            $table->id();
+            $table->string('staff_name');
+            $table->string('position');
+
+            // Relationships
+            $table->unsignedBigInteger('branch_id');
+            $table->unsignedBigInteger('department_id');
+
+            $table->timestamps();
+
+            // Foreign keys
+            $table->foreign('branch_id')->references('id')->on('branch')->onDelete('cascade');
+            $table->foreign('department_id')->references('id')->on('departments')->onDelete('cascade');
+        });
+
         // 6. SESSIONS
         Schema::create('sessions', function (Blueprint $table) {
             $table->string('id')->primary();
@@ -80,5 +96,6 @@ return new class extends Migration {
         Schema::dropIfExists('users');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
+        Schema::dropIfExists('staff');
     }
 };

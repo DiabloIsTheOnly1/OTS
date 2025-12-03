@@ -12,27 +12,29 @@ class OvertimeRequest extends Model
     protected $table = 'overtime_requests';
 
     protected $fillable = [
-        'name',
-        'position',
+        'staff_id',
         'branch_id',
         'department_id',
         'date',
-        'work_done',
-        'reason',
         'start_time',
         'end_time',
+        'type_of_work',
+        'reg_no',
         'status',
     ];
 
     protected $casts = [
         'date' => 'date',
-        'clocked_in_at' => 'datetime',
-        'clocked_out_at' => 'datetime',
         'start_time' => 'datetime:H:i',
         'end_time' => 'datetime:H:i',
     ];
 
     // Relationships
+    public function staff()
+    {
+        return $this->belongsTo(Staff::class, 'staff_id');
+    }
+
     public function branch()
     {
         return $this->belongsTo(Branch::class);
@@ -55,8 +57,7 @@ class OvertimeRequest extends Model
 
     public function clocks()
     {
-        return $this->hasMany(\App\Models\OvertimeClock::class);
+        return $this->hasMany(OvertimeClock::class);
     }
-
-
 }
+

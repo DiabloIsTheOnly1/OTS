@@ -7,6 +7,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\StaffController;
 
 // Login
 Route::get('/login', [AuthController::class, 'loginPage'])->name('login');
@@ -29,6 +30,9 @@ Route::prefix('settings')->middleware('auth')->group(function () {
     Route::get('/user', [UserController::class, 'index'])
         ->name('settings.user');
 
+    Route::get('/staff', [StaffController::class, 'index'])
+        ->name('settings.staff');
+
     // POST, PUT, DELETE keep same:
     Route::post('/branch', [BranchController::class, 'store'])->name('settings.branch.store');
     Route::put('/branch/{id}', [BranchController::class, 'update'])->name('settings.branch.update');
@@ -41,6 +45,14 @@ Route::prefix('settings')->middleware('auth')->group(function () {
     Route::post('/user', [UserController::class, 'store'])->name('settings.user.store');
     Route::put('/user/{id}', [UserController::class, 'update'])->name('settings.user.update');
     Route::delete('/user/{id}', [UserController::class, 'destroy'])->name('settings.user.delete');
+
+    Route::post('/staff', [StaffController::class, 'store'])->name('staff.store');
+    Route::put('/staff/{id}', [StaffController::class, 'update'])->name('staff.update');
+    Route::delete('/staff/{id}', [StaffController::class, 'destroy'])->name('staff.destroy');
+
+    // Staff routes
+    // Route::resource('staff', StaffController::class);
+
 });
 
 // HOD-only actions
