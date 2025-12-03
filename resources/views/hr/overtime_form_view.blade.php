@@ -2,7 +2,7 @@
 
 @section('content')
 
-<div class="max-w-7xl mx-auto space-y-8 py-8 px-4 sm:px-6 lg:px-8">
+<div class="max-w-full mx-auto space-y-8 py-8 px-4 sm:px-6 lg:px-8">
 
     <h1 class="text-3xl font-bold text-blue-700 mb-8 text-center md:text-left">
         Overtime Request Details

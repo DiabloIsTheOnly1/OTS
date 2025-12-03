@@ -7,8 +7,13 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\OvertimeClockController;
 
+// Login
+Route::get('/login', [AuthController::class, 'loginPage'])->name('login');
+Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
+Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// Admin-only actions
 Route::prefix('settings')->middleware('auth')->group(function () {
 
     Route::get('/', function () {
@@ -38,13 +43,7 @@ Route::prefix('settings')->middleware('auth')->group(function () {
     Route::delete('/user/{id}', [UserController::class, 'destroy'])->name('settings.user.delete');
 });
 
-// Employee OT form
-Route::get('/overtime/request-form', [OvertimeRequestController::class, 'create'])->name('overtime.create');
-Route::post('/overtime', [OvertimeRequestController::class, 'store'])->name('overtime.store');
-
-// HR Dashboard (public view)
-
-// Admin-only actions
+// HOD-only actions
 Route::middleware('auth')->group(function () {
     Route::get('/hr/dashboard', [HRController::class, 'index'])
         ->name('hr.dashboard');
@@ -54,13 +53,16 @@ Route::middleware('auth')->group(function () {
     Route::post('/hr/overtime/{id}/remarks', [HRController::class, 'updateRemarks'])
         ->name('hr.overtime.remarks');
 
+    //View Overtime Form - HR
+    Route::get('/overtime/view/{id}', [HRController::class, 'viewForm'])->name('hr.overtime.view');
+
 });
 
 
-// Login
-Route::get('/login', [AuthController::class, 'loginPage'])->name('login');
-Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
-Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+// Employee OT form
+Route::get('/overtime/request-form', [OvertimeRequestController::class, 'create'])->name('overtime.create');
+Route::post('/overtime', [OvertimeRequestController::class, 'store'])->name('overtime.store');
+Route::resource('overtime', OvertimeRequestController::class);
 
 
 Route::get('/overtime/index', [OvertimeRequestController::class, 'index'])
@@ -89,9 +91,6 @@ Route::post('overtime/clock-out/{id}', [OvertimeRequestController::class, 'clock
 
 //Show QR
 Route::get('/overtime/{id}/qr', [OvertimeRequestController::class, 'qr'])->name('overtime.success');
-
-//View Overtime Form - HR
-Route::get('/overtime/view/{id}', [HRController::class, 'viewForm'])->name('hr.overtime.view');
 
 
 
