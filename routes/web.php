@@ -90,6 +90,10 @@ Route::post('overtime/clock-out/{id}', [OvertimeRequestController::class, 'clock
 //Show QR
 Route::get('/overtime/{id}/qr', [OvertimeRequestController::class, 'qr'])->name('overtime.success');
 
+//View Overtime Form - HR
+Route::get('/overtime/view/{id}', [HRController::class, 'viewForm'])->name('hr.overtime.view');
+
+
 
 
 

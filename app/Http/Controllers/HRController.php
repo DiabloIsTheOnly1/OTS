@@ -141,4 +141,25 @@ class HRController extends Controller
         return back()->with('success', 'Remarks updated.');
     }
 
+    public function viewForm($id)
+    {
+           $overtime = OvertimeRequest::with('branch','department','clocks')->findOrFail($id);
+
+        // Compute total time for each clock session
+        foreach ($overtime->clocks as $c) {
+            $seconds = $c->total_time_taken;
+            $h = floor($seconds / 3600);
+            $m = floor(($seconds % 3600) / 60);
+            $c->total_hm = sprintf('%02d:%02d', $h, $m);
+        }
+
+        // Compute total OT hours
+        $totalSeconds = $overtime->clocks->sum('total_time_taken');
+        $hours = floor($totalSeconds / 3600);
+        $minutes = floor(($totalSeconds % 3600) / 60);
+        $overtime->total_hm = sprintf('%02d:%02d', $hours, $minutes);
+
+        return view('hr.overtime_form_view', compact('overtime'));
+        }
+
 }

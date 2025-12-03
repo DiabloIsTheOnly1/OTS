@@ -99,7 +99,7 @@
                         <th class="p-3 font-semibold">Employee</th>
                         <th class="p-3 font-semibold">Clock in/Out</th>
                         <th class="p-3 font-semibold text-center whitespace-nowrap">Total Hours</th>
-                        <th class="p-3 font-semibold">Reason</th>
+                        <th class="p-3 font-semibold text-center whitespace-nowrap">Details</th>
                         <th class="p-3 font-semibold text-center whitespace-nowrap">Status</th>
                         <th class="p-3 font-semibold text-center whitespace-nowrap">Approval</th>
                         <th class="p-3 font-semibold">Remarks</th>
@@ -120,51 +120,59 @@
                             };
                         @endphp
 
-                        {{-- Desktop row --}}
+                        {{-- DESKTOP ROW --}}
                         <tr class="{{ $bg }} border-b hover:bg-blue-50 transition hidden md:table-row">
 
                             <td class="p-3 whitespace-nowrap">{{ $r->date->format('d M Y') }}</td>
 
                             <td class="p-3">
                                 <p class="font-semibold">{{ $r->name }}</p>
-                                <p class="text-xs text-gray-500">{{ $r->branch?->name ?? '-' }} •
-                                    {{ $r->department?->department_name ?? '-' }}</p>
+                                <p class="text-xs text-gray-500">{{ $r->branch?->name ?? '-' }} • {{ $r->department?->department_name ?? '-' }}</p>
                             </td>
 
+                            <!-- Clock In/Out -->
                             <td class="p-3">
                                 <div class="space-y-1">
                                     @forelse ($r->clocks as $session)
                                         <div class="px-2 py-0.5 bg-gray-50 rounded-lg border border-gray-200">
                                             <div class="flex items-center justify-between text-sm">
-                                                <div class="flex items-center space-x-3">
-                                                    <div class="flex items-center space-x-1">
-                                                        <span class="font-medium text-gray-600">In:</span>
-                                                        <span
-                                                            class="text-gray-900">{{ $session->clock_in ? $session->clock_in->format('H:i') : '-' }}</span>
-                                                    </div>
-                                                    <div class="flex items-center space-x-1">
-                                                        <span class="font-medium text-gray-600">Out:</span>
-                                                        <span
-                                                            class="text-gray-900">{{ $session->clock_out ? $session->clock_out->format('H:i') : '-' }}</span>
-                                                    </div>
+                                                <div>
+                                                    <span class="text-gray-600">In:</span> {{ $session->clock_in?->format('H:i') ?? '-' }} <br>
+                                                    <span class="text-gray-600">Out:</span> {{ $session->clock_out?->format('H:i') ?? '-' }}
                                                 </div>
-                                                <div class="font-medium text-blue-600 text-xs bg-blue-50 px-2 py-1 rounded">
+                                                <span class="text-blue-600 font-bold text-xs bg-blue-50 px-2 py-1 rounded">
                                                     {{ $session->total_hm }}
-                                                </div>
+                                                </span>
                                             </div>
                                         </div>
                                     @empty
-                                        <span class="text-gray-400 text-sm">-</span>
+                                        <span class="text-gray-400">-</span>
                                     @endforelse
                                 </div>
                             </td>
 
+                            <!-- Total -->
                             <td class="p-3 font-bold text-blue-700 text-center">{{ $r->total_hm }}</td>
-                            <td class="p-3">{{ $r->reason ?? '-' }}</td>
 
+                            {{-- 👁 EYE ICON ADDED HERE --}}
+                            <td class="p-3 text-center">
+                            <a href="{{ route('hr.overtime.view', $r->id) }}"
+                            class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 hover:bg-blue-100 text-gray-600 hover:text-blue-700 transition-all duration-200 hover:shadow-sm"
+                            title="View Overtime Request">
+                                
+                                <!-- Heroicons: eye (outline) – small & perfect -->
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                            </a>
+                        </td>
+
+                            <!-- Status -->
                             <td class="text-center p-3">
-                                <span
-                                    class="px-3 py-1 rounded-full text-xs font-semibold
+                                <span class="px-3 py-1 rounded-full text-xs font-semibold
                                 @if ($r->status == 'pending') bg-yellow-200 text-yellow-900
                                 @elseif($r->status == 'approved') bg-green-200 text-green-900
                                 @else bg-red-200 text-red-900 @endif">
@@ -172,6 +180,7 @@
                                 </span>
                             </td>
 
+                            <!-- Approval -->
                             <td class="p-3 text-center">
                                 @if ($r->status === 'pending')
                                     <div class="flex gap-2 justify-center">
@@ -186,50 +195,40 @@
                                     </div>
                                 @else
                                     <p class="text-xs">{{ $r->status == 'approved' ? 'Approved' : 'Rejected' }} by</p>
-                                    <span
-                                        class="font-bold text-gray-800 text-xs">{{ $r->approver?->username ?? '-' }}</span>
+                                    <span class="font-bold text-gray-800 text-xs">{{ $r->approver?->username ?? '-' }}</span>
                                 @endif
                             </td>
 
+                            <!-- Remarks -->
                             <td class="p-3">
                                 <div class="group">
                                     <div class="flex items-center gap-2 remark-display">
                                         <span>{{ $r->remarks ?: '-' }}</span>
-                                        <button type="button"
-                                            class="hidden group-hover:inline text-blue-600 text-xs remark-edit-btn">✏️</button>
+                                        <button type="button" class="hidden group-hover:inline text-blue-600 text-xs remark-edit-btn">✏️</button>
                                     </div>
-                                    <form action="{{ route('hr.overtime.remarks', $r->id) }}" method="POST"
-                                        class="hidden remark-edit-form mt-1 flex gap-1">@csrf
-                                        <input name="remarks" value="{{ $r->remarks }}"
-                                            class="border px-2 py-1 rounded text-xs w-28">
-                                        <button
-                                            class="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700">Save</button>
-                                        <button type="button"
-                                            class="remark-cancel-btn text-xs text-gray-500 px-1">Cancel</button>
+                                    <form action="{{ route('hr.overtime.remarks', $r->id) }}" method="POST" class="hidden remark-edit-form mt-1 flex gap-1">@csrf
+                                        <input name="remarks" value="{{ $r->remarks }}" class="border px-2 py-1 rounded text-xs w-28">
+                                        <button class="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700">Save</button>
+                                        <button type="button" class="remark-cancel-btn text-xs text-gray-500 px-1">Cancel</button>
                                     </form>
                                 </div>
                             </td>
+
                         </tr>
 
-                        {{-- MOBILE CARD ROW --}}
+                        {{-- 📱 MOBILE CARD ROW --}}
                         <tr class="table-row md:hidden">
-                            <td colspan="10" class="p-4">
-                                <div class="border rounded-lg p-4 shadow-sm space-y-3">
+                            <td colspan="10">
+                                <div class="m-3 border rounded-lg bg-white p-4 shadow-sm space-y-3">
 
-                                    <!-- Employee -->
                                     <div>
                                         <p class="font-bold text-gray-900">{{ $r->name }}</p>
-                                        <p class="text-xs text-gray-500">{{ $r->branch?->name ?? '-' }} •
-                                            {{ $r->department?->department_name ?? '-' }}</p>
+                                        <p class="text-xs text-gray-500">{{ $r->branch?->name ?? '-' }} • {{ $r->department?->department_name ?? '-' }}</p>
                                     </div>
 
-                                    <!-- Date & Status -->
                                     <div class="flex justify-between items-center">
-                                        <span class="text-xs font-medium text-gray-700">
-                                            {{ $r->date->format('d M Y') }}
-                                        </span>
-                                        <span
-                                            class="px-2 py-0.5 rounded-full text-[10px] font-bold
+                                        <span class="text-xs font-medium text-gray-700">{{ $r->date->format('d M Y') }}</span>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold
                                         @if ($r->status == 'pending') bg-yellow-200 text-yellow-900
                                         @elseif($r->status == 'approved') bg-green-200 text-green-900
                                         @else bg-red-200 text-red-900 @endif">
@@ -237,77 +236,43 @@
                                         </span>
                                     </div>
 
-                                    <!-- Clock Sessions -->
                                     <div>
-                                        <p class="text-[10px] uppercase font-semibold text-gray-500 mb-1">Sessions</p>
+                                        <p class="text-[10px] uppercase font-bold text-gray-500 mb-1">Clock Sessions</p>
                                         <div class="space-y-2">
                                             @forelse ($r->clocks as $session)
-                                                <div class="bg-gray-50 border rounded px-2 py-1 text-xs flex justify-between">
-                                                    <div class="">
-                                                        <span><strong>In:</strong> {{ $session->clock_in?->format('H:i') ?? '-' }}</span> -
-                                                        <span><strong>Out:</strong> {{ $session->clock_out?->format('H:i') ?? '-' }}</span>
+                                                <div class="bg-gray-50 border rounded px-3 py-2 text-xs flex justify-between">
+                                                    <div>
+                                                        <span class="text-gray-600">In:</span> {{ $session->clock_in?->format('H:i') ?? '-' }} <br>
+                                                        <span class="text-gray-600">Out:</span> {{ $session->clock_out?->format('H:i') ?? '-' }}
                                                     </div>
-                                                    <p class="text-blue-700 font-bold text-right">
-                                                        {{ $session->total_hm }}</p>
+                                                    <p class="text-blue-700 font-bold">{{ $session->total_hm }}</p>
                                                 </div>
-                                            @empty <span class="text-gray-400">-</span>
+                                            @empty
+                                                <span class="text-gray-400">-</span>
                                             @endforelse
                                         </div>
                                     </div>
 
-                                    <!-- Total -->
-                                    <div class="flex justify-between font-semibold text-sm">
-                                        <span class="text-gray-700">Total:</span>
-                                        <span class="text-blue-700 font-bold">{{ $r->total_hm }}</span>
+                                    <div class="flex justify-between font-bold text-sm">
+                                        <span>Total OT:</span>
+                                        <span class="text-blue-700">{{ $r->total_hm }}</span>
                                     </div>
 
-                                    <!-- Reason -->
-                                    <div>
-                                        <p class="text-[10px] uppercase font-semibold text-gray-500">Reason</p>
-                                        <p class="text-xs text-gray-800">{{ $r->reason ?? '-' }}</p>
+                                    {{-- 👁 EYE ICON ADDED HERE TOO --}}
+                                    <div class="text-center">
+                                        <a href="{{ route('hr.overtime.view', $r->id) }}" class="inline-flex items-center justify-center bg-blue-600 text-white px-3 py-2 rounded-lg text-xs hover:bg-blue-700 w-full">
+                                            {{-- inline SVG eye + label --}}
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"></path>
+                                                <circle cx="12" cy="12" r="3"></circle>
+                                            </svg>
+                                            View Form
+                                        </a>
                                     </div>
 
-                                    <!-- Approval -->
                                     <div>
-                                        @if ($r->status === 'pending')
-                                            <div class="flex gap-2">
-                                                <form action="{{ route('hr.overtime.approve', $r->id) }}" method="POST"
-                                                    class="w-1/2">@csrf
-                                                    <button
-                                                        class="bg-green-600 text-white px-3 py-2 rounded text-xs hover:bg-green-700 w-full">Approve</button>
-                                                </form>
-                                                <form action="{{ route('hr.overtime.reject', $r->id) }}" method="POST"
-                                                    class="w-1/2">@csrf
-                                                    <button
-                                                        class="bg-red-600 text-white px-3 py-2 rounded text-xs hover:bg-red-700 w-full">Reject</button>
-                                                </form>
-                                            </div>
-                                        @else
-                                            <p class="text-[10px] uppercase font-semibold text-gray-500">Handled by</p>
-                                            <p class="font-bold text-gray-800 text-xs">
-                                                {{ $r->approver?->username ?? '-' }}</p>
-                                        @endif
-                                    </div>
-
-                                    <!-- Remarks -->
-                                    <div>
-                                        <p class="text-[10px] uppercase font-semibold text-gray-500">Remarks</p>
-                                        <div class="group">
-                                            <div class="flex justify-between items-center remark-display">
-                                                <span class="text-xs">{{ $r->remarks ?: '-' }}</span>
-                                                <button type="button"
-                                                    class="text-blue-600 text-xs remark-edit-btn">✏️</button>
-                                            </div>
-                                            <form action="{{ route('hr.overtime.remarks', $r->id) }}" method="POST"
-                                                class="hidden remark-edit-form flex gap-1 mt-1">@csrf
-                                                <input name="remarks" value="{{ $r->remarks }}"
-                                                    class="border px-2 py-1 rounded text-xs w-28">
-                                                <button
-                                                    class="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700">Save</button>
-                                                <button type="button"
-                                                    class="remark-cancel-btn text-xs text-gray-500 px-1">Cancel</button>
-                                            </form>
-                                        </div>
+                                        <p class="text-[10px] uppercase font-bold text-gray-500">Remarks</p>
+                                        <p class="font-bold text-gray-800 text-xs">{{ $r->remarks ?? '-' }}</p>
                                     </div>
 
                                 </div>
@@ -316,7 +281,7 @@
 
                     @empty
                         <tr>
-                            <td colspan="10" class="p-6 text-center text-sm text-gray-500">No requests found.</td>
+                            <td colspan="10" class="text-center p-4 text-gray-500">No requests found</td>
                         </tr>
                     @endforelse
                 </tbody>
