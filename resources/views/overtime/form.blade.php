@@ -1,21 +1,26 @@
 @extends('layouts.app')
 
 @section('content')
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-blue-700 mb-6">
+            {{ $overtime->id ? 'Edit Overtime Request' : 'Overtime Request Form' }}
+        </h1>
 
-<div class="max-w-4xl mx-auto">
-    <h1 class="text-3xl font-bold text-blue-700 mb-6">Overtime Request Form</h1>
+        @if (session('success'))
+            <div class="bg-green-100 text-green-700 p-3 rounded mb-4">
+                {{ session('success') }}
+            </div>
+        @endif
 
-    @if(session('success'))
-        <div class="bg-green-100 text-green-700 p-3 rounded mb-4">
-            {{ session('success') }}
-        </div>
-    @endif
+        @if (session('error'))
+            <div class="bg-red-100 text-red-700 p-3 rounded mb-4">
+                {{ session('error') }}
+            </div>
+        @endif
 
-    @if(session('error'))
-        <div class="bg-red-100 text-red-700 p-3 rounded mb-4">
-            {{ session('error') }}
-        </div>
-    @endif
+        <!-- FORM -->
+        <form action="{{ $overtime->id ? route('overtime.update', $overtime->id) : route('overtime.store') }}" method="POST"
+            class="bg-white shadow border rounded p-6 space-y-4">
 
 <!-- FORM -->
 <form action="{{ route('overtime.store') }}" method="POST"
@@ -172,7 +177,4 @@
             <li>Branches with approval authority may approve max 2 hrs/day or 6 hrs/week.</li>
         </ul>
     </div>
-
-</div>
-
 @endsection

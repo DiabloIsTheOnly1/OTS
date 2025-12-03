@@ -294,6 +294,10 @@
                                             class="px-2 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 text-xs inline-flex items-center whitespace-nowrap">
                                             <i class="fas fa-qrcode mr-1"></i> QR
                                         </a>
+                                        <a href="{{ route('overtime.edit', $req->id) }}"
+                                            class="px-2 py-1 bg-green-100 text-green-600 rounded hover:bg-green-200 text-xs inline-flex items-center whitespace-nowrap">
+                                            <i class="fas fa-edit mr-1"></i>Edit
+                                        </a>
                                     </td>
                                 </tr>
                             @endforeach

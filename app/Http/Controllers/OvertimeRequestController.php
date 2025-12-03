@@ -115,15 +115,20 @@ class OvertimeRequestController extends Controller
         $selectedBranch = session('ot_branch_id');
         $selectedDepartment = session('ot_department_id');
 
-        if (session()->has('ot_branch_id')) {
-            $branch = Branch::find(session('ot_branch_id'));
-        }
-
         if (session()->has('ot_department_id')) {
             $departments = Department::where('id', session('ot_department_id'))->get();
         }
 
-        return view('overtime.form', compact('branches', 'departments', 'selectedBranch', 'selectedDepartment'));
+        // empty model for create mode
+        $overtime = new OvertimeRequest();
+
+        return view('overtime.form', compact(
+            'overtime',
+            'branches',
+            'departments',
+            'selectedBranch',
+            'selectedDepartment'
+        ));
     }
 
     // Store OT request
@@ -142,12 +147,67 @@ class OvertimeRequestController extends Controller
             'reason' => 'nullable|string',
         ]);
 
-        $overtime = OvertimeRequest::create($request->all());
+        $overtime = OvertimeRequest::create($validated);
 
         $qrUrl = url('/overtime/' . $overtime->id . '/details');
 
         return view('overtime.success', compact('overtime', 'qrUrl'));
+    }
 
+    public function edit($id)
+    {
+        $overtime = OvertimeRequest::findOrFail($id);
+
+        // Check if any clock in exists
+        // $hasClockedIn = $overtime->clocks()->exists();
+
+        // if ($hasClockedIn) {
+        //     return redirect()
+        //         ->route('overtime.index')
+        //         ->with('error', 'You cannot edit this request because clock-in has already started.');
+        // }
+
+        $branches = Branch::all();
+        $departments = Department::all();
+
+        $selectedBranch = $overtime->branch_id;
+        $selectedDepartment = $overtime->department_id;
+
+        return view('overtime.form', compact(
+            'overtime',
+            'branches',
+            'departments',
+            'selectedBranch',
+            'selectedDepartment'
+        ));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $overtime = OvertimeRequest::findOrFail($id);
+
+        // Prevent update
+        if ($overtime->clocks()->exists()) {
+            return redirect()
+                ->route('overtime.index')
+                ->with('error', 'Cannot update: user has already clocked in.');
+        }
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'position' => 'required|string|max:255',
+            'branch_id' => 'required|exists:branch,id',
+            'department_id' => 'required|exists:departments,id',
+            'date' => 'required|date',
+            'work_done' => 'required|string',
+            'reason' => 'required|string',
+        ]);
+
+        $overtime->update($validated);
+
+        return redirect()
+            ->route('overtime.index')
+            ->with('success', 'Overtime request updated successfully!');
     }
 
     public function details($id)
