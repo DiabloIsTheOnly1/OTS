@@ -49,9 +49,6 @@
                     Back to Request List
                 </a>
             </div>
-
-        <p class="text-sm text-gray-500 mt-6">
-            You can safely close this page.
         </p>
     </div>
 </div>
