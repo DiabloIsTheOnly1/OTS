@@ -104,6 +104,10 @@ Route::post('overtime/clock-out/{id}', [OvertimeRequestController::class, 'clock
 //Show QR
 Route::get('/overtime/{id}/qr', [OvertimeRequestController::class, 'qr'])->name('overtime.success');
 
+//route for editing overtime request
+Route::patch('/overtime/{overtime}', [OvertimeRequestController::class, 'update'])
+     ->name('overtime.update');
+
 
 
 

@@ -212,34 +212,38 @@ class OvertimeRequestController extends Controller
         ));
     }
 
-    public function update(Request $request, $id)
-    {
-        $overtime = OvertimeRequest::findOrFail($id);
-
-        // Prevent update
-        if ($overtime->clocks()->exists()) {
-            return redirect()
-                ->route('overtime.index')
-                ->with('error', 'Cannot update: user has already clocked in.');
-        }
-
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'position' => 'required|string|max:255',
-            'branch_id' => 'required|exists:branch,id',
-            'department_id' => 'required|exists:departments,id',
-            'date' => 'required|date',
-            'work_done' => 'required|string',
-            'reason' => 'required|string',
-        ]);
-
-        $overtime->update($validated);
-
-        return redirect()
-            ->route('overtime.index')
-            ->with('success', 'Overtime request updated successfully!');
+    public function update(Request $request, OvertimeRequest $overtime)
+{
+    // Optional: prevent edit if clocked in
+    if ($overtime->clocks()->exists()) {
+        return back()->with('error', 'Cannot edit: Staff has already clocked in !');
     }
 
+    $validated = $request->validate([
+        'staff_id'     => 'required|exists:staff,id',
+        'date'         => 'required|date',
+        'start_time'   => 'required|date_format:H:i',
+        'end_time'     => 'required|date_format:H:i',
+        'reg_no'       => 'nullable|string|max:50',
+        'type_of_work' => 'nullable|string',
+        'remarks'      => 'nullable|string',
+    ]);
+
+    // Calculate total hours
+    $start = \Carbon\Carbon::createFromFormat('H:i', $validated['start_time']);
+    $end   = \Carbon\Carbon::createFromFormat('H:i', $validated['end_time']);
+    if ($end->lessThan($start)) $end->addDay();
+
+    $validated['total_hours'] = round($start->diffInMinutes($end) / 60, 2);
+
+    $overtime->update($validated);
+
+   
+    $overtime->load('staff', 'branch', 'department');
+
+    // Redirect to the same page with fresh data
+    return back()->with('success', 'Overtime updated successfully!');
+}
     public function details($id)
     {
         $overtime = OvertimeRequest::with('clocks')->findOrFail($id);
@@ -322,6 +326,12 @@ class OvertimeRequestController extends Controller
 
         return view('overtime.success', compact('overtime', 'qrUrl'));
     }
+
+    public function show(OvertimeRequest $overtime)
+        {
+            $overtime->load('staff', 'branch', 'department', 'clocks', 'approver');
+            return view('hr.overtime.view', compact('hr.overtime.view'));
+        }
 
 
 }
