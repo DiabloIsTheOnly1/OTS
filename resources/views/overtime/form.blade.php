@@ -2,9 +2,18 @@
 
 @section('content')
     <div class="max-w-4xl mx-auto">
-        <h1 class="text-3xl font-bold text-blue-700 mb-6">
-            {{ $overtime->id ? 'Edit Overtime Request' : 'Overtime Request Form' }}
-        </h1>
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-3xl font-bold text-blue-700">
+                {{ $overtime->id ? 'Edit Overtime Request' : 'Overtime Request Form' }}
+            </h1>
+            <a href="{{ url()->previous() }}"
+                class="inline-flex items-center gap-2 bg-gray-200 text-gray-800 px-5 py-2 rounded-xl hover:bg-gray-300 transition-all font-bold text-lg shadow-md hover:shadow-lg">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+                Back
+            </a>
+        </div>
 
         @if (session('success'))
             <div class="bg-green-100 text-green-700 p-3 rounded mb-4">
@@ -19,8 +28,8 @@
         @endif
 
         <!-- FORM -->
-        <form action="{{ $overtime->id ? route('overtime.update', $overtime->id) : route('overtime.store') }}" method="POST"
-            class="bg-white shadow border rounded p-6 space-y-6" id="overtimeForm">
+        <form action="{{ $overtime->id ? route('overtime.update', $overtime->id) : route('overtime.store') }}"
+            method="POST" class="bg-white shadow border rounded p-6 space-y-6" id="overtimeForm">
             @csrf
 
 
@@ -31,7 +40,7 @@
                 <div>
                     <label class="block font-semibold mb-1">Name</label>
                     <select name="staff_id" id="staff_id"
-                        class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500" required>
+                        class="w-full border px-2 py-1 rounded focus:ring-2 focus:ring-blue-500" required>
                         <option value="">Select Staff</option>
                         @foreach ($staffs as $s)
                             <option value="{{ $s->id }}" data-position="{{ $s->position }}"
@@ -45,46 +54,49 @@
                 <!-- Position (Auto-filled) -->
                 <div>
                     <label class="block font-semibold mb-1">Position</label>
-                    <input type="text" id="position" name="position" class="w-full border p-2 rounded bg-gray-100"
+                    <input type="text" id="position" name="position" class="w-full border px-2 py-1 rounded bg-gray-100"
                         readonly required>
                 </div>
 
                 <!-- Branch (Auto-filled) -->
                 <div>
                     <label class="block font-semibold mb-1">Branch</label>
-                    <select id="branch_id" name="branch_id" class="w-full border p-2 rounded bg-gray-100" readonly required>
+                    <select id="branch_id_display" class="w-full border px-2 py-1 rounded bg-gray-100" disabled>
                         @foreach ($branches as $branch)
-                            <option value="{{ $branch->id }}">
-                                {{ $branch->name }}
-                            </option>
+                            <option value="{{ $branch->id }}">{{ $branch->name }}</option>
                         @endforeach
                     </select>
+
+                    <!-- Hidden input that gets submitted -->
+                    <input type="hidden" name="branch_id" id="branch_id">
                 </div>
 
                 <!-- Department (Auto-filled) -->
                 <div>
                     <label class="block font-semibold mb-1">Department</label>
-                    <select id="department_id" name="department_id" class="w-full border p-2 rounded bg-gray-100" readonly
-                        required>
+                    <select id="department_id_display" class="w-full border px-2 py-1 rounded bg-gray-100" disabled>
                         @foreach ($departments as $dept)
-                            <option value="{{ $dept->id }}">
-                                {{ $dept->department_name }}
-                            </option>
+                            <option value="{{ $dept->id }}">{{ $dept->department_name }}</option>
                         @endforeach
                     </select>
+
+                    <!-- Hidden input that gets submitted -->
+                    <input type="hidden" name="department_id" id="department_id">
                 </div>
 
                 <!-- Date -->
                 <div>
                     <label class="block font-semibold mb-1">Date</label>
-                    <input type="date" name="date" class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500"
+                    <input type="date" name="date"
+                        class="w-full border px-2 py-1 rounded focus:ring-2 focus:ring-blue-500"
                         value="{{ old('date', now()->format('Y-m-d')) }}" required>
                 </div>
 
                 <!-- Reg No (Only For After Sales Dept) -->
                 <div>
                     <label class="block font-semibold mb-1">Reg No (For After Sales Dept Only)</label>
-                    <input type="text" name="reg_no" class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500"
+                    <input type="text" name="reg_no"
+                        class="w-full border px-2 py-1 rounded focus:ring-2 focus:ring-blue-500"
                         value="{{ old('reg_no') }}">
                 </div>
 
@@ -98,7 +110,7 @@
                         <div>
                             <label class="block font-semibold mb-1">Start Time</label>
                             <input type="time" name="start_time" id="start_time"
-                                class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500"
+                                class="w-full border px-2 py-1 rounded focus:ring-2 focus:ring-blue-500"
                                 value="{{ old('start_time') }}" required>
                         </div>
 
@@ -106,7 +118,7 @@
                         <div>
                             <label class="block font-semibold mb-1">End Time</label>
                             <input type="time" name="end_time" id="end_time"
-                                class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500"
+                                class="w-full border px-2 py-1 rounded focus:ring-2 focus:ring-blue-500"
                                 value="{{ old('end_time') }}" required>
                         </div>
 
@@ -114,7 +126,7 @@
                         <div>
                             <label class="block font-semibold mb-1">Total Hours</label>
                             <input type="text" name="total_hours" id="total_hours"
-                                class="w-full border p-2 rounded bg-gray-50 font-bold text-blue-700" readonly
+                                class="w-full border px-2 py-1 rounded bg-gray-50 font-bold text-blue-700" readonly
                                 placeholder="Total Hours will be calculated ">
                         </div>
                     </div>
@@ -123,7 +135,8 @@
                 <!-- Type of Work -->
                 <div class="md:col-span-2">
                     <label class="block font-semibold mb-1">Type of Work</label>
-                    <textarea name="type_of_work" rows="4" class="w-full border p-3 rounded focus:ring-2 focus:ring-blue-500" required>{{ old('type_of_work') }}</textarea>
+                    <textarea name="type_of_work" rows="4" class="w-full border p-3 rounded focus:ring-2 focus:ring-blue-500"
+                        required>{{ old('type_of_work') }}</textarea>
                 </div>
 
             </div>
@@ -172,13 +185,15 @@
                     const branchId = selected.getAttribute('data-branch');
                     const departmentId = selected.getAttribute('data-department');
 
-                    // Fill Position
+                    // Position
                     document.getElementById('position').value = position ?? '';
 
-                    // Set Branch
-                    document.getElementById('branch_id').value = branchId;
+                    // Visible disabled dropdowns
+                    document.getElementById('branch_id_display').value = branchId;
+                    document.getElementById('department_id_display').value = departmentId;
 
-                    // Set Department
+                    // Hidden inputs for submission
+                    document.getElementById('branch_id').value = branchId;
                     document.getElementById('department_id').value = departmentId;
                 });
             });

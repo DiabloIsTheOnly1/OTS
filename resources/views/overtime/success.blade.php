@@ -1,53 +1,147 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-2xl mx-auto my-8">
-    <div class="bg-white shadow-lg border rounded-2xl p-8 text-center">
+    <style>
+        @media print {
 
-        {{-- Success Icon --}}
-        <div class="flex justify-center mb-4">
-            <div class="bg-green-100 text-green-600 p-3 rounded-full">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none"
-                     viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M5 13l4 4L19 7" />
+            nav,
+            header,
+            .navbar,
+            .topbar,
+            .navigation,
+            .main-header,
+            .header,
+            body>div:first-child,
+            .no-print {
+                display: none !important;
+                height: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            body,
+            html {
+                margin: 0 !important;
+                padding: 0 !important;
+                background: white !important;
+            }
+
+            .print-page {
+                width: 100% !important;
+                margin: 0 auto !important;
+                padding: 20px !important;
+            }
+
+            .print-container {
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+            }
+
+            #qrcode {
+                display: flex !important;
+                width: 250px !important;
+                height: 250px !important;
+                justify-content: center !important;
+            }
+        }
+    </style>
+
+    <div class="mx-auto max-w-4xl flex flex-col sm:flex-row justify-between mb-6 print:hidden">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800 text-left">
+                <i class="fas fa-qrcode text-blue-500 mr-3"></i>
+                Overtime QR Code
+            </h1>
+            <p class="text-gray-600">
+                Scan the QR code below to clock in or out for your overtime.
+            </p>
+        </div>
+        <div class="mt-2">
+            <a href="{{ url()->previous() }}"
+                class="inline-flex items-center gap-2 bg-gray-200 text-gray-800 px-5 py-2 rounded-xl hover:bg-gray-300 transition-all font-bold text-lg shadow-md hover:shadow-lg">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                 </svg>
+                Back
+            </a>
+        </div>
+    </div>
+    <div class="flex items-center justify-center bg-gray-50 py-4 px-4 mx-auto max-w-4xl">
+        <div class="w-full max-w-md">
+            @if (session('submitted'))
+                <div class="text-center mb-8 print:hidden">
+                    <div class="flex justify-center mb-4">
+                        <div class="bg-green-100 text-green-600 p-3 rounded-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                    </div>
+                    <h1 class="text-xl font-semibold text-gray-800 mb-2">
+                        Request Submitted
+                    </h1>
+                </div>
+            @endif
+
+            <!-- QR Code Card -->
+            <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+                <!-- QR Code -->
+                <div id="qrcode" class="mx-auto w-64 h-64 mb-6"></div>
+
+                <!-- Info -->
+                <div class="space-y-3 mb-6">
+                    <div class="text-center">
+                        <div class="text-sm text-gray-500">Name</div>
+                        <div class="font-medium text-gray-800">{{ $overtime->staff->staff_name }}</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-sm text-gray-500">Date</div>
+                        <div class="font-medium text-gray-800">{{ $overtime->date->format('d M Y') }}</div>
+                    </div>
+                </div>
+
+                <!-- Divider -->
+                <div class="border-t border-gray-100 my-4 print:hidden"></div>
+
+                <!-- Actions -->
+                <div class="print:hidden space-y-3">
+                    <button onclick="window.print()"
+                        class="w-full bg-gray-800 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors">
+                        Print This Page
+                    </button>
+
+                    <a href="{{ route('overtime.create') }}"
+                        class="block text-center text-gray-600 hover:text-gray-800 text-sm transition-colors">
+                        Submit Another Request
+                    </a>
+                </div>
+            </div>
+
+            <!-- Print Note -->
+            <div class="mt-6 text-center text-gray-400 text-xs print:hidden">
+                <p>Save this page for reference</p>
             </div>
         </div>
-
-        <h1 class="text-3xl font-bold text-green-700 mb-4">Request Submitted!</h1>
-        <p class="text-gray-700 font-bold mb-6">Please scan to go to details page and clock in/out.</p>
-
-        {{-- QR CODE --}}
-        <div id="qrcode" class="mx-auto w-48 h-48 cursor-pointer mb-4" title="Scan to Clock In / Clock Out"></div>
-
-        <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
-        <script>
-            new QRCode(document.getElementById("qrcode"), {
-                text: "{{ $qrUrl }}",
-                width: 192,
-                height: 192,
-                colorDark : "#000000",
-                colorLight : "#f0f0f0",
-                correctLevel : QRCode.CorrectLevel.H
-            });
-        </script>
-
-        {{-- User Info --}}
-        <div class="mt-4 text-sm text-gray-600">
-            <p><strong>Name:</strong> {{ $overtime->name }}</p>
-            <p><strong>Date:</strong> {{ $overtime->date->format('d M Y') }}</p>
-        </div>
-
     </div>
 
-    {{-- Navigation --}}
-    <div class="mt-6 flex flex-col gap-3">
+    <!-- QR Code Script -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+    <script>
+        // Generate QR Code
+        new QRCode(document.getElementById("qrcode"), {
+            text: "{{ $qrUrl }}",
+            width: 256,
+            height: 256,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
 
-        <a href="{{ route('overtime.create') }}"
-           class="text-blue-600 hover:underline text-center text-sm">
-            Submit Another Request
-        </a>
-    </div>
-</div>
+        // Auto-refresh after 60 seconds
+        setTimeout(() => {
+            window.location.reload();
+        }, 60000);
+    </script>
 @endsection

@@ -118,13 +118,13 @@
             <table class="w-full min-w-[300px] text-sm">
                 <thead class="bg-blue-100 text-gray-800 border-b">
                     <tr class="hidden md:table-row">
-                        <th class="p-3 font-semibold whitespace-nowrap">Date</th>
-                        <th class="p-3 font-semibold">Employee</th>
+                        <th class="p-3 text-left font-semibold whitespace-nowrap">Date</th>
+                        <th class="p-3 text-left font-semibold">Employee</th>
                         <th class="p-3 font-semibold">Clock in/Out</th>
                         <th class="p-3 font-semibold text-center whitespace-nowrap">Total Hours</th>
                         <th class="p-3 font-semibold text-center whitespace-nowrap">Status</th>
                         <th class="p-3 font-semibold text-center whitespace-nowrap">Approval</th>
-                        <th class="p-3 font-semibold">Remarks</th>
+                        <th class="p-3 text-left font-semibold">Remarks</th>
                         <th class="p-3 font-semibold text-center whitespace-nowrap">Action</th>
                     </tr>
                     <tr class="table-row md:hidden">
@@ -233,10 +233,14 @@
                             </td>
 
                             <td class="p-3 text-center">
+                                <a href="{{ route('overtime.success', $r->id) }}"
+                                    class="px-2 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 text-xs inline-flex items-center whitespace-nowrap">
+                                    <i class="fas fa-qrcode mr-1"></i> QR
+                                </a>
                                 <a href="{{ route('hr.overtime.view', $r->id) }}"
-                                    class="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-gray-100 hover:bg-blue-100 text-gray-600 hover:text-blue-700 transition-all duration-200 hover:shadow-sm"
+                                    class="px-2 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 text-xs inline-flex items-center whitespace-nowrap"
                                     title="View Overtime Request">
-                                    <i class="fa-solid fa-eye"></i>
+                                    <i class="fa-solid fa-eye mr-1"></i> View
                                 </a>
                                 {{-- <a href="#"
                                     class="px-2 py-1 bg-green-100 text-green-600 rounded hover:bg-green-200 text-xs inline-flex items-center whitespace-nowrap">

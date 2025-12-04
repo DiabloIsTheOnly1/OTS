@@ -146,43 +146,44 @@ class OvertimeRequestController extends Controller
         ));
     }
 
-        // Store OT request
-        public function store(Request $request)
-        {
-            $validated = $request->validate([
-                'staff_id'      => 'required|exists:staff,id',
-                'branch_id'     => 'required|exists:branch,id',
-                'department_id' => 'required|exists:departments,id',
-                'date'          => 'required|date',
-                'reg_no'        => 'nullable|string|max:100',
-                'start_time'    => 'required|date_format:H:i',
-                'end_time'      => 'required|date_format:H:i|after:start_time',
-                'type_of_work'  => 'nullable|string',
-            ]);
+    // Store OT request
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'staff_id' => 'required|exists:staff,id',
+            'branch_id' => 'required|exists:branch,id',
+            'department_id' => 'required|exists:departments,id',
+            'date' => 'required|date',
+            'reg_no' => 'nullable|string|max:100',
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i|after:start_time',
+            'type_of_work' => 'nullable|string',
+        ]);
 
-            // Fix the time format: Laravel saves TIME as H:i:s → make sure it's H:i:00
-            $validated['start_time'] = $validated['start_time'] . ':00';
-            $validated['end_time']   = $validated['end_time'] . ':00';
+        // Fix the time format: Laravel saves TIME as H:i:s → make sure it's H:i:00
+        $validated['start_time'] = $validated['start_time'] . ':00';
+        $validated['end_time'] = $validated['end_time'] . ':00';
 
-            // Calculate total hours correctly (including overnight)
-            $start = \Carbon\Carbon::createFromFormat('H:i:s', $validated['start_time']);
-            $end   = \Carbon\Carbon::createFromFormat('H:i:s', $validated['end_time']);
+        // Calculate total hours correctly (including overnight)
+        $start = \Carbon\Carbon::createFromFormat('H:i:s', $validated['start_time']);
+        $end = \Carbon\Carbon::createFromFormat('H:i:s', $validated['end_time']);
 
-            // Handle overnight shift
-            if ($end->lessThan($start)) {
-                $end->addDay();
-            }
-
-            $totalMinutes = $start->diffInMinutes($end);
-            $validated['total_hours'] = round($totalMinutes / 60, 2); // e.g., 4.5, 8.25
-
-            // Save it
-            $overtime = OvertimeRequest::create($validated);
-
-            $qrUrl = url('/overtime/' . $overtime->id . '/details');
-
-            return view('overtime.success', compact('overtime', 'qrUrl'));
+        // Handle overnight shift
+        if ($end->lessThan($start)) {
+            $end->addDay();
         }
+
+        $totalMinutes = $start->diffInMinutes($end);
+        $validated['total_hours'] = round($totalMinutes / 60, 2); // e.g., 4.5, 8.25
+
+        // Save it
+        $overtime = OvertimeRequest::create($validated);
+
+        $qrUrl = url('/overtime/' . $overtime->id . '/details');
+
+        return redirect()->route('overtime.success', $overtime->id)
+            ->with('submitted', true);
+    }
 
     public function edit($id)
     {

@@ -25,6 +25,10 @@
             <span class="text-gray-900">{{ $overtime->staff->staff_name ?? 'N/A' }}</span>
         </p>
 
+        <p><span class="font-semibold text-gray-700">Position:</span><br>
+            <span class="text-gray-900">{{ $overtime->staff->position ?? 'N/A' }}</span>
+        </p>
+
         <p><span class="font-semibold text-gray-700">Branch:</span><br>
             <span class="text-gray-900">{{ $overtime->branch->name ?? 'N/A' }}</span>
         </p>
@@ -43,20 +47,20 @@
             </p>
          </div>
 
-        @if($overtime->clock)
+        {{-- @if($overtime->clocks)
             <p><span class="font-semibold text-gray-700">Clock In:</span><br>
-                <span class="text-gray-900">{{ $overtime->clock->clock_in ?? 'Not yet' }}</span>
+                <span class="text-gray-900">{{ $overtime->clocks->clock_in?->format('H:i') ?? 'Not yet' }}</span>
             </p>
 
             <p><span class="font-semibold text-gray-700">Clock Out:</span><br>
-                <span class="text-gray-900">{{ $overtime->clock->clock_out ?? 'Not yet' }}</span>
+                <span class="text-gray-900">{{ $overtime->clocks->clock_out?->format('H:i') ?? 'Not yet' }}</span>
             </p>
 
             <p class="sm:col-span-2">
                 <span class="font-semibold text-gray-700">Total Time:</span><br>
-                <span class="text-gray-900">{{ $overtime->clock->total_hm ?? '0' }} hours</span>
+                <span class="text-gray-900">{{ $overtime->clocks->total_hm ?? '0' }} hours</span>
             </p>
-        @endif
+        @endif --}}
 
     </div>
 
