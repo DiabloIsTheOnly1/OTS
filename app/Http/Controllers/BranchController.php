@@ -40,15 +40,14 @@ class BranchController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'branch_name' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
         ]);
 
         $branch = Branch::findOrFail($id);
-        $branch->update([
-            'branch_name' => $request->branch_name,
-        ]);
+        $branch->name = $request->input('name');
+        $branch->save();
 
-        return redirect()->back()->with('success', 'Branch updated successfully.');
+        return redirect()->back()->with('success', 'Branch updated successfully!');
     }
 
     /**
