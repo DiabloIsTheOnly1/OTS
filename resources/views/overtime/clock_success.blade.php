@@ -1,55 +1,58 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="max-w-xl mx-auto">
-        <div class="bg-white shadow-lg border rounded-2xl p-8 text-center">
+<div class="max-w-xl mx-auto">
+    <div class="bg-white shadow-lg border rounded-2xl p-10 text-center">
 
-            <div class="flex justify-center mb-4">
-                <div
-                    class="{{ $clock->clock_out && $message == 'Clocked Out' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600' }} p-3 rounded-full">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        @if ($clock->clock_out && $message == 'Clocked Out')
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M17 16l4-4m0 0l-4-4m4 4H7" />
-                        @else
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        @endif
-                    </svg>
-                </div>
+        <!-- Icon: Green for Clock In, Blue for Clock Out -->
+        <div class="flex justify-center mb-6">
+            <div class="{{ $clock->clock_out ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600' }} p-6 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    @if ($clock->clock_out)
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7" />
+                    @else
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    @endif
+                </svg>
             </div>
+        </div>
 
-            <h1
-                class="text-3xl font-bold {{ $clock->clock_out && $message == 'Clocked Out' ? 'text-blue-700' : 'text-green-700' }} mb-2">
-                {{ $message }}
-            </h1>
+        <!-- Title -->
+        <h1 class="text-4xl font-bold mb-4
+            {{ $clock->clock_out ? 'text-blue-700' : 'text-green-700' }}">
+            {{ $message }}
+        </h1>
 
-            <p class="text-gray-700">
-                @if ($message == 'You have already clocked out')
-                    Last clock out time:
-                @else
-                    Time:
-                @endif
-            </p>
-            <p class="text-2xl font-semibold mt-1">{{ $scannedAt->format('d M Y H:i:s') }}</p>
+        <!-- Time -->
+        <p class="text-gray-700 text-lg mb-2">
+            {{ $clock->clock_out ? 'Clock-out time:' : 'Clock-in time:' }}
+        </p>
+        <p class="text-3xl font-bold text-gray-900 mb-8">
+            {{ $scannedAt->format('d M Y H:i:s') }}
+        </p>
 
-            <div class="mt-4 text-sm text-gray-600">
-                <p><strong>Name:</strong> {{ $overtime->name }}</p>
-                <p><strong>Date:</strong> {{ $overtime->date->format('d M Y') }}</p>
-                @if ($clock->total_time_taken)
-                    <p><strong>Total Time:</strong> {{ $clock->total_hm }}</p>
-                @endif
-            </div>
+        <!-- Summary Box -->
+        <div class="bg-gray-50 border border-gray-200 rounded-xl p-6 text-left space-y-3 mb-10">
+            <p class="text-lg"><strong>Name:</strong> {{ $overtime->staff->staff_name }}</p>
+            <p class="text-lg"><strong>Date:</strong> {{ $overtime->date->format('d M Y') }}</p>
+            @if ($clock->clock_out)
+                <p class="text-lg"><strong>Total OT Time:</strong>
+                    <span class="text-green-600 font-bold text-xl">{{ $clock->total_hm }}</span>
+                </p>
+            @endif
+        </div>
 
+        <!-- SMART BACK BUTTON (Preserves filters for BOTH Clock In & Out) -->
             <div class="mt-6">
-                <a href="{{ session('ot_branch_id') && session('ot_department_id') ? route('overtime.index') : route('overtime.select') }}"
-                    class="text-blue-600 hover:underline text-sm">
+                <a href="{{ route('overtime.index') }}"
+                class="text-blue-600 hover:underline text-sm">
                     Back to Request List
                 </a>
             </div>
 
-
-        </div>
+        <p class="text-sm text-gray-500 mt-6">
+            You can safely close this page.
+        </p>
     </div>
-    </div>
+</div>
 @endsection

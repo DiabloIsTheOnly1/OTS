@@ -95,7 +95,7 @@ class StaffController extends Controller
         $staff = Staff::findOrFail($id);
         $staff->update($validated);
 
-        return redirect()->route('staff.index')->with('success', 'Staff updated successfully.');
+        return redirect()->route('settings.staff')->with('success', 'Staff updated successfully.');
     }
 
     // Delete record

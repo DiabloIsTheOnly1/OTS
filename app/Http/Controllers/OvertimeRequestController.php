@@ -39,37 +39,50 @@ class OvertimeRequestController extends Controller
 
     public function index(Request $request)
     {
-        $branch = Branch::find(session('ot_branch_id'));
-        $department = Department::find(session('ot_department_id'));
+        
+        if ($request->has('branch') && $request->has('dept')) {
+        session([
+            'ot_branch_id'     => $request->branch,
+            'ot_department_id' => $request->dept
+        ]);
+        
+        // Optional: Clean URL (removes ?branch=1&dept=2)
+        return redirect()->route('overtime.index');
+    }
 
-        // Default filters
-        $branchId = session('ot_branch_id');
+        // Now load from session (this will work every time)
+        $branchId     = session('ot_branch_id');
         $departmentId = session('ot_department_id');
+
+        $branch     = Branch::find($branchId);
+        $department = Department::find($departmentId);
 
         // Load request + all clock sessions
         $query = OvertimeRequest::with(['branch', 'department', 'clocks'])
             ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
             ->when($departmentId, fn($q) => $q->where('department_id', $departmentId));
 
-        // --- Filters ---
-        if ($request->branch_id) {
-            $query->where('branch_id', $request->branch_id);
+        // // --- Filters ---
+        // if ($request->branch_id) {
+        //     $query->where('branch_id', $request->branch_id);
+        // }
+
+        // --- Filters (GET) ---
+        if ($request->filled('name')) {
+            $query->whereHas('staff', function($q) use ($request) {
+                $q->where('staff_name', 'like', '%' . $request->name . '%');
+            });
         }
 
-        // Filters (GET)
-        if ($request->name) {
-            $query->where('name', 'like', "%{$request->name}%");
-        }
-
-        if ($request->from) {
+        if ($request->filled('from')) {
             $query->whereDate('date', '>=', $request->from);
         }
 
-        if ($request->to) {
+        if ($request->filled('to')) {
             $query->whereDate('date', '<=', $request->to);
         }
 
-        if ($request->status) {
+        if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
@@ -160,6 +173,11 @@ class OvertimeRequestController extends Controller
             'type_of_work' => 'nullable|string',
         ]);
 
+        session([
+        'ot_branch_id'     => $request->branch_id,
+        'ot_department_id' => $request->department_id,
+    ]);
+
         // Fix the time format: Laravel saves TIME as H:i:s → make sure it's H:i:00
         $validated['start_time'] = $validated['start_time'] . ':00';
         $validated['end_time'] = $validated['end_time'] . ':00';
@@ -249,6 +267,11 @@ class OvertimeRequestController extends Controller
     {
         $overtime = OvertimeRequest::with('clocks')->findOrFail($id);
 
+        session([
+        'ot_branch_id'     => $overtime->branch_id,
+        'ot_department_id' => $overtime->department_id,
+    ]);
+
         return view('overtime.details', compact('overtime'));
     }
 
@@ -323,6 +346,13 @@ class OvertimeRequestController extends Controller
     public function qr($id)
     {
         $overtime = OvertimeRequest::with(['branch', 'department'])->findOrFail($id);
+
+        session([
+        'ot_branch_id'     => $overtime->branch_id,
+        'ot_department_id' => $overtime->department_id,
+    ]);
+
+
         $qrUrl = url('/overtime/' . $overtime->id . '/details');
 
         return view('overtime.success', compact('overtime', 'qrUrl'));

@@ -10,7 +10,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\StaffController;
 
 // Login
-Route::get('/login', [AuthController::class, 'loginPage'])->name('login');
+Route::get('/', [AuthController::class, 'loginPage'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 
@@ -85,7 +85,7 @@ Route::post('/overtime/submit', [OvertimeRequestController::class, 'store'])->na
 Route::get('/overtime/{id}/details', [OvertimeRequestController::class, 'details'])->name('overtime.details');
 
 // 1. Filter selection page
-Route::get('/', [OvertimeRequestController::class, 'selectPage'])
+Route::get('/overtime-select', [OvertimeRequestController::class, 'selectPage'])
     ->name('overtime.select');
 
 // 2. Set filters (POST)

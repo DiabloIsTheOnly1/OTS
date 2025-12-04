@@ -174,7 +174,7 @@
 
                             <div class="flex justify-between">
                                 <span class="text-xs text-gray-500 uppercase">Employee</span>
-                                <span class="text-sm font-bold text-gray-900">{{ $req->name }}</span>
+                                <span class="text-sm font-bold text-gray-900">{{ $req->staff->staff_name ?? '-' }}</span>
                             </div>
 
                             <div class="flex justify-between">
@@ -242,7 +242,7 @@
                             @foreach ($requests as $req)
                                 <tr class="hover:bg-gray-50 transition hidden md:table-row">
                                     <td class="px-4 py-3 text-sm font-semibold text-gray-900 whitespace-nowrap">
-                                        {{ $req->name }}
+                                        {{ $req->staff->staff_name ?? '-' }}
                                         <div class="text-xs text-gray-600">Dept:
                                             {{ $req->department->department_name ?? '-' }}</div>
                                     </td>
