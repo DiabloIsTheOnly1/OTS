@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Branch;
 use App\Models\Department;
 use App\Models\Staff;
+use App\Models\AccessLevel;
 
 class DatabaseSeeder extends Seeder
 {
@@ -19,6 +20,18 @@ class DatabaseSeeder extends Seeder
         // Create branches
         $branch1 = Branch::create(['name' => 'HQKK']);
         $branch2 = Branch::create(['name' => 'UMKK1']);
+
+        // Create access levels
+        $accessLevel1 = AccessLevel::create([
+            'name' => 'Admin',
+            'access_level' => 1,
+            'user' => 1,
+            'branch_settings' => 1,
+            'department_settings' => 1,
+            'staff_settings' => 1,
+            'manage_request' => 1,
+            'hod_approval' => 1,
+        ]);
 
         //create staff
         $staff1 = Staff::create([
@@ -34,6 +47,7 @@ class DatabaseSeeder extends Seeder
             'username' => 'admin',
             'password' => 'password', // auto-hashed
             'department_id' => $department1->id,
+            'access_level_id' => $accessLevel1->id,
         ]);
 
         // Assign branches to admin

@@ -187,37 +187,36 @@ class OvertimeRequestController extends Controller
         ));
     }
 
-    public function update(Request $request, OvertimeRequest $overtime)
+ public function update(Request $request, OvertimeRequest $overtime)
 {
-    // Optional: prevent edit if clocked in
+    // Prevent edit if already clocked in
     if ($overtime->clocks()->exists()) {
-        return back()->with('error', 'Cannot edit: Staff has already clocked in !');
+        return back()->with('error', 'Cannot edit: Staff has already clocked in!');
     }
 
-    $validated = $request->validate([
-        'staff_id'     => 'required|exists:staff,id',
-        'date'         => 'required|date',
-        'start_time'   => 'required|date_format:H:i',
-        'end_time'     => 'required|date_format:H:i',
-        'reg_no'       => 'nullable|string|max:50',
-        'type_of_work' => 'nullable|string',
-        'remarks'      => 'nullable|string',
+    // Accept ALL fields — no strict validation needed
+    $data = $request->only([
+        'staff_id',
+        'date',
+        'start_time',
+        'end_time',
+        'reg_no',
+        'type_of_work',
+        'remarks'
     ]);
 
-    // Calculate total hours
-    $start = \Carbon\Carbon::createFromFormat('H:i', $validated['start_time']);
-    $end   = \Carbon\Carbon::createFromFormat('H:i', $validated['end_time']);
-    if ($end->lessThan($start)) $end->addDay();
+    // Only recalculate total_hours if times are present
+    if ($request->filled('start_time') && $request->filled('end_time')) {
+        $start = \Carbon\Carbon::createFromFormat('H:i', $request->start_time);
+        $end   = \Carbon\Carbon::createFromFormat('H:i', $request->end_time);
+        if ($end->lessThan($start)) $end->addDay();
 
-    $validated['total_hours'] = round($start->diffInMinutes($end) / 60, 2);
+        $data['total_hours'] = round($start->diffInMinutes($end) / 60, 2);
+    }
 
-    $overtime->update($validated);
+    $overtime->update($data);
 
-   
-    $overtime->load('staff', 'branch', 'department');
-
-    
-    return back()->with('success', 'Overtime updated successfully!');
+    return back()->with('success', 'Overtime request updated successfully!');
 }
     public function details($id)
     {

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Branch;
 use App\Models\Department;
+use App\Models\AccessLevel;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
@@ -15,8 +16,18 @@ class UserController extends Controller
         $users = User::with(['department', 'branches'])->orderBy('id')->get();
         $departments = Department::orderBy('department_name')->get();
         $branches = Branch::orderBy('name')->get();
+        $accessLevels = AccessLevel::orderBy('name')->get();
 
-        return view('settings.user', compact('users', 'departments', 'branches'));
+        return
+            view(
+                'settings.user',
+                compact(
+                    'users',
+                    'departments',
+                    'branches',
+                    'accessLevels'
+                )
+            );
     }
 
     public function store(Request $request)
@@ -28,6 +39,7 @@ class UserController extends Controller
             'department_id' => 'nullable|exists:departments,id',
             'branches' => 'array',
             'access_all_departments' => 'boolean',
+            'access_level_id'=> 'required|exists:access_levels,id',
         ]);
 
         $user = User::create([
@@ -36,6 +48,7 @@ class UserController extends Controller
             'password' => $request->password,
             'department_id' => $request->department_id,
             'access_all_departments' => $request->access_all_departments ? 1 : 0,
+            'access_level_id' => $request->access_level_id,
         ]);
 
         $user->branches()->sync($request->branches ?? []);
@@ -54,12 +67,14 @@ class UserController extends Controller
             'department_id' => 'nullable|exists:departments,id',
             'branches' => 'array',
             'access_all_departments' => 'boolean',
+            'access_level_id'=> 'required|exists:access_levels,id',
         ]);
 
         $user->name = $request->name;
         $user->username = $request->username;
         $user->department_id = $request->department_id;
         $user->access_all_departments = $request->access_all_departments ? 1 : 0;
+        $user->access_level_id = $request->access_level_id;
 
         if ($request->filled('password')) {
             $user->password = $request->password;

@@ -3,7 +3,7 @@
 @section('content')
 
     <!-- Prevent overlap with topbar on mobile -->
-    <div class="pt-20 sm:pt-4">
+    <div class="pt-[65px] sm:pt-6 lg:pt-4 transition-all">
 
         <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 
@@ -20,7 +20,7 @@
             </div>
 
             <!-- New Request Button -->
-            <a href="{{ route('overtime.create') }}"
+            {{-- <a href="{{ route('overtime.create') }}"
                 class="group relative inline-flex items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 px-4 py-2 font-semibold text-white shadow-lg transition-all duration-300 hover:shadow-xl hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300">
 
                 <span class="relative flex items-center gap-3">
@@ -37,8 +37,27 @@
                     class="absolute inset-0 -translate-x-full bg-white/20 skew-x-12 transition-transform duration-700 group-hover:translate-x-full"></span>
             </a>
 
-        </div>
+        </div> --}}
 
+        <!-- New Request Button - Beautiful & Responsive -->
+        @canAccess('manage_request')
+        <a href="{{ route('overtime.create') }}"
+            class="inline-flex items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 px-4 py-2 font-semibold text-white shadow-lg transition-all duration-300 hover:shadow-xl hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300">
+
+            <span class="flex items-center gap-3">
+                <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                <span class="hidden sm:inline">New Overtime Request</span>
+                <span class="sm:hidden">New Request</span>
+            </span>
+
+            <!-- Shine effect on hover -->
+            <span
+                class="absolute inset-0 -translate-x-full bg-white/20 skew-x-12 transition-transform duration-700 group-hover:translate-x-full"></span>
+        </a>
+        @endcanAccess
     </div>
 
     {{-- Filters --}}
@@ -187,7 +206,8 @@
 
                             <!-- Requested -->
                             <td class="p-3 text-center">
-                                <span class="inline-block bg-amber-100 text-amber-800 font-bold px-3 py-1 rounded-full text-sm">
+                                <span
+                                    class="inline-block bg-amber-100 text-amber-800 font-bold px-3 py-1 rounded-full text-sm">
                                     {{ $r->requested_hm ?? '-' }}
                                 </span>
                             </td>
@@ -209,15 +229,80 @@
                             <!-- Approval -->
                             <td class="p-3 text-center">
                                 @if ($r->status === 'pending')
-                                    <div class="flex gap-2 justify-center">
-                                        <form action="{{ route('hr.overtime.approve', $r->id) }}" method="POST">@csrf
-                                            <button
-                                                class="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700">Approve</button>
-                                        </form>
-                                        <form action="{{ route('hr.overtime.reject', $r->id) }}" method="POST">@csrf
-                                            <button
-                                                class="bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700">Reject</button>
-                                        </form>
+                                    @php
+                                        $canHod = auth()->user()->canAccess('hod_approval');
+                                        $canHq = auth()->user()->canAccess('hq_approval');
+
+                                        $createdAt = \Carbon\Carbon::parse($r->created_at);
+                                        $deadline = $createdAt->copy()->addHours(24); // change to 1 hour for testing
+                                        $now = \Carbon\Carbon::now();
+
+                                        $remainingSeconds = max(0, $deadline->diffInSeconds($now));
+                                        $hoursSinceCreated = $createdAt->diffInHours($now);
+
+                                        // Approval rules
+                                        $hodWindow = $hoursSinceCreated <= 24; // change to <=1 for testing
+                                        $hqWindow = $hoursSinceCreated > 24; // >1 for testing
+
+                                        $buttonEnabled = ($hodWindow && $canHod) || ($hqWindow && $canHq);
+                                    @endphp
+
+                                    {{-- Alpine.js Countdown Timer + Button Logic --}}
+                                    <div x-data="{
+                                        seconds: {{ $remainingSeconds }},
+                                        expired: {{ $hqWindow ? 'true' : ($remainingSeconds <= 0 ? 'false' : 'true') }},
+                                    }" x-init="if (seconds > 0) {
+                                        setInterval(() => {
+                                            if (seconds > 0) seconds--;
+                                            if (seconds <= 0) expired = true;
+                                        }, 1000);
+                                    }"
+                                        class="flex flex-col items-center gap-2">
+
+                                        {{-- Countdown Timer --}}
+                                        {{-- <div class="text-xs font-medium text-gray-600" x-show="expired">
+                                            HOD approval ends in:
+                                            <span class="font-bold text-gray-800"
+                                                x-text="
+                    new Date(seconds * 1000).toISOString().substr(11, 8)
+                "></span>
+                                        </div> --}}
+
+                                        <div class="flex gap-2 justify-center mt-1">
+
+                                            {{-- APPROVE BUTTON --}}
+                                            <form action="{{ route('hr.overtime.approve', $r->id) }}" method="POST"
+                                                onsubmit="return confirm('Approve this request?');">
+                                                @csrf
+                                                <button
+                                                    x-bind:disabled="expired || {{ $buttonEnabled ? 'false' : 'true' }}"
+                                                    class="px-3 py-1 text-xs rounded
+                                                    @if ($buttonEnabled) bg-green-600 hover:bg-green-700 text-white 
+                                                    @else bg-gray-300 text-gray-500 cursor-not-allowed @endif">
+                                                    Approve
+                                                </button>
+                                            </form>
+
+                                            {{-- REJECT BUTTON --}}
+                                            <form action="{{ route('hr.overtime.reject', $r->id) }}" method="POST"
+                                                onsubmit="return confirm('Reject this request?');">
+                                                @csrf
+                                                <button
+                                                    x-bind:disabled="expired || {{ $buttonEnabled ? 'false' : 'true' }}"
+                                                    class="px-3 py-1 text-xs rounded
+                                                    @if ($buttonEnabled) bg-red-600 hover:bg-red-700 text-white 
+                                                    @else bg-gray-300 text-gray-500 cursor-not-allowed @endif">
+                                                    Reject
+                                                </button>
+                                            </form>
+
+                                        </div>
+
+                                        {{-- After timer expiry --}}
+                                        <p class="text-xs text-red-600 mt-1" x-show="expired">
+                                            HQ approval required
+                                        </p>
+
                                     </div>
                                 @else
                                     <p class="text-xs">{{ $r->status == 'approved' ? 'Approved' : 'Rejected' }} by</p>
@@ -225,6 +310,7 @@
                                         class="font-bold text-gray-800 text-xs">{{ $r->approver?->username ?? '-' }}</span>
                                 @endif
                             </td>
+
 
                             <!-- Remarks -->
                             <td class="p-3">
@@ -339,14 +425,6 @@
                                     </div>
 
                                 </div>
-                            </td>
-
-                            <td class="p-3 text-center">
-                                <a href="{{ route('hr.overtime.view', $r->id) }}"
-                                    class="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-gray-100 hover:bg-blue-100 text-gray-600 hover:text-blue-700 transition-all duration-200 hover:shadow-sm"
-                                    title="View Overtime Request">
-                                    <i class="fa-solid fa-eye"></i>
-                                </a>
                             </td>
                         </tr>
 

@@ -24,11 +24,11 @@ class BranchController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'branch_name' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
         ]);
 
         Branch::create([
-            'name' => $request->branch_name,
+            'name' => $request->name,
         ]);
 
         return redirect()->back()->with('success', 'Branch created successfully.');

@@ -24,6 +24,23 @@ return new class extends Migration {
             $table->timestamps();
         });
 
+        Schema::create('access_levels', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+
+            // Permission flags
+            $table->boolean('access_level')->default(0);
+            $table->boolean('user')->default(0);
+            $table->boolean('branch_settings')->default(0);
+            $table->boolean('department_settings')->default(0);
+            $table->boolean('staff_settings')->default(0);
+            $table->boolean('manage_request')->default(0);
+            $table->boolean('hod_approval')->default(0);
+            $table->boolean('hq_approval')->default(0);
+
+            $table->timestamps();
+        });
+
         // 3. USERS (department_id now works)
         Schema::create('users', function (Blueprint $table) {
             $table->id();
@@ -37,6 +54,11 @@ return new class extends Migration {
                 ->nullOnDelete();
 
             $table->boolean('access_all_departments')->default(false);
+
+            $table->foreignId('access_level_id')
+                ->nullable()
+                ->constrained('access_levels')
+                ->nullOnDelete();
 
             $table->rememberToken();
             $table->timestamps();
@@ -93,6 +115,7 @@ return new class extends Migration {
         Schema::dropIfExists('branch_user');
         Schema::dropIfExists('branch');
         Schema::dropIfExists('departments');
+        Schema::dropIfExists('access_levels');
         Schema::dropIfExists('users');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');

@@ -45,4 +45,15 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Branch::class, 'branch_user');
     }
+
+    public function accessLevel()
+    {
+        return $this->belongsTo(AccessLevel::class);
+    }
+
+    public function canAccess($permission)
+    {
+        return $this->accessLevel && $this->accessLevel->$permission == 1;
+    }
+
 }
