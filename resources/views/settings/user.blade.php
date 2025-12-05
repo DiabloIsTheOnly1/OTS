@@ -132,6 +132,9 @@
                                             -
                                         @endif
                                     </div>
+                                    <div class="text-gray-600 text-sm">
+                                        Access Levels: {{ $user->accessLevel->name ?? 'N/A' }}
+                                    </div>
                                 </div>
 
                                 <!-- Actions -->

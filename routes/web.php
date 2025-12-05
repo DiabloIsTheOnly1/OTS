@@ -8,6 +8,7 @@ use App\Http\Controllers\BranchController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\StaffController;
+use App\Http\Controllers\AccessLevelController;
 
 // Login
 Route::get('/', [AuthController::class, 'loginPage'])->name('login');
@@ -33,6 +34,9 @@ Route::prefix('settings')->middleware('auth')->group(function () {
     Route::get('/staff', [StaffController::class, 'index'])
         ->name('settings.staff');
 
+    Route::get('/access-level', [AccessLevelController::class, 'index'])
+        ->name('settings.access-level');
+
     // POST, PUT, DELETE keep same:
     Route::post('/branch', [BranchController::class, 'store'])->name('settings.branch.store');
     Route::put('/branch/{id}', [BranchController::class, 'update'])->name('settings.branch.update');
@@ -50,8 +54,9 @@ Route::prefix('settings')->middleware('auth')->group(function () {
     Route::put('/staff/{id}', [StaffController::class, 'update'])->name('staff.update');
     Route::delete('/staff/{id}', [StaffController::class, 'destroy'])->name('staff.destroy');
 
-    // Staff routes
-    // Route::resource('staff', StaffController::class);
+    Route::post('/access-level', [AccessLevelController::class, 'store'])->name('access-level.store');
+    Route::put('/access-level/{id}', [AccessLevelController::class, 'update'])->name('access-level.update');
+    Route::delete('/access-level/{id}', [AccessLevelController::class, 'destroy'])->name('access-level.destroy');
 
 });
 
