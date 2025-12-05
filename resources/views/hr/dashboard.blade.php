@@ -17,6 +17,7 @@
         </div>
 
         <!-- New Request Button - Beautiful & Responsive -->
+        @canAccess('manage_request')
         <a href="{{ route('overtime.create') }}"
             class="group relative inline-flex items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 px-4 py-2 font-semibold text-white shadow-lg transition-all duration-300 hover:shadow-xl hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300">
 
@@ -33,6 +34,7 @@
             <span
                 class="absolute inset-0 -translate-x-full bg-white/20 skew-x-12 transition-transform duration-700 group-hover:translate-x-full"></span>
         </a>
+        @endcanAccess
     </div>
 
     {{-- Filters --}}
@@ -203,15 +205,38 @@
                             <!-- Approval -->
                             <td class="p-3 text-center">
                                 @if ($r->status === 'pending')
+                                    @php
+                                        $canHod = auth()->user()->canAccess('hod_approval');
+                                        $canHq = auth()->user()->canAccess('hq_approval');
+                                        $hasPermission = $canHod || $canHq;
+                                    @endphp
+
                                     <div class="flex gap-2 justify-center">
-                                        <form action="{{ route('hr.overtime.approve', $r->id) }}" method="POST">@csrf
-                                            <button
-                                                class="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700">Approve</button>
+
+                                        {{-- APPROVE BUTTON --}}
+                                        <form action="{{ route('hr.overtime.approve', $r->id) }}" method="POST"
+                                            onsubmit="return confirm('Approve this request?');">
+                                            @csrf
+                                            <button @disabled(!$hasPermission)
+                                                class="px-3 py-1 text-xs rounded
+                                                        {{ $hasPermission
+                                                            ? 'bg-green-600 text-white hover:bg-green-700'
+                                                            : 'bg-gray-300 text-gray-500 cursor-not-allowed' }}">
+                                                Approve
+                                            </button>
                                         </form>
-                                        <form action="{{ route('hr.overtime.reject', $r->id) }}" method="POST">@csrf
-                                            <button
-                                                class="bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700">Reject</button>
+
+                                        {{-- REJECT BUTTON --}}
+                                        <form action="{{ route('hr.overtime.reject', $r->id) }}" method="POST"
+                                            onsubmit="return confirm('Reject this request?');">
+                                            @csrf
+                                            <button @disabled(!$hasPermission)
+                                                class="px-3 py-1 text-xs rounded
+                                                        {{ $hasPermission ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-gray-300 text-gray-500 cursor-not-allowed' }}">
+                                                Reject
+                                            </button>
                                         </form>
+
                                     </div>
                                 @else
                                     <p class="text-xs">{{ $r->status == 'approved' ? 'Approved' : 'Rejected' }} by</p>

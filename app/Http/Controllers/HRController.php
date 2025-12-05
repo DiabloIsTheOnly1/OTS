@@ -109,13 +109,37 @@ class HRController extends Controller
     public function approve(int $id)
     {
         $overtimeRequest = OvertimeRequest::findOrFail($id);
-        $overtimeRequest->status = 'approved';
-        $overtimeRequest->approved_by = Auth::id(); // Intelephense-safe
-        $overtimeRequest->approved_at = now();
-        $overtimeRequest->save();
+        $user = Auth::user();
+        $createdAt = $overtimeRequest->created_at;
+        $hoursSinceCreated = now()->diffInHours($createdAt);
 
-        return redirect()->back()->with('success', 'Overtime request approved.');
+        $canHod = $user->canAccess('hod_approval');
+        $canHq = $user->canAccess('hq_approval');
+
+        // HOD window (0–24 hours)
+        if ($hoursSinceCreated <= 1) {
+            if (!$canHod) {
+                return back()->with('error', 'Only HOD can approve within the first 24 hours.');
+            }
+        }
+
+        // HQ window (after 24 hours)
+        if ($hoursSinceCreated > 1) {
+            if (!$canHq) {
+                return back()->with('error', 'Only HQ approvers can approve after 24 hours.');
+            }
+        }
+
+        // Approve
+        $overtimeRequest->update([
+            'status' => 'approved',
+            'approved_by' => $user->id,
+            'approved_at' => now(),
+        ]);
+
+        return back()->with('success', 'Overtime request approved.');
     }
+
 
     /**
      * Reject an overtime request.
@@ -123,13 +147,34 @@ class HRController extends Controller
     public function reject(int $id)
     {
         $overtimeRequest = OvertimeRequest::findOrFail($id);
-        $overtimeRequest->status = 'rejected';
-        $overtimeRequest->approved_by = Auth::id(); // Intelephense-safe
-        $overtimeRequest->approved_at = now();
-        $overtimeRequest->save();
+        $user = Auth::user();
+        $createdAt = $overtimeRequest->created_at;
+        $hoursSinceCreated = now()->diffInHours($createdAt);
 
-        return redirect()->back()->with('success', 'Overtime request rejected.');
+        $canHod = $user->canAccess('hod_approval');
+        $canHq = $user->canAccess('hq_approval');
+
+        if ($hoursSinceCreated <= 1) {
+            if (!$canHod) {
+                return back()->with('error', 'Only HOD can reject within the first 24 hours.');
+            }
+        }
+
+        if ($hoursSinceCreated > 1) {
+            if (!$canHq) {
+                return back()->with('error', 'Only HQ approvers can reject after 24 hours.');
+            }
+        }
+
+        $overtimeRequest->update([
+            'status' => 'rejected',
+            'approved_by' => $user->id,
+            'approved_at' => now(),
+        ]);
+
+        return back()->with('success', 'Overtime request rejected.');
     }
+
 
     public function updateRemarks(Request $request, $id)
     {
@@ -152,7 +197,7 @@ class HRController extends Controller
 
     public function viewForm($id)
     {
-           $overtime = OvertimeRequest::with('branch','department','clocks')->findOrFail($id);
+        $overtime = OvertimeRequest::with('branch', 'department', 'clocks')->findOrFail($id);
 
         // Compute total time for each clock session
         foreach ($overtime->clocks as $c) {
@@ -169,6 +214,6 @@ class HRController extends Controller
         $overtime->total_hm = sprintf('%02d:%02d', $hours, $minutes);
 
         return view('hr.overtime_form_view', compact('overtime'));
-        }
+    }
 
 }

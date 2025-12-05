@@ -41,15 +41,15 @@
                 <div class="mt-4">
                     <h3 class="text-md font-semibold text-gray-700 mb-2">Permissions</h3>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
 
                         @foreach([
                             'access_level' => 'Access Level Settings',
                             'user' => 'User Management',
-                            'branch_settings' => 'Branches',
-                            'department_settings' => 'Departments',
-                            'staff_settings' => 'Staff',
-                            'manage_request' => 'Requests',
+                            'branch_settings' => 'Branches Settings',
+                            'department_settings' => 'Departments Settings',
+                            'staff_settings' => 'Staff Management',
+                            'manage_request' => 'Manage Requests',
                             'hod_approval' => 'HOD Approval',
                             'hq_approval' => 'HQ Approval'
                         ] as $key => $label)
