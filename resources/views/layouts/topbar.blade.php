@@ -6,7 +6,7 @@
         <div class="flex justify-between items-center py-3">
 
             {{-- OT Logo --}}
-            <a href="{{ route('overtime.index') }}" class="flex items-center group cursor-pointer">
+            {{-- <a href="{{ route('overtime.index') }}" class="flex items-center group cursor-pointer"> --}}
                 <div class="flex-shrink-0">
                     <div class="text-xl font-bold bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent
                                 group-hover:opacity-80 transition duration-200">
