@@ -38,56 +38,60 @@ class OvertimeRequestController extends Controller
     }
 
     public function index(Request $request)
-        {
-            // Handle branch/dept from QR redirect
-            if ($request->has('branch') && $request->has('dept')) {
-                session([
-                    'ot_branch_id'     => $request->branch,
-                    'ot_department_id' => $request->dept
-                ]);
-                return redirect()->route('overtime.index');
-            }
+    {
+        // Handle branch/dept from QR redirect
+        if ($request->has('branch') && $request->has('dept')) {
+            session([
+                'ot_branch_id' => $request->branch,
+                'ot_department_id' => $request->dept
+            ]);
+            return redirect()->route('overtime.index');
+        }
 
-            $branchId     = session('ot_branch_id');
-            $departmentId = session('ot_department_id');
+        $branchId = session('ot_branch_id');
+        $departmentId = session('ot_department_id');
 
-            $branch     = Branch::find($branchId);
-            $department = Department::find($departmentId);
+        $branch = Branch::find($branchId);
+        $department = Department::find($departmentId);
 
-            $query = OvertimeRequest::with(['branch', 'department', 'clocks', 'staff'])
-                ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
-                ->when($departmentId, fn($q) => $q->where('department_id', $departmentId));
+        $query = OvertimeRequest::with(['branch', 'department', 'clocks', 'staff'])
+            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($departmentId, fn($q) => $q->where('department_id', $departmentId));
 
-            if ($request->filled('name')) {
-                $query->whereHas('staff', fn($q) => $q->where('staff_name', 'like', "%{$request->name}%"));
-            }
-            if ($request->filled('from')) $query->whereDate('date', '>=', $request->from);
-            if ($request->filled('to'))   $query->whereDate('date', '<=', $request->to);
-            if ($request->filled('status')) $query->where('status', $request->status);
+        if ($request->filled('name')) {
+            $query->whereHas('staff', fn($q) => $q->where('staff_name', 'like', "%{$request->name}%"));
+        }
+        if ($request->filled('from'))
+            $query->whereDate('date', '>=', $request->from);
+        if ($request->filled('to'))
+            $query->whereDate('date', '<=', $request->to);
+        if ($request->filled('status'))
+            $query->where('status', $request->status);
 
-            $requests = $query->paginate(15);
+        $requests = $query->paginate(15);
 
-            // ONLY ONE LOOP — THIS IS THE ONLY PLACE WE TOUCH THE DATA
-            foreach ($requests as $req) {
-                // Actual hours
-                $totalSec = $req->clocks->sum('total_time_taken');
-                $req->total_hm = sprintf('%02d:%02d', floor($totalSec / 3600), floor(($totalSec % 3600) / 60));
+        // ONLY ONE LOOP — THIS IS THE ONLY PLACE WE TOUCH THE DATA
+        foreach ($requests as $req) {
+            // Actual hours
+            $totalSec = $req->clocks->sum('total_time_taken');
+            $req->total_hm = sprintf('%02d:%02d', floor($totalSec / 3600), floor(($totalSec % 3600) / 60));
 
-                // Clock display
-                $req->clock_in_display  = $req->clocks->min('clock_in')?->format('H:i') ?? '-';
-                $req->clock_out_display = $req->clocks->max('clock_out')?->format('H:i') ?? '-';
+            // Clock display
+            $req->clock_in_display = $req->clocks->min('clock_in')?->format('H:i') ?? '-';
+            $req->clock_out_display = $req->clocks->max('clock_out')?->format('H:i') ?? '-';
 
-                // REQUESTED HOURS — FROM YOUR DB total_hours (e.g. 4.5 → 04:30)
-                $hours   = floor($req->total_hours ?? 0);
-                $minutes = round(($req->total_hours ?? 0 - $hours) * 60);
-                $req->requested_hm = sprintf('%02d:%02d', 
-                floor($req->total_hours ?? 0), 
+            // REQUESTED HOURS — FROM YOUR DB total_hours (e.g. 4.5 → 04:30)
+            $hours = floor($req->total_hours ?? 0);
+            $minutes = round(($req->total_hours ?? 0 - $hours) * 60);
+            $req->requested_hm = sprintf(
+                '%02d:%02d',
+                floor($req->total_hours ?? 0),
                 round(($req->total_hours ?? 0 - floor($req->total_hours ?? 0)) * 60)
             );
-            }
-
-            return view('overtime.index', compact('requests', 'branch', 'department'));
         }
+
+        return view('overtime.index', compact('requests', 'branch', 'department'));
+    }
 
 
     // Show OT request form
@@ -129,44 +133,45 @@ class OvertimeRequestController extends Controller
     }
 
     // Store OT request
-   public function store(Request $request)
-        {
-            $validated = $request->validate([
-                'staff_id'      => 'required|exists:staff,id',
-                'branch_id'     => 'required|exists:branch,id',
-                'department_id' => 'required|exists:departments,id',
-                'date'          => 'required|date',
-                'reg_no'        => 'nullable|string|max:100',
-                'start_time'    => 'required|date_format:H:i',
-                'end_time'      => 'required|date_format:H:i|after:start_time',
-                'type_of_work'  => 'nullable|string',
-            ]);
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'staff_id' => 'required|exists:staff,id',
+            'branch_id' => 'required|exists:branch,id',
+            'department_id' => 'required|exists:departments,id',
+            'date' => 'required|date',
+            'reg_no' => 'nullable|string|max:100',
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i|after:start_time',
+            'type_of_work' => 'nullable|string',
+        ]);
 
-            // CALCULATE total_hours BEFORE modifying the array
-            $start = \Carbon\Carbon::createFromFormat('H:i', $validated['start_time']);
-            $end   = \Carbon\Carbon::createFromFormat('H:i', $validated['end_time']);
-            if ($end->lessThan($start)) $end->addDay();
+        // CALCULATE total_hours BEFORE modifying the array
+        $start = \Carbon\Carbon::createFromFormat('H:i', $validated['start_time']);
+        $end = \Carbon\Carbon::createFromFormat('H:i', $validated['end_time']);
+        if ($end->lessThan($start))
+            $end->addDay();
 
-            $totalHours = round($start->diffInMinutes($end) / 60, 2);
+        $totalHours = round($start->diffInMinutes($end) / 60, 2);
 
-            // NOW modify time format for DB
-            $validated['start_time'] .= ':00';
-            $validated['end_time']   .= ':00';
+        // NOW modify time format for DB
+        $validated['start_time'] .= ':00';
+        $validated['end_time'] .= ':00';
 
-            // ADD total_hours to the CORRECT way
-            $validated['total_hours'] = $totalHours;
+        // ADD total_hours to the CORRECT way
+        $validated['total_hours'] = $totalHours;
 
-            // Save session
-            session([
-                'ot_branch_id'     => $validated['branch_id'],
-                'ot_department_id' => $validated['department_id'],
-            ]);
+        // Save session
+        session([
+            'ot_branch_id' => $validated['branch_id'],
+            'ot_department_id' => $validated['department_id'],
+        ]);
 
-            $overtime = OvertimeRequest::create($validated);
+        $overtime = OvertimeRequest::create($validated);
 
-            return redirect()->route('overtime.success', $overtime->id)
-                ->with('submitted', true);
-        }
+        return redirect()->route('overtime.success', $overtime->id)
+            ->with('submitted', true);
+    }
 
     public function edit($id)
     {
@@ -223,9 +228,9 @@ class OvertimeRequestController extends Controller
         $overtime = OvertimeRequest::with('clocks')->findOrFail($id);
 
         session([
-        'ot_branch_id'     => $overtime->branch_id,
-        'ot_department_id' => $overtime->department_id,
-    ]);
+            'ot_branch_id' => $overtime->branch_id,
+            'ot_department_id' => $overtime->department_id,
+        ]);
 
         return view('overtime.details', compact('overtime'));
     }
@@ -303,9 +308,9 @@ class OvertimeRequestController extends Controller
         $overtime = OvertimeRequest::with(['branch', 'department'])->findOrFail($id);
 
         session([
-        'ot_branch_id'     => $overtime->branch_id,
-        'ot_department_id' => $overtime->department_id,
-    ]);
+            'ot_branch_id' => $overtime->branch_id,
+            'ot_department_id' => $overtime->department_id,
+        ]);
 
 
         $qrUrl = url('/overtime/' . $overtime->id . '/details');
@@ -314,11 +319,11 @@ class OvertimeRequestController extends Controller
     }
 
     public function show(OvertimeRequest $overtime)
-        {
-            $overtime->load('staff', 'branch', 'department', 'clocks', 'approver');
-            return view('hr.overtime.view', compact('hr.overtime.view'));
-        }
-    
+    {
+        $overtime->load('staff', 'branch', 'department', 'clocks', 'approver');
+        return view('hr.overtime.view', compact('hr.overtime.view'));
+    }
+
 }
 
 

@@ -77,8 +77,8 @@
 
                     <div class="mt-3 flex items-center">
                         <label class="inline-flex items-center mt-4">
-                            <input type="checkbox" name="access_all_departments" value="1" @checked(isset($user) && $user->access_all_departments)
-                                class="rounded">
+                            <input type="checkbox" name="access_all_departments" value="1"
+                                class="rounded" id="accessAllCheckbox">
                             <span class="ml-2">Access All Departments</span>
                         </label>
                     </div>
@@ -145,7 +145,7 @@
                                         @endif
                                     </div>
                                     <div class="text-gray-600 text-sm">
-                                        Access Levels: {{ $user->accessLevel->name ?? 'N/A' }}
+                                        Access Level: {{ $user->accessLevel->name ?? 'N/A' }}
                                     </div>
                                 </div>
 
@@ -157,6 +157,8 @@
                                         class="edit-user text-sm px-2 py-1 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200"
                                         data-id="{{ $user->id }}" data-name="{{ $user->name }}"
                                         data-username="{{ $user->username }}" data-dept="{{ $user->department_id }}"
+                                        data-access="{{ $user->access_level_id }}"
+                                        data-access-all="{{ $user->access_all_departments }}"
                                         data-branches="{{ $user->branches->pluck('id')->join(',') }}">
                                         <i class="fas fa-edit mr-1"></i> Edit
                                     </button>
@@ -189,7 +191,6 @@
 
     </div>
 
-
     {{-- JS --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -204,10 +205,14 @@
             const usernameInput = document.querySelector('#username');
             const passwordInput = document.querySelector('#password');
             const deptInput = document.querySelector('#department');
+            const accessLevelInput = document.querySelector('#access_level');
+            const accessAllCheckbox = document.querySelector('#accessAllCheckbox');
 
             const branchCheckboxes = document.querySelectorAll('.branch-checkbox');
 
-            // ADD USER BUTTON
+            /** -------------------------------
+             * ADD USER BUTTON
+             * ------------------------------- */
             document.querySelector('#addUserBtn').onclick = function() {
                 title.textContent = "Add New User";
                 userForm.action = "{{ route('settings.user.store') }}";
@@ -218,18 +223,25 @@
                 usernameInput.value = "";
                 passwordInput.value = "";
                 deptInput.value = "";
+                accessLevelInput.value = "";
+                accessAllCheckbox.checked = false;
 
                 branchCheckboxes.forEach(cb => cb.checked = false);
 
+                toggleDepartment();
                 formSection.classList.remove('hidden');
             };
 
-            // CANCEL
+            /** -------------------------------
+             * CANCEL BUTTON
+             * ------------------------------- */
             document.querySelector('#cancel2').onclick = function() {
                 formSection.classList.add('hidden');
             };
 
-            // EDIT USER BUTTON
+            /** -------------------------------
+             * EDIT USER BUTTON
+             * ------------------------------- */
             document.addEventListener('click', function(e) {
                 const btn = e.target.closest('.edit-user');
                 if (!btn) return;
@@ -238,15 +250,17 @@
 
                 title.textContent = "Edit User";
                 userForm.action = "/settings/user/" + id;
-                method.value = 'POST'; // override with PUT
                 method.value = 'PUT';
 
                 userIdInput.value = id;
                 nameInput.value = btn.dataset.name;
                 usernameInput.value = btn.dataset.username;
                 deptInput.value = btn.dataset.dept;
+                accessLevelInput.value = btn.dataset.access;
 
                 passwordInput.value = "";
+
+                accessAllCheckbox.checked = btn.dataset.accessAll == 1;
 
                 const selectedBranches = btn.dataset.branches.split(',').filter(x => x);
 
@@ -254,10 +268,13 @@
                     cb.checked = selectedBranches.includes(cb.value)
                 );
 
+                toggleDepartment();
                 formSection.classList.remove('hidden');
             });
 
-            // DELETE CONFIRMATION
+            /** -------------------------------
+             * DELETE CONFIRMATION
+             * ------------------------------- */
             document.addEventListener('submit', function(e) {
                 if (e.target.closest('.delete-user')) {
                     if (!confirm('Are you sure you want to delete this user?')) {
@@ -265,17 +282,34 @@
                     }
                 }
             });
+
+            /** -------------------------------
+             * FIX: Department must NOT stay disabled when submitting
+             * ------------------------------- */
+            userForm.addEventListener('submit', function() {
+                document.querySelector('select[name="department_id"]').disabled = false;
+            });
+
         });
 
+        /** -------------------------------
+         * Enable/Disable Department Field
+         * ------------------------------- */
         function toggleDepartment() {
-            const checkbox = document.querySelector('input[name="access_all_departments"]');
-            const departmentSelect = document.querySelector('select[name="department_id"]');
+            const checkbox = document.querySelector('#accessAllCheckbox');
+            const departmentSelect = document.querySelector('#department');
 
-            departmentSelect.disabled = checkbox.checked;
+            if (checkbox.checked) {
+                departmentSelect.disabled = true;
+                departmentSelect.classList.add('opacity-50');
+            } else {
+                departmentSelect.disabled = false;
+                departmentSelect.classList.remove('opacity-50');
+            }
         }
 
         document.addEventListener('DOMContentLoaded', toggleDepartment);
-        document.querySelector('input[name="access_all_departments"]').addEventListener('change', toggleDepartment);
+        document.querySelector('#accessAllCheckbox').addEventListener('change', toggleDepartment);
     </script>
 
 @endsection

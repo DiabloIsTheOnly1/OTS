@@ -39,7 +39,7 @@ class UserController extends Controller
             'department_id' => 'nullable|exists:departments,id',
             'branches' => 'array',
             'access_all_departments' => 'boolean',
-            'access_level_id'=> 'required|exists:access_levels,id',
+            'access_level_id' => 'required|exists:access_levels,id',
         ]);
 
         $user = User::create([
@@ -67,7 +67,7 @@ class UserController extends Controller
             'department_id' => 'nullable|exists:departments,id',
             'branches' => 'array',
             'access_all_departments' => 'boolean',
-            'access_level_id'=> 'required|exists:access_levels,id',
+            'access_level_id' => 'required|exists:access_levels,id',
         ]);
 
         $user->name = $request->name;
