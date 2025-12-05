@@ -19,26 +19,6 @@
                 </p>
             </div>
 
-            <!-- New Request Button -->
-            {{-- <a href="{{ route('overtime.create') }}"
-                class="group relative inline-flex items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 px-4 py-2 font-semibold text-white shadow-lg transition-all duration-300 hover:shadow-xl hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300">
-
-                <span class="relative flex items-center gap-3">
-                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none"
-                        stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                    </svg>
-                    <span class="hidden sm:inline">New Overtime Request</span>
-                    <span class="sm:hidden">New Request</span>
-                </span>
-
-                <!-- Shine effect -->
-                <span
-                    class="absolute inset-0 -translate-x-full bg-white/20 skew-x-12 transition-transform duration-700 group-hover:translate-x-full"></span>
-            </a>
-
-        </div> --}}
-
         <!-- New Request Button - Beautiful & Responsive -->
         @canAccess('manage_request')
         <a href="{{ route('overtime.create') }}"
@@ -299,9 +279,9 @@
                                         </div>
 
                                         {{-- After timer expiry --}}
-                                        <p class="text-xs text-red-600 mt-1" x-show="expired">
+                                        {{-- <p class="text-xs text-red-600 mt-1" x-show="expired">
                                             HQ approval required
-                                        </p>
+                                        </p> --}}
 
                                     </div>
                                 @else
