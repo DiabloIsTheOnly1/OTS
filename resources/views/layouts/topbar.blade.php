@@ -6,7 +6,7 @@
         <div class="flex justify-between items-center py-3">
 
             {{-- OT Logo --}}
-            {{-- <a href="{{ route('overtime.index') }}" class="flex items-center group cursor-pointer"> --}}
+
                 <div class="flex-shrink-0">
                     <div class="text-xl font-bold bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent
                                 group-hover:opacity-80 transition duration-200">
@@ -90,30 +90,6 @@
                     </div>
                 </div>
             </details>
-        </div>
-
-        <!-- MOBILE DROPDOWN MENU -->
-        <div x-show="open" x-transition.origin.top class="sm:hidden bg-gray-800 rounded-lg p-3 space-y-2">
-
-            @auth
-                <a href="{{ route('hr.dashboard') }}"
-                    class="block bg-blue-700 hover:bg-blue-800 px-4 py-2 rounded-md text-sm">Request List</a>
-
-                <a href="{{ route('settings.index') }}"
-                    class="block bg-blue-700 hover:bg-blue-800 px-4 py-2 rounded-md text-sm">Settings</a>
-
-                <a href="{{ route('logout') }}"
-                    class="block bg-red-600 hover:bg-red-700 px-4 py-2 rounded-md text-sm">Logout</a>
-
-                <div class="bg-gray-700 px-4 py-2 rounded-md text-sm">
-                    Logged in as <strong>{{ auth()->user()->username }}</strong>
-                </div>
-
-            @else
-                <a href="{{ route('login') }}"
-                    class="block bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md text-sm">Login</a>
-            @endauth
-
         </div>
 
     </div>
