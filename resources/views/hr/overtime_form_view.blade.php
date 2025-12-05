@@ -42,13 +42,13 @@
                 @canAccess('manage_request')
                 @if (!$overtime->clocks()->exists())
                     <button type="button" id="edit-btn"
-                        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg transition-all duration-200">
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl font-bold shadow-lg transition-all duration-200">
                         Edit
                     </button>
                 @else
                     <button type="button" disabled title="Cannot edit after clock-in"
-                        class="bg-gray-400 text-gray-200 px-6 py-2.5 rounded-xl font-bold cursor-not-allowed opacity-75 shadow">
-                        Locked (Staff Clocked In)
+                        class="bg-gray-400 text-gray-200 px-6 py-2 rounded-xl font-bold cursor-not-allowed opacity-75 shadow">
+                        Edit Disabled
                     </button>
                 @endif
                 @endcanAccess
@@ -135,14 +135,14 @@
 
                         <!-- PLANNED OVERTIME SCHEDULE -->
                         <div class="md:col-span-2 bg-amber-50 border border-amber-300 rounded-lg p-5">
-                            <h3 class="font-bold text-amber-900 text-lg mb-4">Planned Overtime Schedule</h3>
+                            <h3 class="font-bold text-amber-900 text-lg mb-2">Planned Overtime Schedule</h3>
                             <div class="grid grid-cols-3 gap-4 text-center">
                                 <div>
                                     <p class="text-xs text-amber-700 font-medium uppercase tracking-wider">Start</p>
-                                    <p class="view-mode text-xl font-bold text-amber-800">
+                                    <p class="view-mode text-lg font-bold text-amber-800">
                                         {{ $overtime->start_time?->format('H:i') ?? '-' }}</p>
                                     <input type="time" name="start_time"
-                                        class="edit-mode hidden w-full text-center text-xl font-bold text-amber-800 border border-amber-400 rounded px-2 py-1"
+                                        class="edit-mode hidden w-full text-center text-lg font-bold text-amber-800 border border-amber-400 rounded px-2 py-1"
                                         value="{{ old('start_time', $overtime->start_time?->format('H:i')) }}" required>
                                 </div>
                                 <div class="flex items-center justify-center">
@@ -150,17 +150,17 @@
                                 </div>
                                 <div>
                                     <p class="text-xs text-amber-700 font-medium uppercase tracking-wider">End</p>
-                                    <p class="view-mode text-xl font-bold text-amber-800">
+                                    <p class="view-mode text-lg font-bold text-amber-800">
                                         {{ $overtime->end_time?->format('H:i') ?? '-' }}</p>
                                     <input type="time" name="end_time"
-                                        class="edit-mode hidden w-full text-center text-xl font-bold text-amber-800 border border-amber-400 rounded px-2 py-1"
+                                        class="edit-mode hidden w-full text-center text-lg font-bold text-amber-800 border border-amber-400 rounded px-2 py-1"
                                         value="{{ old('end_time', $overtime->end_time?->format('H:i')) }}" required>
                                 </div>
                             </div>
 
-                            <div class="text-center mt-4">
+                            <div class="text-center mt-2">
                                 <div id="total-hours-display"
-                                    class="inline-block bg-amber-700 text-white px-6 py-2 rounded-full font-bold text-lg">
+                                    class="inline-block bg-amber-700 text-white px-4 py-1 rounded-full font-bold text-md">
                                     @if ($overtime->total_hours > 0)
                                         @php
                                             $h = floor($overtime->total_hours);
@@ -177,7 +177,7 @@
                         <!-- Reg No -->
                         <div class="md:col-span-2">
                             <label class="block font-semibold text-gray-600 mb-1">Reg No</label>
-                            <div class="view-mode text-xl font-mono font-bold text-blue-700">
+                            <div class="view-mode text-lg font-mono font-bold text-blue-700">
                                 {{ $overtime->reg_no ?? ($overtime->staff->reg_no ?? '—') }}
                             </div>
                             <input type="text" name="reg_no"
@@ -192,9 +192,9 @@
                                 class="view-mode bg-gray-50 border border-gray-300 rounded-lg p-4 min-h-32 flex items-start leading-relaxed">
                                 {{ $overtime->type_of_work ?: 'No details provided' }}
                             </div>
-                            <textarea name="type_of_work" rows="5"
+                            <textarea name="type_of_work" rows="4"
                                 class="edit-mode hidden w-full border border-gray-300 rounded-lg p-4 resize-none focus:ring-2 focus:ring-blue-500">
-                        {{ old('type_of_work', $overtime->type_of_work) }}</textarea>
+                                {{ old('type_of_work', $overtime->type_of_work) }}</textarea>
                         </div>
                     </div>
                 </div>
@@ -212,17 +212,17 @@
 
                     <div>
                         <p class="text-xs uppercase font-bold text-gray-500 tracking-wider mb-3">Clock In/Out Sessions</p>
-                        <div class="space-y-3 max-h-96 overflow-y-auto border rounded-lg p-4 bg-gray-50">
+                        <div class="space-y-2">
                             @forelse ($overtime->clocks as $session)
-                                <div class="bg-white border rounded-lg p-4 shadow-sm hover:shadow transition-shadow">
+                                <div class="bg-white border rounded-lg px-4 py-1 shadow-sm hover:shadow transition-shadow">
                                     <div class="flex justify-between items-center">
-                                        <div class="text-sm">
+                                        <div class="text-sm flex space-x-6">
                                             <div><span class="font-semibold">In:</span>
                                                 {{ $session->clock_in->format('H:i') }}</div>
                                             <div><span class="font-semibold">Out:</span>
                                                 {{ $session->clock_out?->format('H:i') ?? '—' }}</div>
                                         </div>
-                                        <span class="bg-blue-100 text-blue-700 font-bold px-4 py-2 rounded-full text-sm">
+                                        <span class="bg-blue-100 text-blue-700 font-semibold px-2 py-1 rounded-full text-sm">
                                             {{ $session->total_hm }}
                                         </span>
                                     </div>
@@ -246,9 +246,9 @@
                             class="view-mode bg-gray-50 border border-gray-300 rounded-lg p-4 min-h-32 flex items-start leading-relaxed">
                             {{ $overtime->remarks ?: '—' }}
                         </div>
-                        <textarea name="remarks" rows="5"
+                        <textarea name="remarks" rows="4"
                             class="edit-mode hidden w-full border border-gray-300 rounded-lg p-4 resize-none focus:ring-2 focus:ring-blue-500">
-{{ old('remarks', $overtime->remarks) }}</textarea>
+                            {{ old('remarks', $overtime->remarks) }}</textarea>
                     </div>
                 </div>
             </div>

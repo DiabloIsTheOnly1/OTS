@@ -183,7 +183,8 @@
 
                             <!-- Requested -->
                             <td class="p-3 text-center">
-                                <span class="inline-block bg-amber-100 text-amber-800 font-bold px-3 py-1 rounded-full text-sm">
+                                <span
+                                    class="inline-block bg-amber-100 text-amber-800 font-bold px-3 py-1 rounded-full text-sm">
                                     {{ $r->requested_hm ?? '-' }}
                                 </span>
                             </td>
@@ -208,34 +209,76 @@
                                     @php
                                         $canHod = auth()->user()->canAccess('hod_approval');
                                         $canHq = auth()->user()->canAccess('hq_approval');
-                                        $hasPermission = $canHod || $canHq;
+
+                                        $createdAt = \Carbon\Carbon::parse($r->created_at);
+                                        $deadline = $createdAt->copy()->addHours(1); // change to 1 hour for testing
+                                        $now = \Carbon\Carbon::now();
+
+                                        $remainingSeconds = max(0, $deadline->diffInSeconds($now));
+                                        $hoursSinceCreated = $createdAt->diffInHours($now);
+
+                                        // Approval rules
+                                        $hodWindow = $hoursSinceCreated <= 1; // change to <=1 for testing
+                                        $hqWindow = $hoursSinceCreated > 1; // >1 for testing
+
+                                        $buttonEnabled = ($hodWindow && $canHod) || ($hqWindow && $canHq);
                                     @endphp
 
-                                    <div class="flex gap-2 justify-center">
+                                    {{-- Alpine.js Countdown Timer + Button Logic --}}
+                                    <div x-data="{
+                                        seconds: {{ $remainingSeconds }},
+                                        expired: {{ $hqWindow ? 'false' : ($remainingSeconds <= 0 ? 'true' : 'false') }},
+                                    }" x-init="if (seconds > 0) {
+                                        setInterval(() => {
+                                            if (seconds > 0) seconds--;
+                                            if (seconds <= 0) expired = true;
+                                        }, 1000);
+                                    }"
+                                        class="flex flex-col items-center gap-2">
 
-                                        {{-- APPROVE BUTTON --}}
-                                        <form action="{{ route('hr.overtime.approve', $r->id) }}" method="POST"
-                                            onsubmit="return confirm('Approve this request?');">
-                                            @csrf
-                                            <button @disabled(!$hasPermission)
-                                                class="px-3 py-1 text-xs rounded
-                                                        {{ $hasPermission
-                                                            ? 'bg-green-600 text-white hover:bg-green-700'
-                                                            : 'bg-gray-300 text-gray-500 cursor-not-allowed' }}">
-                                                Approve
-                                            </button>
-                                        </form>
+                                        {{-- Countdown Timer --}}
+                                        {{-- <div class="text-xs font-medium text-gray-600" x-show="expired">
+                                            HOD approval ends in:
+                                            <span class="font-bold text-gray-800"
+                                                x-text="
+                    new Date(seconds * 1000).toISOString().substr(11, 8)
+                "></span>
+                                        </div> --}}
 
-                                        {{-- REJECT BUTTON --}}
-                                        <form action="{{ route('hr.overtime.reject', $r->id) }}" method="POST"
-                                            onsubmit="return confirm('Reject this request?');">
-                                            @csrf
-                                            <button @disabled(!$hasPermission)
-                                                class="px-3 py-1 text-xs rounded
-                                                        {{ $hasPermission ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-gray-300 text-gray-500 cursor-not-allowed' }}">
-                                                Reject
-                                            </button>
-                                        </form>
+                                        <div class="flex gap-2 justify-center mt-1">
+
+                                            {{-- APPROVE BUTTON --}}
+                                            <form action="{{ route('hr.overtime.approve', $r->id) }}" method="POST"
+                                                onsubmit="return confirm('Approve this request?');">
+                                                @csrf
+                                                <button
+                                                    x-bind:disabled="expired || {{ $buttonEnabled ? 'false' : 'true' }}"
+                                                    class="px-3 py-1 text-xs rounded
+                                                    @if ($buttonEnabled) bg-green-600 hover:bg-green-700 text-white 
+                                                    @else bg-gray-300 text-gray-500 cursor-not-allowed @endif">
+                                                    Approve
+                                                </button>
+                                            </form>
+
+                                            {{-- REJECT BUTTON --}}
+                                            <form action="{{ route('hr.overtime.reject', $r->id) }}" method="POST"
+                                                onsubmit="return confirm('Reject this request?');">
+                                                @csrf
+                                                <button
+                                                    x-bind:disabled="expired || {{ $buttonEnabled ? 'false' : 'true' }}"
+                                                    class="px-3 py-1 text-xs rounded
+                        @if ($buttonEnabled) bg-red-600 hover:bg-red-700 text-white 
+                        @else bg-gray-300 text-gray-500 cursor-not-allowed @endif">
+                                                    Reject
+                                                </button>
+                                            </form>
+
+                                        </div>
+
+                                        {{-- After timer expiry --}}
+                                        <p class="text-xs text-red-600 mt-1" x-show="!expired">
+                                            HQ approval required
+                                        </p>
 
                                     </div>
                                 @else
@@ -244,6 +287,7 @@
                                         class="font-bold text-gray-800 text-xs">{{ $r->approver?->username ?? '-' }}</span>
                                 @endif
                             </td>
+
 
                             <!-- Remarks -->
                             <td class="p-3">
