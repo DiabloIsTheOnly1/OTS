@@ -227,7 +227,7 @@
                                     {{-- Alpine.js Countdown Timer + Button Logic --}}
                                     <div x-data="{
                                         seconds: {{ $remainingSeconds }},
-                                        expired: {{ $hqWindow ? 'false' : ($remainingSeconds <= 0 ? 'true' : 'false') }},
+                                        expired: {{ $hqWindow ? 'true' : ($remainingSeconds <= 0 ? 'false' : 'true') }},
                                     }" x-init="if (seconds > 0) {
                                         setInterval(() => {
                                             if (seconds > 0) seconds--;
@@ -267,8 +267,8 @@
                                                 <button
                                                     x-bind:disabled="expired || {{ $buttonEnabled ? 'false' : 'true' }}"
                                                     class="px-3 py-1 text-xs rounded
-                        @if ($buttonEnabled) bg-red-600 hover:bg-red-700 text-white 
-                        @else bg-gray-300 text-gray-500 cursor-not-allowed @endif">
+                                                    @if ($buttonEnabled) bg-red-600 hover:bg-red-700 text-white 
+                                                    @else bg-gray-300 text-gray-500 cursor-not-allowed @endif">
                                                     Reject
                                                 </button>
                                             </form>
@@ -276,7 +276,7 @@
                                         </div>
 
                                         {{-- After timer expiry --}}
-                                        <p class="text-xs text-red-600 mt-1" x-show="!expired">
+                                        <p class="text-xs text-red-600 mt-1" x-show="expired">
                                             HQ approval required
                                         </p>
 
