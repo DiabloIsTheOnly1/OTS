@@ -121,7 +121,8 @@
                         <th class="p-3 text-left font-semibold whitespace-nowrap">Date</th>
                         <th class="p-3 text-left font-semibold">Employee</th>
                         <th class="p-3 font-semibold">Clock in/Out</th>
-                        <th class="p-3 font-semibold text-center whitespace-nowrap">Total Hours</th>
+                        <th class="p-3 font-semibold text-center whitespace-nowrap">Requested Hours</th>
+                        <th class="p-3 font-semibold text-center whitespace-nowrap">Actual Hours</th>
                         <th class="p-3 font-semibold text-center whitespace-nowrap">Status</th>
                         <th class="p-3 font-semibold text-center whitespace-nowrap">Approval</th>
                         <th class="p-3 text-left font-semibold">Remarks</th>
@@ -149,7 +150,7 @@
                             <td class="p-3 whitespace-nowrap">{{ $r->date->format('d M Y') }}</td>
 
                             <td class="p-3">
-                                <p class="font-semibold">{{ $r->staff->staff_name }}</p>
+                                <p class="font-semibold">{{ $r->staff->staff_name ?? '-' }}</p>
                                 <p class="text-xs text-gray-500">{{ $r->branch?->name ?? '-' }} •
                                     {{ $r->department?->department_name ?? '-' }}</p>
                             </td>
@@ -176,6 +177,13 @@
                                         <span class="text-gray-400">-</span>
                                     @endforelse
                                 </div>
+                            </td>
+
+                            <!-- Requested -->
+                            <td class="p-3 text-center">
+                                <span class="inline-block bg-amber-100 text-amber-800 font-bold px-3 py-1 rounded-full text-sm">
+                                    {{ $r->requested_hm ?? '-' }}
+                                </span>
                             </td>
 
                             <!-- Total -->
@@ -255,7 +263,7 @@
                                 <div class="m-3 border rounded-lg bg-white p-4 shadow-sm space-y-3">
 
                                     <div>
-                                        <p class="font-bold text-gray-900">{{ $r->name }}</p>
+                                        <p class="font-bold text-gray-900">{{ $r->staff->staff_name }}</p>
                                         <p class="text-xs text-gray-500">{{ $r->branch?->name ?? '-' }} •
                                             {{ $r->department?->department_name ?? '-' }}</p>
                                     </div>
@@ -290,6 +298,13 @@
                                                 <span class="text-gray-400">-</span>
                                             @endforelse
                                         </div>
+                                    </div>
+
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-gray-600 font-medium">Requested:</span>
+                                        <span class="font-bold text-amber-700 bg-amber-50 px-3 py-1 rounded-full">
+                                            {{ $r->requested_hm ?? '-' }}
+                                        </span>
                                     </div>
 
                                     <div class="flex justify-between font-bold text-sm">
