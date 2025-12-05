@@ -211,15 +211,15 @@
                                         $canHq = auth()->user()->canAccess('hq_approval');
 
                                         $createdAt = \Carbon\Carbon::parse($r->created_at);
-                                        $deadline = $createdAt->copy()->addHours(1); // change to 1 hour for testing
+                                        $deadline = $createdAt->copy()->addHours(24); // change to 1 hour for testing
                                         $now = \Carbon\Carbon::now();
 
                                         $remainingSeconds = max(0, $deadline->diffInSeconds($now));
                                         $hoursSinceCreated = $createdAt->diffInHours($now);
 
                                         // Approval rules
-                                        $hodWindow = $hoursSinceCreated <= 1; // change to <=1 for testing
-                                        $hqWindow = $hoursSinceCreated > 1; // >1 for testing
+                                        $hodWindow = $hoursSinceCreated <= 24; // change to <=1 for testing
+                                        $hqWindow = $hoursSinceCreated > 24; // >1 for testing
 
                                         $buttonEnabled = ($hodWindow && $canHod) || ($hqWindow && $canHq);
                                     @endphp

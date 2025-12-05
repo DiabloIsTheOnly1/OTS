@@ -118,15 +118,14 @@ class HRController extends Controller
         $canHod = $user->canAccess('hod_approval');
         $canHq = $user->canAccess('hq_approval');
 
-        // HOD window (0–24 hours) — using 1 hour for testing
-        if ($hoursSinceCreated <= 1) {
+        // HOD window (0–24 hours)
+        if ($hoursSinceCreated <= 24) {
             if (!$canHod) {
                 return back()->with('error', 'Only HOD can approve within the first 1 hour.');
             }
         }
 
-        // HQ window (after 1 hour)
-        if ($hoursSinceCreated > 1) {
+        if ($hoursSinceCreated > 24) {
             if (!$canHq) {
                 return back()->with('error', 'Only HQ approvers can approve after 1 hour.');
             }
@@ -155,15 +154,14 @@ class HRController extends Controller
         $canHod = $user->canAccess('hod_approval');
         $canHq = $user->canAccess('hq_approval');
 
-        // HOD window (0–24 hours) — using 1 hour for testing
-        if ($hoursSinceCreated <= 1) {
+        // HOD window (0–24 hours)
+        if ($hoursSinceCreated <= 24) {
             if (!$canHod) {
                 return back()->with('error', 'Only HOD can approve within the first 1 hour.');
             }
         }
 
-        // HQ window (after 1 hour)
-        if ($hoursSinceCreated > 1) {
+        if ($hoursSinceCreated > 24) {
             if (!$canHq) {
                 return back()->with('error', 'Only HQ approvers can approve after 1 hour.');
             }
