@@ -13,86 +13,95 @@ class HRController extends Controller
     /**
      * Display the HR dashboard with all overtime requests.
      */
-    public function index(Request $request)
-    {
-        /** @var User $user */
-        $user = Auth::user();
+   public function index(Request $request)
+        {
+            /** @var User $user */
+            $user = Auth::user();
 
-        // -------------------------------
-        // Branch access (same as before)
-        // -------------------------------
-        $accessibleBranches = $user->branches()->pluck('branch.id')->toArray();
+            // -------------------------------
+            // Branch access
+            // -------------------------------
+            $accessibleBranches = $user->branches()->pluck('branch.id')->toArray();
 
-        // -------------------------------
-        // Department access
-        // -------------------------------
-        if ($user->access_all_departments) {
-            // user can view every department
-            $accessibleDepartments = Department::pluck('id')->toArray();
-        } else {
-            // user restricted to his assigned department
-            $accessibleDepartments = [$user->department_id];
+            // -------------------------------
+            // Department access
+            // -------------------------------
+            if ($user->access_all_departments) {
+                $accessibleDepartments = Department::pluck('id')->toArray();
+            } else {
+                $accessibleDepartments = [$user->department_id];
+            }
+
+            // -------------------------------
+            // Base query
+            // -------------------------------
+            $query = OvertimeRequest::with(['staff', 'branch', 'department', 'clocks', 'approver', 'rejector'])
+                ->whereIn('branch_id', $accessibleBranches)
+                ->whereIn('department_id', $accessibleDepartments);
+
+            // -------------------------------
+            // Filters
+            // -------------------------------
+            if ($request->filled('name')) {
+                $query->whereHas('staff', function ($q) use ($request) {
+                    $q->where('staff_name', 'like', '%' . $request->name . '%');
+                });
+            }
+
+            if ($request->filled('status')) {
+                $query->where('status', $request->status);
+            }
+
+            if ($request->filled('branch_id') && in_array($request->branch_id, $accessibleBranches)) {
+                $query->where('branch_id', $request->branch_id);
+            }
+
+            if ($request->filled('department_id') && in_array($request->department_id, $accessibleDepartments)) {
+                $query->where('department_id', $request->department_id);
+            }
+
+            if ($request->filled('from')) {
+                $query->whereDate('date', '>=', $request->from);
+            }
+
+            if ($request->filled('to')) {
+                $query->whereDate('date', '<=', $request->to);
+            }
+
+            // -------------------------------
+            // Fetch results
+            // -------------------------------
+            $requests = $query->orderBy('status', 'asc')
+                            ->orderBy('date', 'desc')
+                            ->get();
+
+            // -------------------------------
+            // Compute Actual & Requested Hours
+            // -------------------------------
+            foreach ($requests as $r) {
+                // Actual hours (from clock sessions)
+                $totalSeconds = $r->clocks->sum('total_time_taken');
+                $hours = floor($totalSeconds / 3600);
+                $minutes = floor(($totalSeconds % 3600) / 60);
+                $r->total_hm = sprintf('%02d:%02d', $hours, $minutes);
+
+                // REQUESTED HOURS — FROM total_hours in DB (this was missing!)
+                $reqHours   = floor($r->total_hours ?? 0);
+                $reqMinutes = round(($r->total_hours - $reqHours) * 60);
+                $r->requested_hm = sprintf('%02d:%02d', $reqHours, $reqMinutes);
+            }
+
+            // -------------------------------
+            // Dropdown lists
+            // -------------------------------
+            $branches = $user->branches()->get();
+
+            $departments = $user->access_all_departments
+                ? Department::all()
+                : Department::where('id', $user->department_id)->get();
+
+            return view('hr.dashboard', compact('requests', 'branches', 'departments'));
         }
-
-        // -------------------------------
-        // Base query with access limits
-        // -------------------------------
-        $query = OvertimeRequest::with(['clocks', 'department', 'approver', 'rejector'])
-            ->whereIn('branch_id', $accessibleBranches)
-            ->whereIn('department_id', $accessibleDepartments);
-
-        // -------------------------------
-        // Filters
-        // -------------------------------
-        if ($request->filled('name')) {
-            $query->where('name', 'like', '%' . $request->name . '%');
-        }
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-        if ($request->filled('branch_id') && in_array($request->branch_id, $accessibleBranches)) {
-            $query->where('branch_id', $request->branch_id);
-        }
-        if ($request->filled('department_id') && in_array($request->department_id, $accessibleDepartments)) {
-            $query->where('department_id', $request->department_id);
-        }
-        if ($request->filled('from')) {
-            $query->whereDate('date', '>=', $request->from);
-        }
-        if ($request->filled('to')) {
-            $query->whereDate('date', '<=', $request->to);
-        }
-
-        // -------------------------------
-        // Fetch results
-        // -------------------------------
-        $requests = $query->orderBy('status', 'asc')
-            ->orderBy('date', 'desc')
-            ->get();
-
-        // -------------------------------
-        // Compute total time for each request
-        // -------------------------------
-        foreach ($requests as $r) {
-            $totalSeconds = $r->clocks->sum('total_time_taken');
-
-            $hours = floor($totalSeconds / 3600);
-            $minutes = floor(($totalSeconds % 3600) / 60);
-
-            $r->total_hm = sprintf('%02d:%02d', $hours, $minutes);
-        }
-
-        // -------------------------------
-        // Dropdown lists
-        // -------------------------------
-        $branches = $user->branches()->get();
-
-        $departments = $user->access_all_departments
-            ? Department::all()
-            : Department::where('id', $user->department_id)->get();
-
-        return view('hr.dashboard', compact('requests', 'branches', 'departments'));
-    }
 
     /**
      * Approve an overtime request.
