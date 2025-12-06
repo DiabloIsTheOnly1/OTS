@@ -279,9 +279,9 @@
                                         </div>
 
                                         {{-- After timer expiry --}}
-                                        {{-- <p class="text-xs text-red-600 mt-1" x-show="expired">
+                                        <p class="text-xs text-red-600 mt-1" x-show="expired">
                                             HQ approval required
-                                        </p> --}}
+                                        </p>
 
                                     </div>
                                 @else
@@ -290,7 +290,6 @@
                                         class="font-bold text-gray-800 text-xs">{{ $r->approver?->username ?? '-' }}</span>
                                 @endif
                             </td>
-
 
                             <!-- Remarks -->
                             <td class="p-3">
