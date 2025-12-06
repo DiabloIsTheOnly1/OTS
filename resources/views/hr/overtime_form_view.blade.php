@@ -1,7 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-full mx-auto space-y-8 py-8 px-4 sm:px-6 lg:px-8 relative">
+<div class="pt-20 sm:pt-4">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
     {{-- SUCCESS TOAST --}}
     @if (session('success'))
@@ -268,6 +269,8 @@
         </div>
     </form>
 </div>
+</div>
+</div>
 
 <style>
     @keyframes slideIn {
@@ -328,5 +331,25 @@
             update();
         }
     }
+
+        document.getElementById('edit-btn')?.addEventListener('click', function() {
+        document.querySelectorAll('.view-mode').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.edit-mode').forEach(el => el.classList.remove('hidden'));
+        this.classList.add('hidden');
+        document.getElementById('save-cancel-btns').classList.remove('hidden');
+
+        // 🟦 FIX FOR MOBILE — FORCE SET INPUT VALUES
+        let startInput = document.querySelector('input[name="start_time"]');
+        let endInput = document.querySelector('input[name="end_time"]');
+
+        if (startInput && !startInput.value) {
+            startInput.value = startInput.getAttribute('value');
+        }
+        if (endInput && !endInput.value) {
+            endInput.value = endInput.getAttribute('value');
+        }
+
+        calculateTotalHours();
+    });
 </script>
 @endsection
