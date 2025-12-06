@@ -36,63 +36,58 @@
             Overtime Request Details
         </h1>
 
-        <!-- Buttons: Mobile = stacked & centered, Desktop = side by side on right -->
-        <div class="flex flex-col sm:flex-row sm:justify-end gap-4">
+        <!-- Buttons: Mobile = nice as-is | Desktop = smaller & cleaner (like mobile) -->
+<div class="flex flex-col sm:flex-row justify-center sm:justify-end gap-3 mb-10">
 
-            <!-- Back Button -->
-            <a href="{{ route('hr.dashboard') }}"
-                class="inline-flex items-center justify-center gap-3 px-8 py-4 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-2xl font-semibold text-base shadow-md hover:shadow-lg transition-all duration-300">
-                    
-                    <!-- Arrow on the left -->
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+    <!-- Back Button — Same size on mobile & desktop -->
+    <a href="{{ route('hr.dashboard') }}"
+       class="inline-flex items-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl font-medium font-medium text-sm shadow-sm hover:shadow transition-all duration-200">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+        <span>Back</span>
+    </a>
+
+    <!-- Edit / Save-Cancel Buttons — Smaller on desktop too -->
+    <div class="flex flex-col sm:flex-row gap-3">
+
+        @canAccess('manage_request')
+            @if (!$overtime->clocks()->exists())
+                <button type="button" id="edit-btn"
+                        class="inline-flex items-center gap-2 px-7 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-medium text-sm shadow-md hover:shadow-lg transition-all duration-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                     </svg>
-                    
-                    <!-- Text centered relative to button -->
-                    <span class="text-center">Back to List</span>
-                </a>
+                    <span>Edit</span>
+                </button>
+            @else
+                <button disabled class="inline-flex items-center gap-2 px-7 py-3 bg-gray-400 text-gray-200 rounded-xl font-medium text-sm cursor-not-allowed opacity-80">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    </svg>
+                    <span>Locked</span>
+                </button>
+            @endif
+        @endcanAccess
 
-            <!-- Edit / Save-Cancel Buttons -->
-            <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-
-                @canAccess('manage_request')
-                    @if (!$overtime->clocks()->exists())
-                        <button type="button" id="edit-btn"
-                                class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-10 py-4 rounded-2xl font-bold text-base shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-3">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                            </svg>
-                            <span>Edit Request</span>
-                        </button>
-                    @else
-                        <button disabled class="w-full bg-gray-400 text-gray-200 px-10 py-4 rounded-2xl font-bold text-base cursor-not-allowed opacity-80 flex items-center justify-center gap-3">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                            </svg>
-                            <span>Edit Locked</span>
-                        </button>
-                    @endif
-                @endcanAccess
-
-                <!-- Save & Cancel (Hidden by default) -->
-                <div id="save-cancel-btns" class="hidden flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-                    <button type="submit" form="edit-form"
-                            class="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-10 py-4 rounded-2xl font-bold text-base shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-3">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                        </svg>
-                        Save Changes
-                    </button>
-                    <button type="button" id="cancel-btn"
-                            class="w-full bg-gray-600 hover:bg-gray-700 text-white px-10 py-4 rounded-2xl font-bold text-base shadow-lg transition-all duration-300">
-                        Cancel
-                    </button>
-                </div>
-            </div>
+        <!-- Save & Cancel — Hidden by default -->
+        <div id="save-cancel-btns" class="hidden flex flex-col sm:flex-row gap-3">
+            <button type="submit" form="edit-form"
+                    class="inline-flex items-center gap-2 px-7 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-xl font-medium text-sm shadow-md hover:shadow-lg transition-all duration-200">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                <span>Save Changes</span>
+            </button>
+            <button type="button" id="cancel-btn"
+                    class="inline-flex items-center gap-2 px-7 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-xl font-medium text-sm shadow-md transition-all duration-200">
+                Cancel
+            </button>
         </div>
     </div>
+</div>
 
     <!-- MAIN FORM -->
     <form id="edit-form" action="{{ route('overtime.update', $overtime->id) }}" method="POST">
