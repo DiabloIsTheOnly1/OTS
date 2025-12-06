@@ -35,7 +35,7 @@ class UserController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'username' => 'required|string|max:100|unique:users,username',
-            'password' => 'required|string|min:4',
+            'password' => 'required|string|min:1',
             'department_id' => 'nullable|exists:departments,id',
             'branches' => 'array',
             'access_all_departments' => 'boolean',

@@ -41,12 +41,16 @@
 
             <!-- Back Button -->
             <a href="{{ route('hr.dashboard') }}"
-               class="w-full sm:w-auto inline-flex justify-center items-center gap-3 px-8 py-4 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-2xl font-semibold text-base shadow-md hover:shadow-lg transition-all duration-300">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                </svg>
-                <span>Back to List</span>
-            </a>
+                class="inline-flex items-center justify-center gap-3 px-8 py-4 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-2xl font-semibold text-base shadow-md hover:shadow-lg transition-all duration-300">
+                    
+                    <!-- Arrow on the left -->
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                    
+                    <!-- Text centered relative to button -->
+                    <span class="text-center">Back to List</span>
+                </a>
 
             <!-- Edit / Save-Cancel Buttons -->
             <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
