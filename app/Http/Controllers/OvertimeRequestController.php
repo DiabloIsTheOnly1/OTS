@@ -10,6 +10,9 @@ use App\Models\Department;
 use App\Models\Staff;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\OvertimeExport;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class OvertimeRequestController extends Controller
 {
@@ -323,6 +326,86 @@ class OvertimeRequestController extends Controller
         $overtime->load('staff', 'branch', 'department', 'clocks', 'approver');
         return view('hr.overtime.view', compact('hr.overtime.view'));
     }
+
+    //For PDF Export and Excel Export
+
+    public function exportExcel(Request $request){
+
+    $query = $this->buildOvertimeQuery($request);
+    $overtimes = $query->get();
+
+    // SAME LOOP HERE TOO!
+    foreach ($overtimes as $req) {
+        $totalSec = $req->clocks->sum('total_time_taken');
+        $req->total_hm = $totalSec > 0 
+            ? sprintf('%02d:%02d', floor($totalSec / 3600), floor(($totalSec % 3600) / 60))
+            : '-';
+
+        $hours = floor($req->total_hours ?? 0);
+        $minutes = round(($req->total_hours ?? 0 - $hours) * 60);
+        $req->requested_hm = $req->total_hours > 0 
+            ? sprintf('%02d:%02d', $hours, $minutes)
+            : '-';
+    }
+
+    $pdf = Pdf::loadView('hr.pdf', compact('overtimes'))
+        ->setPaper('a4', 'landscape');
+
+    return $pdf->download('overtime_requests_' . now()->format('Y-m-d') . '.pdf');
+}
+
+// Example: Extracted filter logic (copy from your index method and adjust)
+private function buildOvertimeQuery(Request $request)
+{
+    $query = OvertimeRequest::with(['staff', 'branch', 'department', 'clocks']);
+
+    if ($request->branch_id) {
+        $query->where('branch_id', $request->branch_id);
+    }
+    if ($request->department_id) {
+        $query->where('department_id', $request->department_id);
+    }
+    if ($request->name) {
+        $query->whereHas('staff', function ($q) use ($request) {
+            $q->where('staff_name', 'like', '%' . $request->name . '%');
+        });
+    }
+    if ($request->from) {
+        $query->whereDate('date', '>=', $request->from);
+    }
+    if ($request->to) {
+        $query->whereDate('date', '<=', $request->to);
+    }
+    if ($request->status) {
+        $query->where('status', $request->status);
+    }
+
+    return $query->orderBy('date', 'desc'); // Add sorting as needed
+}
+
+public function preview(Request $request)
+{
+    $query = $this->buildOvertimeQuery($request);
+    $overtimes = $query->get();
+
+    // ADD THIS EXACT SAME LOOP FROM YOUR index() METHOD
+    foreach ($overtimes as $req) {
+        // Actual hours from clock sessions
+        $totalSec = $req->clocks->sum('total_time_taken');
+        $req->total_hm = $totalSec > 0 
+            ? sprintf('%02d:%02d', floor($totalSec / 3600), floor(($totalSec % 3600) / 60))
+            : '-';
+
+        // Requested hours from total_hours field (decimal → HH:MM)
+        $hours = floor($req->total_hours ?? 0);
+        $minutes = round(($req->total_hours ?? 0 - $hours) * 60);
+        $req->requested_hm = $req->total_hours > 0 
+            ? sprintf('%02d:%02d', $hours, $minutes)
+            : '-';
+    }
+
+    return view('hr.preview', compact('overtimes'));
+}
 
 }
 
