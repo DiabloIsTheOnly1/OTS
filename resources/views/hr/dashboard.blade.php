@@ -137,9 +137,202 @@
                 </a>
 
             </div>
+        </form>
+    </div>
 
+    {{-- Responsive table wrapper --}}
+    <div class="bg-white shadow-xl rounded-xl overflow-hidden">
+        <div class="w-full overflow-x-auto">
+            <table class="w-full min-w-[300px] text-sm">
+                <thead class="bg-blue-100 text-gray-800 border-b">
+                    <tr class="hidden md:table-row">
+                        <th class="p-3 text-left font-semibold whitespace-nowrap">Date</th>
+                        <th class="p-3 text-left font-semibold">Employee</th>
+                        <th class="p-3 font-semibold">Clock in/Out</th>
+                        <th class="p-3 font-semibold text-center whitespace-nowrap">Requested Hours</th>
+                        <th class="p-3 font-semibold text-center whitespace-nowrap">Actual Hours</th>
+                        <th class="p-3 font-semibold text-center whitespace-nowrap">Status</th>
+                        <th class="p-3 font-semibold text-center whitespace-nowrap">Approval</th>
+                        <th class="p-3 text-left font-semibold">Remarks</th>
+                        <th class="p-3 font-semibold text-center whitespace-nowrap">Action</th>
+                    </tr>
+                    <tr class="table-row md:hidden">
+                        <th>Request</th>
+                    </tr>
+                </thead>
 
-         </form>
+                <tbody>
+                    @forelse($requests as $r)
+                        @php
+                            $bg = match ($r->status) {
+                                'pending' => 'bg-yellow-50',
+                                'approved' => 'bg-green-50',
+                                'rejected' => 'bg-red-50',
+                                default => '',
+                            };
+                        @endphp
+
+                        {{-- DESKTOP ROW --}}
+                        <tr class="{{ $bg }} border-b hover:bg-blue-50 transition hidden md:table-row">
+
+                            <td class="p-3 whitespace-nowrap">{{ $r->date->format('d M Y') }}</td>
+
+                            <td class="p-3">
+                                <p class="font-semibold">{{ $r->staff->staff_name ?? '-' }}</p>
+                                <p class="text-xs text-gray-500">{{ $r->branch?->name ?? '-' }} •
+                                    {{ $r->department?->department_name ?? '-' }}</p>
+                            </td>
+
+                            <!-- Clock In/Out -->
+                            <td class="p-3">
+                                <div class="space-y-1">
+                                    @forelse ($r->clocks as $session)
+                                        <div class="px-2 py-1 bg-gray-50 rounded-lg border border-gray-200">
+                                            <div class="flex items-center justify-between text-sm">
+                                                <div>
+                                                    <span class="text-gray-600">In:</span>
+                                                    {{ $session->clock_in?->format('H:i') ?? '-' }} -
+                                                    <span class="text-gray-600">Out:</span>
+                                                    {{ $session->clock_out?->format('H:i') ?? '-' }}
+                                                </div>
+                                                <span
+                                                    class="text-blue-600 font-bold text-xs bg-blue-50 px-2 py-0.5 rounded">
+                                                    {{ $session->total_hm }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    @empty
+                                        <span class="text-gray-400">-</span>
+                                    @endforelse
+                                </div>
+                            </td>
+
+                            <!-- Requested -->
+                            <td class="p-3 text-center">
+                                <span
+                                    class="inline-block bg-amber-100 text-amber-800 font-bold px-3 py-1 rounded-full text-sm">
+                                    {{ $r->requested_hm ?? '-' }}
+                                </span>
+                            </td>
+
+                            <!-- Total -->
+                            <td class="p-3 font-bold text-blue-700 text-center">{{ $r->total_hm }}</td>
+
+                            <!-- Status -->
+                            <td class="text-center p-3">
+                                <span
+                                    class="px-3 py-1 rounded-full text-xs font-semibold
+                                @if ($r->status == 'pending') bg-yellow-200 text-yellow-900
+                                @elseif($r->status == 'approved') bg-green-200 text-green-900
+                                @else bg-red-200 text-red-900 @endif">
+                                    {{ ucfirst($r->status) }}
+                                </span>
+                            </td>
+
+                            <!-- Approval -->
+                            <td class="p-3 text-center">
+                                @if ($r->status === 'pending')
+                                    @php
+                                        $canHod = auth()->user()->canAccess('hod_approval');
+                                        $canHq = auth()->user()->canAccess('hq_approval');
+
+                                        $createdAt = \Carbon\Carbon::parse($r->created_at);
+                                        $deadline = $createdAt->copy()->addHours(24); // change to 1 hour for testing
+                                        $now = \Carbon\Carbon::now();
+
+                                        $remainingSeconds = max(0, $deadline->diffInSeconds($now));
+                                        $hoursSinceCreated = $createdAt->diffInHours($now);
+
+                                        // Approval rules
+                                        $hodWindow = $hoursSinceCreated <= 24; // change to <=1 for testing
+                                        $hqWindow = $hoursSinceCreated > 24; // >1 for testing
+
+                                        $buttonEnabled = ($hodWindow && $canHod) || ($hqWindow && $canHq);
+                                    @endphp
+
+                                    {{-- Alpine.js Countdown Timer + Button Logic --}}
+                                    <div x-data="{
+                                        seconds: {{ $remainingSeconds }},
+                                        expired: {{ $hqWindow ? 'true' : ($remainingSeconds <= 0 ? 'false' : 'true') }},
+                                    }" x-init="if (seconds > 0) {
+                                        setInterval(() => {
+                                            if (seconds > 0) seconds--;
+                                            if (seconds <= 0) expired = true;
+                                        }, 1000);
+                                    }"
+                                        class="flex flex-col items-center gap-2">
+
+                                        {{-- Countdown Timer --}}
+                                        {{-- <div class="text-xs font-medium text-gray-600" x-show="expired">
+                                            HOD approval ends in:
+                                            <span class="font-bold text-gray-800"
+                                                x-text="
+                    new Date(seconds * 1000).toISOString().substr(11, 8)
+                "></span>
+                                        </div> --}}
+
+                                        <div class="flex gap-2 justify-center mt-1">
+
+                                            {{-- APPROVE BUTTON --}}
+                                            <form action="{{ route('hr.overtime.approve', $r->id) }}" method="POST"
+                                                onsubmit="return confirm('Approve this request?');">
+                                                @csrf
+                                                <button
+                                                    x-bind:disabled="expired || {{ $buttonEnabled ? 'false' : 'true' }}"
+                                                    class="px-3 py-1 text-xs rounded
+                                                    @if ($buttonEnabled) bg-green-600 hover:bg-green-700 text-white 
+                                                    @else bg-gray-300 text-gray-500 cursor-not-allowed @endif">
+                                                    Approve
+                                                </button>
+                                            </form>
+
+                                            {{-- REJECT BUTTON --}}
+                                            <form action="{{ route('hr.overtime.reject', $r->id) }}" method="POST"
+                                                onsubmit="return confirm('Reject this request?');">
+                                                @csrf
+                                                <button
+                                                    x-bind:disabled="expired || {{ $buttonEnabled ? 'false' : 'true' }}"
+                                                    class="px-3 py-1 text-xs rounded
+                                                    @if ($buttonEnabled) bg-red-600 hover:bg-red-700 text-white 
+                                                    @else bg-gray-300 text-gray-500 cursor-not-allowed @endif">
+                                                    Reject
+                                                </button>
+                                            </form>
+
+                                        </div>
+
+                                        {{-- After timer expiry --}}
+                                        <p class="text-xs text-red-600 mt-1" x-show="expired">
+                                            HQ approval required
+                                        </p>
+
+                                    </div>
+                                @else
+                                    <p class="text-xs">{{ $r->status == 'approved' ? 'Approved' : 'Rejected' }} by</p>
+                                    <span
+                                        class="font-bold text-gray-800 text-xs">{{ $r->approver?->username ?? '-' }}</span>
+                                @endif
+                            </td>
+
+                            <!-- Remarks -->
+                            <td class="p-3">
+                                <div class="group">
+                                    <div class="flex items-center gap-2 remark-display">
+                                        <span>{{ $r->remarks ?: '-' }}</span>
+                                        <button type="button"
+                                            class="hidden group-hover:inline text-blue-600 text-xs remark-edit-btn">✏️</button>
+                                    </div>
+                                    <form action="{{ route('hr.overtime.remarks', $r->id) }}" method="POST"
+                                        class="hidden remark-edit-form mt-1 flex gap-1">@csrf
+                                        <input name="remarks" value="{{ $r->remarks }}"
+                                            class="border px-2 py-1 rounded text-xs w-28">
+                                        <button
+                                            class="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700">Save</button>
+                                        <button type="button"
+                                            class="remark-cancel-btn text-xs text-gray-500 px-1">Cancel</button>
+                                    </form>
+                                </div>
+                            </td>
 
         {{-- Responsive table wrapper --}}
         <div class="bg-white shadow-xl rounded-xl overflow-hidden">

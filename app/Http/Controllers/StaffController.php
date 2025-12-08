@@ -12,32 +12,48 @@ use Illuminate\Http\Request;
 class StaffController extends Controller
 {
     // Show list
-    public function index()
+    public function index(Request $request)
     {
         /** @var User $user */
         $user = auth()->user();
 
-        // Branch access (always enforced)
+        // Branch access
         $userBranchIds = $user->branches->pluck('id')->toArray();
 
         // Department access
         $userDepartmentId = $user->department_id;
         $canAccessAllDepartments = $user->access_all_departments == 1;
 
-        // Staff list
+        // Apply filters from request
+        $filterBranch = $request->branch_id;
+        $filterDept = $request->department_id;
+        $search = $request->search;
+
         $staff = Staff::with(['branch', 'department'])
             ->whereIn('branch_id', $userBranchIds)
             ->when(!$canAccessAllDepartments, function ($query) use ($userDepartmentId) {
                 $query->where('department_id', $userDepartmentId);
             })
+            ->when($filterBranch, function ($query) use ($filterBranch) {
+                $query->where('branch_id', $filterBranch);
+            })
+            ->when($filterDept, function ($query) use ($filterDept) {
+                $query->where('department_id', $filterDept);
+            })
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('staff_name', 'LIKE', "%$search%")
+                        ->orWhere('position', 'LIKE', "%$search%");
+                });
+            })
+            ->orderBy('staff_name')
             ->get();
 
-        // Branch dropdown: only user's allowed branches
+        // Dropdown options
         $branches = Branch::whereIn('id', $userBranchIds)
             ->orderBy('name')
             ->get();
 
-        // Department dropdown
         $departments = Department::when(!$canAccessAllDepartments, function ($query) use ($userDepartmentId) {
             $query->where('id', $userDepartmentId);
         })
@@ -46,6 +62,7 @@ class StaffController extends Controller
 
         return view('settings.staff', compact('staff', 'departments', 'branches'));
     }
+
 
 
     // Show create form

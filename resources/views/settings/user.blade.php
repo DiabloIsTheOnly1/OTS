@@ -77,8 +77,8 @@
 
                     <div class="mt-3 flex items-center">
                         <label class="inline-flex items-center mt-4">
-                            <input type="checkbox" name="access_all_departments" value="1"
-                                class="rounded" id="accessAllCheckbox">
+                            <input type="checkbox" name="access_all_departments" value="1" class="rounded"
+                                id="accessAllCheckbox">
                             <span class="ml-2">Access All Departments</span>
                         </label>
                     </div>
@@ -89,7 +89,7 @@
                 <div class="mt-4">
                     <label class="block text-gray-700 text-sm font-medium mb-2">Branches Access</label>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
                         @foreach ($branches as $branch)
                             <label class="flex items-center space-x-2">
                                 <input type="checkbox" name="branches[]" class="branch-checkbox"
@@ -222,6 +222,8 @@
                 nameInput.value = "";
                 usernameInput.value = "";
                 passwordInput.value = "";
+                passwordInput.required = true;
+                passwordInput.placeholder = "At least 4 characters"; // ⭐ NEW
                 deptInput.value = "";
                 accessLevelInput.value = "";
                 accessAllCheckbox.checked = false;
@@ -259,6 +261,8 @@
                 accessLevelInput.value = btn.dataset.access;
 
                 passwordInput.value = "";
+                passwordInput.required = false;
+                passwordInput.placeholder = "Leave blank to keep existing"; // ⭐ NEW
 
                 accessAllCheckbox.checked = btn.dataset.accessAll == 1;
 

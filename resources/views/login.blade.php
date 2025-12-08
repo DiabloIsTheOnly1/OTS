@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 to-indigo-700">
+<body class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 to-indigo-700 px-4 sm:px-0">
 
     <div class="w-full max-w-sm bg-white/90 backdrop-blur-md rounded-2xl shadow-xl p-8 animate-fadeIn">
 
