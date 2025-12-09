@@ -81,7 +81,7 @@ Route::middleware('auth')->group(function () {
         ->name('hr.overtime.remarks');
 
     //View Overtime Form - HR
-    // Route::get('/overtime/view/{id}', [HRController::class, 'viewForm'])->name('hr.overtime.view');
+    Route::get('/overtime/view/{id}', [HRController::class, 'viewForm'])->name('hr.overtime.view');
 
     Route::middleware('access:manage_request')->group(function () {
         Route::get('/overtime/request-form', [OvertimeRequestController::class, 'create'])->name('overtime.create');
@@ -122,7 +122,14 @@ Route::post('overtime/clock-out/{id}', [OvertimeRequestController::class, 'clock
 //Show QR
 Route::get('/overtime/{id}/qr', [OvertimeRequestController::class, 'qr'])->name('overtime.success');
 
-Route::get('/overtime/view/{id}', [HRController::class, 'viewForm'])->name('hr.overtime.view');
+//Generate PDF & Excel
+Route::get('/hr/overtime/export/excel', [OvertimeRequestController::class, 'exportExcel'])->name('hr.overtime.export.excel');
+Route::get('/hr/overtime/export/pdf', [OvertimeRequestController::class, 'exportPdf'])->name('hr.overtime.export.pdf');
+
+Route::get('/hr/overtime/preview', [OvertimeRequestController::class, 'preview'])
+    ->name('hr.overtime.preview');
+
+
 
 
 

@@ -32,6 +32,7 @@
         </div>
     </div>
 
+    
     <!-- MAIN FORM — Your original, just polished -->
     <div class="max-w-4xl mx-auto bg-white shadow-lg rounded-xl border border-gray-200 p-8 md:p-10">
         <form action="{{ $overtime->id ? route('overtime.update', $overtime->id) : route('overtime.store') }}"
@@ -78,12 +79,8 @@
                            value="{{ old('date', $overtime->date ?? now()->format('Y-m-d')) }}">
                 </div>
 
-                <!-- Reg No -->
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Reg No (For After Sales Dept Only)</label>
-                    <input type="text" name="reg_no"
-                           class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                           value="{{ old('reg_no') }}" placeholder="Optional">
+                
+             
                 </div>
 
                 <!-- Overtime Schedule -->
@@ -118,6 +115,14 @@
                     </div>
                 </div>
 
+                <!-- Reg No -->
+                   <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Reg No (For After Sales Dept Only)</label>
+                    <input type="text" name="reg_no"
+                           class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                           value="{{ old('reg_no') }}" placeholder="Optional">
+                   </div>
+
                 <!-- Type of Work -->
                 <div class="md:col-span-2">
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Type of Work <span class="text-red-500">*</span></label>
@@ -126,7 +131,7 @@
                               placeholder="Please describe the work to be done...">{{ old('type_of_work') }}</textarea>
                 </div>
 
-            </div>
+            
 
             <!-- Submit Button -->
             <div class="text-center pt-8">
@@ -136,6 +141,7 @@
                 </button>
             </div>
         </form>
+    </div>
     </div>
 
     <!-- Reminder Box -->

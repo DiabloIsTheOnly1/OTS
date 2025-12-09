@@ -1,7 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-
     <!-- Prevent overlap with topbar on mobile -->
     <div class="pt-[65px] sm:pt-6 lg:pt-4 transition-all">
 
@@ -42,7 +41,8 @@
 
         {{-- Filters --}}
         <div class="bg-white rounded-xl shadow-sm p-6 mb-4">
-            <form method="GET" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-4 items-end">
+            <form method="GET" id="filter-form" action="{{ route('hr.dashboard') }}"
+                class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-4 items-end">
 
                 <!-- Branch -->
                 <div>
@@ -103,17 +103,40 @@
                     </select>
                 </div>
 
-                <!-- Buttons -->
-                <div class="flex gap-2 col-span-1 sm:col-span-2 md:col-span-1">
+                <!-- Buttons: Always Horizontal -->
+                <div class="col-span-1 sm:col-span-2 md:col-span-6 flex items-center gap-2 mb-4">
+
+                    <!-- Apply Filter -->
                     <button type="submit"
-                        class="px-4 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg w-full md:w-auto transition">
-                        Filter
+                        class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium text-sm transition">
+                        Apply Filter
                     </button>
 
+                    <!-- Generate Report -->
+                    <button type="button" id="open-report-modal"
+                        class="relative inline-flex items-center justify-center overflow-hidden rounded-md
+                        bg-gradient-to-br from-indigo-600 to-purple-600 px-4 py-1.5 text-sm font-semibold text-white
+                        shadow-md transition-all duration-300 hover:shadow-lg hover:from-indigo-700 hover:to-purple-700 group">
+
+                        <span class="flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            Generate Report
+                        </span>
+
+                        <span
+                            class="absolute inset-0 -translate-x-full bg-white/20 skew-x-12
+                                transition-transform duration-700 group-hover:translate-x-full"></span>
+                    </button>
+
+                    <!-- Reset Filter -->
                     <a href="{{ route('hr.dashboard') }}"
-                        class="px-4 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded-lg w-full md:w-auto transition text-center">
-                        Reset
+                        class="px-4 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md font-medium text-sm transition">
+                        Reset Filter
                     </a>
+
                 </div>
             </form>
         </div>
@@ -242,8 +265,7 @@
                                         @endphp
 
                                         {{-- Alpine.js Countdown Timer + Button Logic --}}
-                                        <div x-data="{seconds: {{ $remainingSeconds }}}" 
-                                            x-init="setInterval(() => { if (seconds > 0) seconds--; }, 1000)"
+                                        <div x-data="{ seconds: {{ $remainingSeconds }} }" x-init="setInterval(() => { if (seconds > 0) seconds--; }, 1000)"
                                             class="flex flex-col items-center gap-2">
 
                                             {{-- Countdown Timer --}}
@@ -330,14 +352,16 @@
                                 </td>
                             </tr>
 
-                            {{-- 📱 MOBILE CARD ROW --}}
+                            {{-- MOBILE CARD ROW --}}
                             <tr class="table-row md:hidden">
                                 <td colspan="10">
                                     <div class="m-3 border rounded-lg bg-white p-4 shadow-sm space-y-3">
 
                                         <div>
-                                            <p class="font-bold text-gray-900">{{ $r->staff->staff_name }}</p>
-                                            <p class="text-xs text-gray-500">{{ $r->branch?->name ?? '-' }} •
+                                            <p class="font-bold text-gray-900">
+                                                {{ $r->staff->staff_name }}</p>
+                                            <p class="text-xs text-gray-500">
+                                                {{ $r->branch?->name ?? '-' }} •
                                                 {{ $r->department?->department_name ?? '-' }}</p>
                                         </div>
 
@@ -346,27 +370,29 @@
                                                 class="text-xs font-medium text-gray-700">{{ $r->date->format('d M Y') }}</span>
                                             <span
                                                 class="px-2 py-0.5 rounded-full text-[10px] font-bold
-                                        @if ($r->status == 'pending') bg-yellow-200 text-yellow-900
-                                        @elseif($r->status == 'approved') bg-green-200 text-green-900
-                                        @else bg-red-200 text-red-900 @endif">
+                                            @if ($r->status == 'pending') bg-yellow-200 text-yellow-900
+                                            @elseif($r->status == 'approved') bg-green-200 text-green-900
+                                            @else bg-red-200 text-red-900 @endif">
                                                 {{ ucfirst($r->status) }}
                                             </span>
                                         </div>
 
                                         <div>
-                                            <p class="text-[10px] uppercase font-bold text-gray-500 mb-1">Clock Sessions
-                                            </p>
+                                            <p class="text-[10px] uppercase font-bold text-gray-500 mb-1">
+                                                Clock Sessions</p>
                                             <div class="space-y-2">
                                                 @forelse ($r->clocks as $session)
                                                     <div
                                                         class="bg-gray-50 border rounded px-3 py-2 text-xs flex justify-between">
                                                         <div>
                                                             <span class="text-gray-600">In:</span>
-                                                            {{ $session->clock_in?->format('H:i') ?? '-' }} <br>
+                                                            {{ $session->clock_in?->format('H:i') ?? '-' }}
+                                                            <br>
                                                             <span class="text-gray-600">Out:</span>
                                                             {{ $session->clock_out?->format('H:i') ?? '-' }}
                                                         </div>
-                                                        <p class="text-blue-700 font-bold">{{ $session->total_hm }}</p>
+                                                        <p class="text-blue-700 font-bold">
+                                                            {{ $session->total_hm }}</p>
                                                     </div>
                                                 @empty
                                                     <span class="text-gray-400">-</span>
@@ -375,7 +401,8 @@
                                         </div>
 
                                         <div class="flex justify-between text-sm">
-                                            <span class="text-gray-600 font-medium">Requested Hours:</span>
+                                            <span class="text-gray-600 font-medium">Requested
+                                                Hours:</span>
                                             <span class="font-bold text-amber-700 bg-amber-50 px-3 py-1 rounded-full">
                                                 {{ $r->requested_hm ?? '-' }}
                                             </span>
@@ -386,24 +413,26 @@
                                             <span class="text-blue-700">{{ $r->total_hm }}</span>
                                         </div>
 
-                                        {{-- 👁 EYE ICON ADDED HERE TOO --}}
                                         <div class="text-center">
                                             <a href="{{ route('hr.overtime.view', $r->id) }}"
                                                 class="inline-flex items-center justify-center bg-blue-600 text-white px-3 py-2 rounded-lg text-xs hover:bg-blue-700 w-full">
-                                                {{-- inline SVG eye + label --}}
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-2"
                                                     viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                                     stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                                                    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"></path>
-                                                    <circle cx="12" cy="12" r="3"></circle>
+                                                    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z">
+                                                    </path>
+                                                    <circle cx="12" cy="12" r="3">
+                                                    </circle>
                                                 </svg>
                                                 View Form
                                             </a>
                                         </div>
 
                                         <div>
-                                            <p class="text-[10px] uppercase font-bold text-gray-500">Remarks</p>
-                                            <p class="font-bold text-gray-800 text-xs">{{ $r->remarks ?? '-' }}</p>
+                                            <p class="text-[10px] uppercase font-bold text-gray-500">
+                                                Remarks</p>
+                                            <p class="font-bold text-gray-800 text-xs">
+                                                {{ $r->remarks ?? '-' }}</p>
                                         </div>
 
                                     </div>
@@ -412,7 +441,9 @@
 
                         @empty
                             <tr>
-                                <td colspan="10" class="text-center p-4 text-gray-500">No requests found</td>
+                                <td colspan="10" class="text-center p-4 text-gray-500">No
+                                    requests
+                                    found</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -442,4 +473,74 @@
             });
         </script>
 
-    @endsection
+        {{-- REPORT PREVIEW MODAL --}}
+        <div id="report-modal"
+            class="fixed inset-0 bg-black bg-opacity-60 z-[9999] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-7xl w-full h-[90vh] flex flex-col overflow-hidden">
+                <div
+                    class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-5 flex justify-between items-center">
+                    <h2 class="text-2xl font-bold">Overtime Report Preview</h2>
+                    <button onclick="closeReportModal()" class="text-white hover:bg-white/20 rounded-full p-2 transition">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="flex-1 bg-gray-50">
+                    <iframe id="report-iframe" class="w-full h-full border-0" src="" frameborder="0"></iframe>
+                </div>
+                <div class="bg-white border-t p-5 flex flex-wrap gap-3 justify-end">
+                    <button onclick="printReport()"
+                        class="px-6 py-3 bg-gray-700 hover:bg-gray-800 text-white rounded-lg font-medium flex items-center gap-2 transition">
+                        Print
+                    </button>
+                    <button onclick="downloadExcel()"
+                        class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium flex items-center gap-2 transition">
+                        Excel
+                    </button>
+                    <button onclick="downloadPDF()"
+                        class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium flex items-center gap-2 transition">
+                        PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        {{-- REPORT MODAL SCRIPT --}}
+        <script>
+            const modal = document.getElementById('report-modal');
+            const iframe = document.getElementById('report-iframe');
+
+            document.getElementById('open-report-modal').addEventListener('click', () => {
+                const params = new URLSearchParams(window.location.search);
+                iframe.src = '{{ route('hr.overtime.preview') }}?' + params.toString();
+                modal.classList.remove('hidden');
+            });
+
+            function closeReportModal() {
+                modal.classList.add('hidden');
+                iframe.src = '';
+            }
+
+            function downloadExcel() {
+                const params = new URLSearchParams(window.location.search);
+                window.location.href = '{{ route('hr.overtime.export.excel') }}?' + params.toString();
+            }
+
+            function downloadPDF() {
+                const params = new URLSearchParams(window.location.search);
+                window.location.href = '{{ route('hr.overtime.export.pdf') }}?' + params.toString();
+            }
+
+            function printReport() {
+                iframe.contentWindow.print();
+            }
+
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeReportModal();
+            });
+        </script>
+
+    </div>
+@endsection
