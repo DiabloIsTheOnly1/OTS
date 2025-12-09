@@ -73,13 +73,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/hr/dashboard', [HRController::class, 'index'])
         ->name('hr.dashboard');
 
-    Route::middleware('access:hod_approval')->group(function () {
-        Route::post('/hr/overtime/{id}/approve', [HRController::class, 'approve'])->name('hr.overtime.approve');
-        Route::post('/hr/overtime/{id}/reject', [HRController::class, 'reject'])->name('hr.overtime.reject');
 
-        Route::post('/hr/overtime/{id}/remarks', [HRController::class, 'updateRemarks'])
-            ->name('hr.overtime.remarks');
-    });
+    Route::post('/hr/overtime/{id}/approve', [HRController::class, 'approve'])->name('hr.overtime.approve');
+    Route::post('/hr/overtime/{id}/reject', [HRController::class, 'reject'])->name('hr.overtime.reject');
+
+    Route::post('/hr/overtime/{id}/remarks', [HRController::class, 'updateRemarks'])
+        ->name('hr.overtime.remarks');
 
     //View Overtime Form - HR
     Route::get('/overtime/view/{id}', [HRController::class, 'viewForm'])->name('hr.overtime.view');
@@ -87,7 +86,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('access:manage_request')->group(function () {
         Route::get('/overtime/request-form', [OvertimeRequestController::class, 'create'])->name('overtime.create');
         Route::post('/overtime', [OvertimeRequestController::class, 'store'])->name('overtime.store');
-        Route::resource('overtime', OvertimeRequestController::class);
+
         Route::put('/overtime/{overtime}', [OvertimeRequestController::class, 'update'])
             ->name('overtime.update');
     });
