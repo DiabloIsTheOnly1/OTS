@@ -189,7 +189,10 @@
                             {{-- DESKTOP ROW --}}
                             <tr class="{{ $bg }} border-b hover:bg-blue-50 transition hidden md:table-row">
 
-                                <td class="p-3 whitespace-nowrap">{{ $r->date->format('d M Y') }}</td>
+                                <td class="p-3 whitespace-nowrap">
+                                    {{ $r->date->format('d M Y') }}
+                                    {{-- <p class="text-xs text-gray-500">{{ $r->created_at->format('h:i A') }}</p> --}}
+                                </td>
 
                                 <td class="p-3">
                                     <p class="font-semibold">{{ $r->staff->staff_name ?? '-' }}</p>
@@ -229,16 +232,39 @@
                                     </span>
                                 </td>
 
+                                @php
+                                    // APPROVED HOURS (if approved)
+                                    if ($r->approved_hours !== null) {
+                                        $apprHours = floor($r->approved_hours);
+                                        $apprMinutes = round(($r->approved_hours - $apprHours) * 60);
+                                        $r->approved_hm = sprintf('%02d:%02d', $apprHours, $apprMinutes);
+                                    }
+                                @endphp
                                 <!-- Total -->
-                                <td class="p-3 font-bold text-blue-700 text-center">{{ $r->total_hm }}</td>
+                                <td class="p-3 text-blue-700 text-center">
+                                    @if ($r->status === 'approved' && $r->approved_hours !== null)
+                                        {{-- PARTIAL APPROVAL --}}
+                                        @if ($r->approved_hm !== $r->actual_hm)
+                                            <span class="font-bold text-purple-700 font-bold">{{ $r->approved_hm }}</span>
+                                            <p class="text-xs text-purple-500">(Approved Hour)</p>
+
+                                            {{-- FULL APPROVAL --}}
+                                        @else
+                                            <span class="text-green-700 font-bold">{{ $r->approved_hm }}</span>
+                                        @endif
+                                    @else
+                                        {{-- PENDING → show actual worked --}}
+                                        <span class="font-bold">{{ $r->actual_hm }}</span>
+                                    @endif
+                                </td>
 
                                 <!-- Status -->
                                 <td class="text-center p-3">
                                     <span
                                         class="px-3 py-1 rounded-full text-xs font-semibold
-                                @if ($r->status == 'pending') bg-yellow-200 text-yellow-900
-                                @elseif($r->status == 'approved') bg-green-200 text-green-900
-                                @else bg-red-200 text-red-900 @endif">
+                                            @if ($r->status == 'pending') bg-yellow-200 text-yellow-900
+                                            @elseif($r->status == 'approved') bg-green-200 text-green-900
+                                            @else bg-red-200 text-red-900 @endif">
                                         {{ ucfirst($r->status) }}
                                     </span>
                                 </td>
@@ -261,56 +287,60 @@
                                             $hqWindow = $hoursSinceCreated > 48;
 
                                             $canApprove = ($hodWindow && $canHod) || ($hqWindow && $canHq);
-
                                         @endphp
 
-                                        {{-- Alpine.js Countdown Timer + Button Logic --}}
-                                        <div x-data="{ seconds: {{ $remainingSeconds }} }" x-init="setInterval(() => { if (seconds > 0) seconds--; }, 1000)"
-                                            class="flex flex-col items-center gap-2">
+                                        <!-- Alpine Modal -->
+                                        <div x-data="{
+                                            seconds: {{ $remainingSeconds }},
+                                            openPartial: false,
+                                            hm: '{{ $r->actual_hm }}',
+                                            toMinutes(hm) {
+                                                let [h, m] = hm.split(':').map(Number);
+                                                return (h * 60) + m;
+                                            }
+                                        }" x-init="setInterval(() => { if (seconds > 0) seconds-- }, 1000)">
+                                            <!-- Approve + Reject Buttons -->
+                                            <div class="flex gap-2 justify-center">
 
-                                            {{-- Countdown Timer --}}
-                                            {{-- <div class="text-xs font-medium text-gray-600" x-show="expired">
-                                                HOD approval ends in:
-                                                <span class="font-bold text-gray-800"
-                                                    x-text="
-                                                    new Date(seconds * 1000).toISOString().substr(11, 8)
-                                                "></span>
-                                            </div> --}}
-
-                                            <div class="flex gap-2 justify-center mt-1">
-
-                                                {{-- APPROVE BUTTON --}}
-                                                <form action="{{ route('hr.overtime.approve', $r->id) }}" method="POST"
-                                                    onsubmit="return confirm('Approve this request?');">
+                                                {{-- APPROVE FULL BUTTON --}}
+                                                <form action="{{ route('hr.overtime.approveFull', $r->id) }}"
+                                                    method="POST"
+                                                    onsubmit="return confirm('Approve full actual overtime?');">
                                                     @csrf
                                                     <button
                                                         class="px-3 py-1 text-xs rounded
-                                                        @if ($canApprove) bg-green-600 hover:bg-green-700 text-white 
-                                                        @else bg-gray-300 text-gray-500 cursor-not-allowed @endif">
+                                                            @if ($canApprove) bg-green-600 hover:bg-green-700 text-white
+                                                            @elseif (!$canHod && !$canHq) bg-gray-300 text-gray-500 cursor-not-allowed
+                                                            @else bg-gray-800 text-gray-400 cursor-not-allowed @endif">
                                                         Approve
                                                     </button>
                                                 </form>
 
-                                                {{-- REJECT BUTTON --}}
+                                                {{-- PARTIAL APPROVAL BUTTON --}}
+                                                <x-partial-approve :id="$r->id" :actualHm="$r->actual_hm" :actualMinutes="$r->actual_minutes"
+                                                    :requestedHm="$r->requested_hm" :requestedMinutes="$r->requested_minutes" :canApprove="$canApprove" :canHod="$canHod"
+                                                    :canHq="$canHq" />
+
+                                                {{-- Reject --}}
                                                 <form action="{{ route('hr.overtime.reject', $r->id) }}" method="POST"
                                                     onsubmit="return confirm('Reject this request?');">
                                                     @csrf
                                                     <button
                                                         class="px-3 py-1 text-xs rounded
-                                                        @if ($canApprove) bg-red-600 hover:bg-red-700 text-white 
-                                                        @else bg-gray-300 text-gray-500 cursor-not-allowed @endif">
+                                                            @if ($canApprove) bg-red-600 hover:bg-red-700 text-white
+                                                            @elseif (!$canHod && !$canHq) bg-gray-300 text-gray-500 cursor-not-allowed
+                                                            @else bg-gray-800 text-gray-400 cursor-not-allowed @endif">
                                                         Reject
                                                     </button>
                                                 </form>
 
                                             </div>
 
-                                            {{-- After timer expiry --}}
+                                            <!-- HQ notice -->
                                             <p x-show="{{ $hqWindow ? 'true' : 'false' }}"
                                                 class="text-xs text-red-600 mt-1">
                                                 HQ approval required
                                             </p>
-
                                         </div>
                                     @else
                                         <p class="text-xs">{{ $r->status == 'approved' ? 'Approved' : 'Rejected' }} by</p>
@@ -441,9 +471,7 @@
 
                         @empty
                             <tr>
-                                <td colspan="10" class="text-center p-4 text-gray-500">No
-                                    requests
-                                    found</td>
+                                <td colspan="10" class="text-center p-4 text-gray-500">No requests found</td>
                             </tr>
                         @endforelse
                     </tbody>

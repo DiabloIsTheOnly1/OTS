@@ -77,18 +77,35 @@ class HRController extends Controller
             ->get();
 
         // -------------------------------
-        // Compute Actual & Requested Hours
+        // Compute Actual & Requested Hours (NO DECIMALS)
         // -------------------------------
         foreach ($requests as $r) {
-            // Actual hours (from clock sessions)
-            $totalSeconds = $r->clocks->sum('total_time_taken');
-            $hours = floor($totalSeconds / 3600);
-            $minutes = floor(($totalSeconds % 3600) / 60);
-            $r->total_hm = sprintf('%02d:%02d', $hours, $minutes);
 
-            // REQUESTED HOURS — FROM total_hours in DB (this was missing!)
-            $reqHours = floor($r->total_hours ?? 0);
-            $reqMinutes = round(($r->total_hours - $reqHours) * 60);
+            // -------------------------------
+            // ACTUAL HOURS — from clock sessions
+            // -------------------------------
+            $totalSeconds = $r->clocks->sum('total_time_taken');
+            $totalMinutes = floor($totalSeconds / 60);
+            $r->actual_minutes = $totalMinutes;
+
+            // Convert to HH:MM
+            $hours = floor($totalMinutes / 60);
+            $minutes = $totalMinutes % 60;
+            $r->actual_hm = sprintf('%02d:%02d', $hours, $minutes);
+
+
+            // -------------------------------
+            // REQUESTED HOURS — from DB
+            // -------------------------------
+            $requestedDecimal = $r->total_hours ?? 0; // Example: 1.5
+
+            // Convert decimal → minutes
+            $requestedMinutes = floor($requestedDecimal * 60);
+            $r->requested_minutes = $requestedMinutes;
+
+            // Convert minutes → HH:MM
+            $reqHours = floor($requestedMinutes / 60);
+            $reqMinutes = $requestedMinutes % 60;
             $r->requested_hm = sprintf('%02d:%02d', $reqHours, $reqMinutes);
         }
 
@@ -104,42 +121,86 @@ class HRController extends Controller
         return view('hr.dashboard', compact('requests', 'branches', 'departments'));
     }
 
-    /**
-     * Approve an overtime request.
-     */
-    public function approve(int $id)
-    {
-        $overtimeRequest = OvertimeRequest::findOrFail($id);
-        $user = Auth::user();
 
-        $createdAt = $overtimeRequest->created_at;
-        $hoursSinceCreated = $createdAt->diffInHours(now()); // FIXED
+    public function approveFull($id)
+    {
+        $r = OvertimeRequest::findOrFail($id);
+
+        $user = Auth::user();
+        $createdAt = $r->created_at;
+        $hoursSinceCreated = $createdAt->diffInHours(now());
 
         $canHod = $user->canAccess('hod_approval');
         $canHq = $user->canAccess('hq_approval');
 
-        // HOD window (0–24 hours)
         if ($hoursSinceCreated <= 48) {
             if (!$canHod) {
-                return back()->with('error', 'Only HOD can approve within the first 48 hour.');
+                return back()->with('error', 'Only HOD can approve within the first 48 hours.')->send();
             }
         }
 
         if ($hoursSinceCreated > 48) {
             if (!$canHq) {
-                return back()->with('error', 'Only HQ can approve after 48 hour.');
+                return back()->with('error', 'Only HQ approvers can approve after 48 hours.')->send();
             }
         }
 
-        // Approve
-        $overtimeRequest->update([
-            'status' => 'approved',
-            'approved_by' => $user->id,
+        // Calculate actual minutes
+        $actualMinutes = intval($r->clocks->sum('total_time_taken') / 60);
+
+        $r->update([
+            // 'approved_hours' => $actualMinutes / 60,
+            'approved_by' => auth()->id(),
             'approved_at' => now(),
+            'status' => 'approved'
         ]);
 
-        return back()->with('success', 'Overtime request approved.');
+        return back()->with('success', 'Full overtime approved.');
     }
+
+    public function approvePartial(Request $request, $id)
+    {
+        $r = OvertimeRequest::findOrFail($id);
+
+        $user = Auth::user();
+        $createdAt = $r->created_at;
+        $hoursSinceCreated = $createdAt->diffInHours(now());
+
+        $canHod = $user->canAccess('hod_approval');
+        $canHq = $user->canAccess('hq_approval');
+
+        if ($hoursSinceCreated <= 48) {
+            if (!$canHod) {
+                return back()->with('error', 'Only HOD can approve within the first 48 hours.')->send();
+            }
+        }
+
+        if ($hoursSinceCreated > 48) {
+            if (!$canHq) {
+                return back()->with('error', 'Only HQ approvers can approve after 48 hours.')->send();
+            }
+        }
+
+        // Actual minutes
+        $actualMinutes = intval($r->clocks->sum('total_time_taken') / 60);
+
+        // Requested to approve
+        $approved = intval($request->approved_minutes);
+
+        if ($approved > $actualMinutes) {
+            return back()->with('error', 'Approved minutes cannot exceed actual worked minutes.');
+        }
+
+        $r->update([
+            'approved_hours' => $approved / 60,
+            'approved_by' => auth()->id(),
+            'approved_at' => now(),
+            'status' => 'approved'
+        ]);
+
+        return back()->with('success', 'Partial overtime approved.');
+    }
+
 
     /**
      * Reject an overtime request.
@@ -154,16 +215,16 @@ class HRController extends Controller
         $canHod = $user->canAccess('hod_approval');
         $canHq = $user->canAccess('hq_approval');
 
-        // HOD window (0–24 hours)
-        if ($hoursSinceCreated <= 24) {
+        // HOD window (0–48 hours)
+        if ($hoursSinceCreated <= 48) {
             if (!$canHod) {
-                return back()->with('error', 'Only HOD can approve within the first 1 hour.');
+                return back()->with('error', 'Only HOD can approve within the first 48 hour.');
             }
         }
 
-        if ($hoursSinceCreated > 24) {
+        if ($hoursSinceCreated > 48) {
             if (!$canHq) {
-                return back()->with('error', 'Only HQ approvers can approve after 1 hour.');
+                return back()->with('error', 'Only HQ approvers can approve after 48 hour.');
             }
         }
 
@@ -187,7 +248,7 @@ class HRController extends Controller
         return back()->with('success', 'Remarks updated.');
     }
 
-        public function viewForm($id)
+    public function viewForm($id)
     {
         $overtime = OvertimeRequest::with('branch', 'department', 'clocks')->findOrFail($id);
 

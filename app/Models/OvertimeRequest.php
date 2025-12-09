@@ -22,6 +22,7 @@ class OvertimeRequest extends Model
         'reg_no',
         'status',
         'total_hours',
+        'approved_hours',
         'approved_by',
         'approved_at',
         'remarks',

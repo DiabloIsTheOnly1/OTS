@@ -75,6 +75,8 @@ Route::middleware('auth')->group(function () {
 
 
     Route::post('/hr/overtime/{id}/approve', [HRController::class, 'approve'])->name('hr.overtime.approve');
+    Route::post('/hr/overtime/{id}/approve-full', [HRController::class, 'approveFull'])->name('hr.overtime.approveFull');
+    Route::post('/hr/overtime/{id}/conditional-approve', [HRController::class, 'approvePartial'])->name('hr.overtime.approvePartial');
     Route::post('/hr/overtime/{id}/reject', [HRController::class, 'reject'])->name('hr.overtime.reject');
 
     Route::post('/hr/overtime/{id}/remarks', [HRController::class, 'updateRemarks'])
