@@ -152,46 +152,47 @@
 
                     <div></div> <!-- Spacer -->
 
-                    <!-- Planned Overtime Schedule -->
-                    <div class="md:col-span-2 bg-amber-50 border border-amber-300 rounded-lg p-5">
-                        <h3 class="font-bold text-amber-900 text-lg mb-lg mb-4 text-center">Planned Overtime Schedule</h3>
-                        <div class="grid grid-cols-3 gap-4 text-center">
-                            <div>
-                                <p class="text-xs text-amber-700 font-medium uppercase">Start</p>
-                                <p class="view-mode text-2xl font-bold text-amber-800 mt-2">
-                                    {{ $overtime->start_time?->format('H:i') ?? '-' }}
-                                </p>
-                                <input type="time" name="start_time"
-                                    class="edit-mode hidden w-full text-center text-xl font-bold text-amber-800 border border-amber-400 rounded px-3 py-2"
-                                    value="{{ old('start_time', $overtime->start_time?->format('H:i')) }}" required>
-                            </div>
-                            <div class="flex items-center justify-center">
-                                <span class="text-4xl text-amber-600 font-light">→</span>
-                            </div>
-                            <div>
-                                <p class="text-xs text-amber-700 font-medium uppercase">End</p>
-                                <p class="view-mode text-2xl font-bold text-amber-800 mt-2">
-                                    {{ $overtime->end_time?->format('H:i') ?? '-' }}
-                                </p>
-                                <input type="time" name="end_time"
-                                    class="edit-mode hidden w-full text-center text-xl font-bold text-amber-800 border border-amber-400 rounded px-3 py-2"
-                                    value="{{ old('end_time', $overtime->end_time?->format('H:i')) }}" required>
-                            </div>
-                        </div>
-                        <div class="text-center mt-4">
-                            <div id="total-hours-display" class="inline-block bg-amber-700 text-white px-6 py-2 rounded-full font-bold text-lg">
+                <!-- TOTAL HOURS REQUESTED — 30% SMALLER -->
+                <div class="md:col-span-2 bg-gradient-to-br from-indigo-50 to-blue-50 border-2 border-indigo-300 rounded-xl p-4 text-center shadow-inner">
+                    <h3 class="text-lg font-bold text-indigo-900 mb-3">Total Hours Requested</h3>
+
+                    <div class="max-w-xs mx-auto">
+                        
+                        <!-- View Mode -->
+                        <div class="view-mode">
+                            <div class="inline-block bg-indigo-700 text-white px-6 py-4 rounded-xl font-bold text-3xl shadow-lg">
                                 @if ($overtime->total_hours > 0)
                                     @php
                                         $h = floor($overtime->total_hours);
                                         $m = round(($overtime->total_hours - $h) * 60);
                                     @endphp
-                                    {{ $h }}h {{ $m > 0 ? $m.'m' : '' }}
+                                    {{ $h }}<small class="text-xl opacity-90">h</small>
+                                    @if($m > 0)
+                                        <span class="ml-2">{{ $m }}<small class="text-xl opacity-90">m</small></span>
+                                    @endif
                                 @else
-                                    —
+                                    <span class="text-indigo-300">—</span>
                                 @endif
                             </div>
                         </div>
+
+                        <!-- Edit Mode -->
+                        <div class="edit-mode hidden">
+                            <input type="number" 
+                                name="total_hours" 
+                                step="0.25" 
+                                min="0.25" 
+                                max="24" 
+                                required
+                                class="w-full text-center text-3xl font-bold text-indigo-700 bg-white border-4 border-indigo-400 rounded-xl px-4 py-3 focus:ring-4 focus:ring-indigo-200 focus:border-indigo-600 outline-none transition-all"
+                                value="{{ old('total_hours', $overtime->total_hours) }}"
+                                placeholder="4.5">
+                            <p class="mt-2 text-xs text-gray-600">Enter in decimal: 4.5 = 4 hours 30 minutes</p>
+                        </div>
                     </div>
+                </div>
+
+
 
                     <!-- Reg No -->
                     <div class="md:col-span-2">

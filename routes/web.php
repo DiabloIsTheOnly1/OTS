@@ -123,11 +123,20 @@ Route::post('overtime/clock-out/{id}', [OvertimeRequestController::class, 'clock
 Route::get('/overtime/{id}/qr', [OvertimeRequestController::class, 'qr'])->name('overtime.success');
 
 //Generate PDF & Excel
-Route::get('/hr/overtime/export/excel', [OvertimeRequestController::class, 'exportExcel'])->name('hr.overtime.export.excel');
-Route::get('/hr/overtime/export/pdf', [OvertimeRequestController::class, 'exportPdf'])->name('hr.overtime.export.pdf');
+Route::get('/hr/overtime/export/pdf', [OvertimeRequestController::class, 'exportPdf'])
+    ->name('hr.overtime.export.pdf');
+
+Route::get('/hr/overtime/export/excel', [OvertimeRequestController::class, 'exportExcel'])
+    ->name('hr.overtime.export.excel');
 
 Route::get('/hr/overtime/preview', [OvertimeRequestController::class, 'preview'])
     ->name('hr.overtime.preview');
+
+
+//clock-view details
+Route::get('/overtime/{overtime}/clock-details', [OvertimeRequestController::class, 'clockDetails'])
+    ->name('overtime.clock.details');
+
 
 
 

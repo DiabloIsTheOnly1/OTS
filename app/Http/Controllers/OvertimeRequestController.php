@@ -144,33 +144,21 @@ class OvertimeRequestController extends Controller
             'department_id' => 'required|exists:departments,id',
             'date' => 'required|date',
             'reg_no' => 'nullable|string|max:100',
-            'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i|after:start_time',
+            'requested_hours' => 'required|numeric|min:0.25|max:12', 
             'type_of_work' => 'nullable|string',
         ]);
 
-        // CALCULATE total_hours BEFORE modifying the array
-        $start = \Carbon\Carbon::createFromFormat('H:i', $validated['start_time']);
-        $end = \Carbon\Carbon::createFromFormat('H:i', $validated['end_time']);
-        if ($end->lessThan($start))
-            $end->addDay();
+        $data = $validated;
+        $data['total_hours'] = $validated['requested_hours']; // this is the decimal hours
+        unset($data['requested_hours']); // remove temp field
 
-        $totalHours = round($start->diffInMinutes($end) / 60, 2);
-
-        // NOW modify time format for DB
-        $validated['start_time'] .= ':00';
-        $validated['end_time'] .= ':00';
-
-        // ADD total_hours to the CORRECT way
-        $validated['total_hours'] = $totalHours;
-
-        // Save session
+        // Save session for return view
         session([
-            'ot_branch_id' => $validated['branch_id'],
-            'ot_department_id' => $validated['department_id'],
+            'ot_branch_id'       => $data['branch_id'],
+            'ot_department_id'   => $data['department_id'],
         ]);
 
-        $overtime = OvertimeRequest::create($validated);
+        $overtime = OvertimeRequest::create($data);
 
         return redirect()->route('overtime.success', $overtime->id)
             ->with('submitted', true);
@@ -180,52 +168,59 @@ class OvertimeRequestController extends Controller
     {
         $overtime = OvertimeRequest::findOrFail($id);
 
-        $branches = Branch::all();
-        $departments = Department::all();
+        $user = Auth::user();
+        $userBranchIds = $user->branches()->pluck('branch.id')->toArray();
 
-        $selectedBranch = $overtime->branch_id;
-        $selectedDepartment = $overtime->department_id;
+        if ($user->access_all_departments) {
+            $departmentIds = Department::pluck('id')->toArray();
+        } else {
+            $departmentIds = [$user->department_id];
+        }
+
+        $branches = Branch::whereIn('id', $userBranchIds)->get();
+        $departments = Department::whereIn('id', $departmentIds)->get();
+        $staffs = Staff::whereIn('branch_id', $userBranchIds)
+            ->whereIn('department_id', $departmentIds)
+            ->get();
+
+        // Pass total_hours as requested_hours for the form
+        $overtime->requested_hours = $overtime->total_hours;
 
         return view('overtime.form', compact(
             'overtime',
             'branches',
             'departments',
-            'selectedBranch',
-            'selectedDepartment'
+            'staffs'
         ));
     }
 
  public function update(Request $request, OvertimeRequest $overtime)
 {
-    // Prevent edit if already clocked in
     if ($overtime->clocks()->exists()) {
         return back()->with('error', 'Cannot edit: Staff has already clocked in!');
     }
 
-    // Accept ALL fields — no strict validation needed
-    $data = $request->only([
-        'staff_id',
-        'date',
-        'start_time',
-        'end_time',
-        'reg_no',
-        'type_of_work',
-        'remarks'
+    $validated = $request->validate([
+        'staff_id'     => 'required|exists:staff,id',
+        'date'         => 'required|date',
+        'total_hours'  => 'required|numeric|min:0.25|max:24', // ← NEW: only total_hours
+        'reg_no'       => 'nullable|string|max:50',
+        'type_of_work' => 'nullable|string',
+        'remarks'      => 'nullable|string',
     ]);
 
-    // Only recalculate total_hours if times are present
-    if ($request->filled('start_time') && $request->filled('end_time')) {
-        $start = \Carbon\Carbon::createFromFormat('H:i', $request->start_time);
-        $end   = \Carbon\Carbon::createFromFormat('H:i', $request->end_time);
-        if ($end->lessThan($start)) $end->addDay();
-
-        $data['total_hours'] = round($start->diffInMinutes($end) / 60, 2);
-    }
-
-    $overtime->update($data);
+    $overtime->update($request->only([
+        'staff_id',
+        'date',
+        'total_hours',
+        'reg_no',
+        'type_of_work',
+        'remarks',
+    ]));
 
     return back()->with('success', 'Overtime request updated successfully!');
 }
+
     public function details($id)
     {
         $overtime = OvertimeRequest::with('clocks')->findOrFail($id);
@@ -265,6 +260,18 @@ class OvertimeRequestController extends Controller
             'message' => 'Clocked In',
             'scannedAt' => $clock->clock_in,
         ]);
+    }
+
+    private function formatRequestedHours($overtime)
+    {
+        if (!$overtime->total_hours || $overtime->total_hours <= 0) {
+            return '-';
+        }
+
+        $hours = floor($overtime->total_hours);
+        $minutes = round(($overtime->total_hours - $hours) * 60);
+
+        return sprintf('%02d:%02d', $hours, $minutes);
     }
 
 
@@ -334,7 +341,15 @@ class OvertimeRequestController extends Controller
     $query = $this->buildOvertimeQuery($request);
     $overtimes = $query->get();
 
-    // SAME LOOP HERE TOO!
+    return Excel::download(new OvertimeExport($overtimes), 'overtime_requests_' . now()->format('Y-m-d') . '.xlsx');
+}
+
+public function exportPdf(Request $request)
+{
+    $query = $this->buildOvertimeQuery($request);
+    $overtimes = $query->get();
+
+    // Same formatting loop
     foreach ($overtimes as $req) {
         $totalSec = $req->clocks->sum('total_time_taken');
         $req->total_hm = $totalSec > 0 
@@ -406,6 +421,20 @@ public function preview(Request $request)
 
     return view('hr.preview', compact('overtimes'));
 }
+
+public function clockDetails($id)
+{
+    $overtime = OvertimeRequest::with('staff', 'branch', 'department', 'clocks')->findOrFail($id);
+
+    // Calculate remaining OT hours
+    $totalHours = $overtime->total_hours ?? 0;
+    $totalSec = $overtime->clocks->sum('total_time_taken');
+    $clockedHours = $totalSec / 3600; // Convert seconds to hours
+    $remainingHours = max(0, $totalHours - $clockedHours);
+
+    return view('overtime.clock-details', compact('overtime', 'remainingHours'));
+}
+
 
 }
 

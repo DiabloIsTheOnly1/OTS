@@ -63,5 +63,10 @@ class OvertimeRequest extends Model
     {
         return $this->hasMany(OvertimeClock::class);
     }
+
+        public function clockSessions()
+{
+    return $this->hasMany(OvertimeClock::class, 'overtime_request_id');
+}
 }
 

@@ -39,4 +39,6 @@ class OvertimeClock extends Model
         return sprintf('%dh %dm', $hours, $minutes);
     }
 
+
+
 }

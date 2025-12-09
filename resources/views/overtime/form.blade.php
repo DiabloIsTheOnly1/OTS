@@ -3,198 +3,197 @@
 @section('content')
 <div class="pt-20 md:pt-8 min-h-screen bg-gray-50">
 
-    {{-- SUCCESS & ERROR MESSAGES --}}
+    {{-- Success & Error Messages --}}
     @if (session('success'))
-        <div class="max-w-4xl mx-auto mb-6 bg-green-50 border border-green-200 text-green-800 px-6 py-4 rounded-lg shadow-sm">
+        <div class="max-w-4xl mx-auto mb-6 bg-green-50 border border-green-200 text-green-800 px-6 py-4 rounded-lg shadow-sm flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
             {{ session('success') }}
         </div>
     @endif
 
     @if (session('error'))
-        <div class="max-w-4xl mx-auto mb-6 bg-red-50 border border-red-200 text-red-800 px-6 py-4 rounded-lg shadow-sm">
+        <div class="max-w-4xl mx-auto mb-6 bg-red-50 border border-red-200 text-red-800 px-6 py-4 rounded-lg shadow-sm flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+            </svg>
             {{ session('error') }}
         </div>
     @endif
 
-    <!-- HEADER — Clean & Corporate -->
+    <!-- Header -->
     <div class="max-w-4xl mx-auto mb-10">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <h1 class="text-3xl md:text-4xl font-bold text-blue-700 text-center md:text-left leading-tight">
                 {{ $overtime->id ? 'Edit Overtime Request' : 'Overtime Request Form' }}
             </h1>
             <a href="{{ url()->previous() }}"
-               class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl font-medium text-sm shadow-sm hover:shadow transition-all">
+               class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl font-medium text-sm shadow-sm hover:shadow transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                 </svg>
-                <span>Back to List</span>
+                Back to List
             </a>
         </div>
     </div>
 
-    
-    <!-- MAIN FORM — Your original, just polished -->
+    <!-- Main Form -->
     <div class="max-w-4xl mx-auto bg-white shadow-lg rounded-xl border border-gray-200 p-8 md:p-10">
         <form action="{{ $overtime->id ? route('overtime.update', $overtime->id) : route('overtime.store') }}"
-              method="POST" class="space-y-8" id="overtimeForm">
+              method="POST" class="space-y-10" id="overtimeForm">
             @csrf
             @if($overtime->id) @method('PUT') @endif
 
+            <!-- Staff & Position -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-
-                <!-- Name -->
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Name <span class="text-red-500">*</span></label>
-                    <select name="staff_id" id="staff_id"
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Name <span class="text-red-500">*</span>
+                    </label>
+                    <select name="staff_id" id="staff_id" required
                             class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
                         <option value="">Select Staff</option>
                         @foreach ($staffs as $s)
                             <option value="{{ $s->id }}"
-                                data-position="{{ $s->position }}"
-                                data-branch="{{ $s->branch_id }}"
-                                data-department="{{ $s->department_id }}"
-                                {{ old('staff_id', $overtime->staff_id ?? '') == $s->id ? 'selected' : '' }}>
+                                    data-position="{{ $s->position }}"
+                                    data-branch="{{ $s->branch_id }}"
+                                    data-department="{{ $s->department_id }}"
+                                    {{ old('staff_id', $overtime->staff_id ?? '') == $s->id ? 'selected' : '' }}>
                                 {{ $s->staff_name }}
                             </option>
                         @endforeach
                     </select>
+                    @error('staff_id')
+                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
 
-                <!-- Position -->
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Position</label>
                     <input type="text" id="position" readonly
                            class="w-full border border-gray-200 rounded-lg px-4 py-3 bg-gray-50 text-gray-700 font-medium">
                 </div>
+            </div>
 
-                <!-- Hidden fields -->
-                <input type="hidden" name="branch_id" id="branch_id">
-                <input type="hidden" name="department_id" id="department_id">
+            <!-- Hidden Fields -->
+            <input type="hidden" name="branch_id" id="branch_id">
+            <input type="hidden" name="department_id" id="department_id">
 
-                <!-- Date -->
+            <!-- Date -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Date <span class="text-red-500">*</span></label>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Date <span class="text-red-500">*</span>
+                    </label>
                     <input type="date" name="date" required
                            class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                            value="{{ old('date', $overtime->date ?? now()->format('Y-m-d')) }}">
+                    @error('date')
+                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
 
-                
-             
+                <div>
+                    
                 </div>
+            </div>
 
-                <!-- Overtime Schedule -->
-                <div class="md:col-span-2 border-t-2 border-gray-200 pt-8">
-                    <h3 class="text-xl font-bold text-gray-800 mb-6 text-center">Overtime Schedule</h3>
+            <!-- Total Hours Only -->
+            <div class="border-t-2 border-dashed border-gray-300 pt-8">
+                <h3 class="text-2xl font-bold text-gray-800 mb-8 text-center">Overtime Hours</h3>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-
-                        <!-- Start Time -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Start Time</label>
-                            <input type="time" name="start_time" id="start_time" required
-                                   class="w-full border border-gray-300 rounded-lg px-4 py-3 text-center text-lg font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                                   value="{{ old('start_time') }}">
-                        </div>
-
-                        <!-- End Time -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">End Time</label>
-                            <input type="time" name="end_time" id="end_time" required
-                                   class="w-full border border-gray-300 rounded-lg px-4 py-3 text-center text-lg font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                                   value="{{ old('end_time') }}">
-                        </div>
-
-                        <!-- Total Hours -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Total Hours</label>
-                            <input type="text" id="total_hours"
-                                   class="w-full border border-gray-200 rounded-lg px-4 py-3 bg-gray-50 text-center text-lg font-bold text-blue-700"
-                                   value="" readonly placeholder="Calculated automatically">
-                        </div>
-                    </div>
+                <div class="max-w-md mx-auto">
+                    <label class="block text-sm font-semibold text-gray-700 mb-3 text-center">
+                        Total Overtime Hours Requested <span class="text-red-500">*</span>
+                    </label>
+                    <input type="number" 
+                           name="requested_hours" 
+                           id="requested_hours"
+                           step="0.25" 
+                           min="0.25" 
+                           max="12"
+                           required
+                           placeholder="e.g. 2.5"
+                           class="w-full text-center text-4xl font-bold text-blue-700 border-2 border-gray-300 rounded-xl px-6 py-8 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition"
+                           value="{{ old('requested_hours', $overtime->requested_hours ?? '') }}">
+                    <p class="text-center text-sm text-gray-500 mt-3">
+                        Enter hours in decimal (e.g. 1.5 = 1 hour 30 mins)
+                    </p>
+                    @error('requested_hours')
+                        <p class="mt-2 text-center text-sm text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
+            </div>
 
-                <!-- Reg No -->
-                   <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Reg No (For After Sales Dept Only)</label>
+            <!-- Type of Work -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Reg No (After Sales Dept Only)
+                    </label>
                     <input type="text" name="reg_no"
                            class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                           value="{{ old('reg_no') }}" placeholder="Optional">
-                   </div>
+                           value="{{ old('reg_no', $overtime->reg_no ?? '') }}"
+                           placeholder="Optional">
 
-                <!-- Type of Work -->
-                <div class="md:col-span-2">
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Type of Work <span class="text-red-500">*</span></label>
-                    <textarea name="type_of_work" rows="6" required
-                              class="w-full border border-gray-300 rounded-lg p-5 text-base leading-relaxed resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                              placeholder="Please describe the work to be done...">{{ old('type_of_work') }}</textarea>
-                </div>
-
-            
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Type of Work <span class="text-red-500">*</span>
+                </label>
+                <textarea name="type_of_work" rows="7" required
+                          class="w-full border border-gray-300 rounded-lg p-5 text-base leading-relaxed resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                          placeholder="Please describe the work to be done in detail...">{{ old('type_of_work', $overtime->type_of_work ?? '') }}</textarea>
+                @error('type_of_work')
+                    <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
 
             <!-- Submit Button -->
-            <div class="text-center pt-8">
+            <div class="text-center pt-12">
                 <button type="submit"
-                        class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg px-16 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+                        class="inline-flex items-center gap-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xl px-20 py-6 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
                     Submit & Generate QR Code
                 </button>
             </div>
         </form>
     </div>
-    </div>
 
     <!-- Reminder Box -->
-    <div class="max-w-4xl mx-auto mt-12 bg-blue-50 border border-blue-200 rounded-xl p-8 shadow-md">
-        <h3 class="text-xl font-bold text-blue-900 mb-6 text-center">Reminder</h3>
-        <ul class="text-gray-700 space-y-3 text-base leading-relaxed">
-            <li>• Please ensure to submit form 1 hour before.</li>
-            <li>• Those immediate superior in HQ, do seek their approval too.</li>
-            <li>• Exec & above may refer HR team for allowance.</li>
-            <li>• Approval from superior is required before submission.</li>
-            <li>• Branches with approval authority may approve max 2 hrs/day or 6 hrs/week.</li>
+    <div class="max-w-4xl mx-auto mt-12 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-10 shadow-xl">
+        <h3 class="text-2xl font-bold text-blue-900 mb-6 text-center">
+            Reminder
+        </h3>
+        <ul class="text-gray-700 space-y-4 text-base leading-relaxed max-w-3xl mx-auto">
+            <li class="flex items-start gap-3"><span class="text-blue-600 mt-1">•</span> Please submit form <strong>at least 1 hour before</strong> overtime starts.</li>
+            <li class="flex items-start gap-3"><span class="text-blue-600 mt-1">•</span> Staff under HQ superiors must get their approval first.</li>
+            <li class="flex items-start gap-3"><span class="text-blue-600 mt-1">•</span> Executive & above — please consult HR for allowance eligibility.</li>
+            <li class="flex items-start gap-3"><span class="text-blue-600 mt-1">•</span> Approval from immediate superior is <strong>mandatory</strong> before submission.</li>
+            <li class="flex items-start gap-3"><span class="text-blue-600 mt-1">•</span> Branch approvers: Max 2 hrs/day or 6 hrs/week per staff.</li>
         </ul>
     </div>
 </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("DOMContentLoaded", function () {
         const staffSelect = document.getElementById('staff_id');
         const positionInput = document.getElementById('position');
         const branchId = document.getElementById('branch_id');
         const deptId = document.getElementById('department_id');
-        const totalHoursInput = document.getElementById('total_hours');
 
-        // Auto-fill staff details
-        staffSelect?.addEventListener('change', function() {
-            const option = this.options[this.selectedIndex];
-            positionInput.value = option.dataset.position || '';
-            branchId.value = option.dataset.branch || '';
-            deptId.value = option.dataset.department || '';
+        // Auto-fill position, branch, department
+        staffSelect?.addEventListener('change', function () {
+            const selected = this.options[this.selectedIndex];
+            positionInput.value = selected.dataset.position || '';
+            branchId.value = selected.dataset.branch || '';
+            deptId.value = selected.dataset.department || '';
         });
 
-        // Calculate total hours
-        function calculateHours() {
-            const start = document.getElementById('start_time').value;
-            const end = document.getElementById('end_time').value;
-
-            if (start && end) {
-                const [sh, sm] = start.split(':').map(Number);
-                const [eh, em] = end.split(':').map(Number);
-                let diff = (eh * 60 + em) - (sh * 60 + sm);
-                if (diff < 0) diff += 1440;
-                const hours = (diff / 60).toFixed(2);
-                totalHoursInput.value = hours + ' hours';
-            } else {
-                totalHoursInput.value = '';
-            }
+        // Trigger on load (for edit mode)
+        if (staffSelect?.value) {
+            staffSelect.dispatchEvent(new Event('change'));
         }
-
-        document.getElementById('start_time')?.addEventListener('change', calculateHours);
-        document.getElementById('end_time')?.addEventListener('change', calculateHours);
-
-        // Trigger on load if values exist
-        calculateHours();
     });
 </script>
 @endsection

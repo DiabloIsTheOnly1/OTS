@@ -5,6 +5,7 @@
     <div class="pt-[65px] sm:pt-6 lg:pt-4 transition-all">
 
         <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+
             <div>
                 <h1 class="text-3xl font-bold text-blue-700 tracking-tight">
                     Overtime Requests
@@ -17,21 +18,24 @@
                 </p>
             </div>
 
+            <!-- New Request Button - Beautiful & Responsive -->
             @canAccess('manage_request')
-                <a href="{{ route('overtime.create') }}"
-                   class="inline-flex items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 px-4 py-2 font-semibold text-white shadow-lg transition-all duration-300 hover:shadow-xl hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 group">
+            <a href="{{ route('overtime.create') }}"
+                class="inline-flex items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 px-4 py-2 font-semibold text-white shadow-lg transition-all duration-300 hover:shadow-xl hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300">
 
-                    <span class="flex items-center gap-3">
-                        <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor"
-                             viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                        </svg>
-                        <span class="hidden sm:inline">New Overtime Request</span>
-                        <span class="sm:hidden">New Request</span>
-                    </span>
+                <span class="flex items-center gap-3">
+                    <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    <span class="hidden sm:inline">New Overtime Request</span>
+                    <span class="sm:hidden">New Request</span>
+                </span>
 
-                    <span class="absolute inset-0 -translate-x-full bg-white/20 skew-x-12 transition-transform duration-700 group-hover:translate-x-full"></span>
-                </a>
+                <!-- Shine effect on hover -->
+                <span
+                    class="absolute inset-0 -translate-x-full bg-white/20 skew-x-12 transition-transform duration-700 group-hover:translate-x-full"></span>
+            </a>
             @endcanAccess
         </div>
 
@@ -71,21 +75,21 @@
                 <div>
                     <label class="block text-xs font-medium text-gray-600 uppercase">Employee</label>
                     <input type="text" name="name" value="{{ request('name') }}"
-                           class="mt-1 px-3 py-1 border w-full rounded-lg border-gray-300 shadow-sm">
+                        class="mt-1 px-3 py-1 border w-full rounded-lg border-gray-300 shadow-sm">
                 </div>
 
                 <!-- From -->
                 <div>
                     <label class="block text-xs font-medium text-gray-600 uppercase">From</label>
                     <input type="date" name="from" value="{{ request('from') }}"
-                           class="mt-1 px-3 py-1 border w-full rounded-lg border-gray-300 shadow-sm">
+                        class="mt-1 px-3 py-1 border w-full rounded-lg border-gray-300 shadow-sm">
                 </div>
 
                 <!-- To -->
                 <div>
                     <label class="block text-xs font-medium text-gray-600 uppercase">To</label>
                     <input type="date" name="to" value="{{ request('to') }}"
-                           class="mt-1 px-3 py-1 border w-full rounded-lg border-gray-300 shadow-sm">
+                        class="mt-1 px-3 py-1 border w-full rounded-lg border-gray-300 shadow-sm">
                 </div>
 
                 <!-- Status -->
@@ -189,7 +193,8 @@
 
                                 <td class="p-3">
                                     <p class="font-semibold">{{ $r->staff->staff_name ?? '-' }}</p>
-                                    <p class="text-xs text-gray-500">{{ $r->branch?->name ?? '-' }} • {{ $r->department?->department_name ?? '-' }}</p>
+                                    <p class="text-xs text-gray-500">{{ $r->branch?->name ?? '-' }} •
+                                        {{ $r->department?->department_name ?? '-' }}</p>
                                 </td>
 
                                 <!-- Clock In/Out -->
@@ -204,7 +209,8 @@
                                                         <span class="text-gray-600">Out:</span>
                                                         {{ $session->clock_out?->format('H:i') ?? '-' }}
                                                     </div>
-                                                    <span class="text-blue-600 font-bold text-xs bg-blue-50 px-2 py-0.5 rounded">
+                                                    <span
+                                                        class="text-blue-600 font-bold text-xs bg-blue-50 px-2 py-0.5 rounded">
                                                         {{ $session->total_hm }}
                                                     </span>
                                                 </div>
@@ -217,12 +223,13 @@
 
                                 <!-- Requested -->
                                 <td class="p-3 text-center">
-                                    <span class="inline-block bg-amber-100 text-amber-800 font-bold px-3 py-1 rounded-full text-sm">
+                                    <span
+                                        class="inline-block bg-amber-100 text-amber-800 font-bold px-3 py-1 rounded-full text-sm">
                                         {{ $r->requested_hm ?? '-' }}
                                     </span>
                                 </td>
 
-                                <!-- Actual Hours -->
+                                <!-- Total -->
                                 <td class="p-3 font-bold text-blue-700 text-center">{{ $r->total_hm }}</td>
 
                                 <!-- Status -->
@@ -274,7 +281,7 @@
 
                                                 {{-- APPROVE BUTTON --}}
                                                 <form action="{{ route('hr.overtime.approve', $r->id) }}" method="POST"
-                                                      onsubmit="return confirm('Approve this request?');">
+                                                    onsubmit="return confirm('Approve this request?');">
                                                     @csrf
                                                     <button
                                                         class="px-3 py-1 text-xs rounded
@@ -286,7 +293,7 @@
 
                                                 {{-- REJECT BUTTON --}}
                                                 <form action="{{ route('hr.overtime.reject', $r->id) }}" method="POST"
-                                                      onsubmit="return confirm('Reject this request?');">
+                                                    onsubmit="return confirm('Reject this request?');">
                                                     @csrf
                                                     <button
                                                         class="px-3 py-1 text-xs rounded
@@ -295,6 +302,7 @@
                                                         Reject
                                                     </button>
                                                 </form>
+
                                             </div>
 
                                             {{-- After timer expiry --}}
@@ -306,7 +314,8 @@
                                         </div>
                                     @else
                                         <p class="text-xs">{{ $r->status == 'approved' ? 'Approved' : 'Rejected' }} by</p>
-                                        <span class="font-bold text-gray-800 text-xs">{{ $r->approver?->username ?? '-' }}</span>
+                                        <span
+                                            class="font-bold text-gray-800 text-xs">{{ $r->approver?->username ?? '-' }}</span>
                                     @endif
                                 </td>
 
@@ -319,25 +328,26 @@
                                                 class="hidden group-hover:inline text-blue-600 text-xs remark-edit-btn">✏️</button>
                                         </div>
                                         <form action="{{ route('hr.overtime.remarks', $r->id) }}" method="POST"
-                                              class="hidden remark-edit-form mt-1 flex gap-1">
-                                            @csrf
-                                            <input name="remarks" value="{{ $r->remarks }}" class="border px-2 py-1 rounded text-xs w-28">
-                                            <button class="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700">Save</button>
-                                            <button type="button" class="remark-cancel-btn text-xs text-gray-500 px-1">Cancel</button>
+                                            class="hidden remark-edit-form mt-1 flex gap-1">@csrf
+                                            <input name="remarks" value="{{ $r->remarks }}"
+                                                class="border px-2 py-1 rounded text-xs w-28">
+                                            <button
+                                                class="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700">Save</button>
+                                            <button type="button"
+                                                class="remark-cancel-btn text-xs text-gray-500 px-1">Cancel</button>
                                         </form>
                                     </div>
                                 </td>
 
-                                <!-- Action -->
-                                <td class="p-3 text-center space-x-1">
+                                <td class="p-3 text-center">
                                     <a href="{{ route('overtime.success', $r->id) }}"
-                                       class="px-2 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 text-xs inline-flex items-center">
-                                        QR
+                                        class="px-2 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 text-xs inline-flex items-center whitespace-nowrap">
+                                        <i class="fas fa-qrcode mr-1"></i> QR
                                     </a>
                                     <a href="{{ route('hr.overtime.view', $r->id) }}"
-                                       class="px-2 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 text-xs inline-flex items-center"
-                                       title="View Overtime Request">
-                                        View
+                                        class="px-2 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 text-xs inline-flex items-center whitespace-nowrap"
+                                        title="View Overtime Request">
+                                        <i class="fa-solid fa-eye mr-1"></i> View
                                     </a>
                                 </td>
                             </tr>
@@ -346,6 +356,7 @@
                             <tr class="table-row md:hidden">
                                 <td colspan="10">
                                     <div class="m-3 border rounded-lg bg-white p-4 shadow-sm space-y-3">
+
                                         <div>
                                             <p class="font-bold text-gray-900">
                                                 {{ $r->staff->staff_name }}</p>
@@ -355,11 +366,13 @@
                                         </div>
 
                                         <div class="flex justify-between items-center">
-                                            <span class="text-xs font-medium text-gray-700">{{ $r->date->format('d M Y') }}</span>
-                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold
-                                                @if ($r->status == 'pending') bg-yellow-200 text-yellow-900
-                                                @elseif($r->status == 'approved') bg-green-200 text-green-900
-                                                @else bg-red-200 text-red-900 @endif">
+                                            <span
+                                                class="text-xs font-medium text-gray-700">{{ $r->date->format('d M Y') }}</span>
+                                            <span
+                                                class="px-2 py-0.5 rounded-full text-[10px] font-bold
+                                            @if ($r->status == 'pending') bg-yellow-200 text-yellow-900
+                                            @elseif($r->status == 'approved') bg-green-200 text-green-900
+                                            @else bg-red-200 text-red-900 @endif">
                                                 {{ ucfirst($r->status) }}
                                             </span>
                                         </div>
@@ -369,7 +382,8 @@
                                                 Clock Sessions</p>
                                             <div class="space-y-2">
                                                 @forelse ($r->clocks as $session)
-                                                    <div class="bg-gray-50 border rounded px-3 py-2 text-xs flex justify-between">
+                                                    <div
+                                                        class="bg-gray-50 border rounded px-3 py-2 text-xs flex justify-between">
                                                         <div>
                                                             <span class="text-gray-600">In:</span>
                                                             {{ $session->clock_in?->format('H:i') ?? '-' }}
@@ -420,9 +434,11 @@
                                             <p class="font-bold text-gray-800 text-xs">
                                                 {{ $r->remarks ?? '-' }}</p>
                                         </div>
+
                                     </div>
                                 </td>
                             </tr>
+
                         @empty
                             <tr>
                                 <td colspan="10" class="text-center p-4 text-gray-500">No
@@ -525,5 +541,6 @@
                 if (e.target === modal) closeReportModal();
             });
         </script>
+
     </div>
 @endsection
