@@ -42,13 +42,13 @@
             @endif
         </div>
 
-        <!-- SMART BACK BUTTON (Preserves filters for BOTH Clock In & Out) -->
-            <div class="mt-6">
-                <a href="{{ route('overtime.index') }}"
-                class="text-blue-600 hover:underline text-sm">
-                    Back to Request List
-                </a>
-            </div>
+        {{-- Back Button --}}
+        <div class="text-center mt-6">
+        <a href="{{ route('overtime.details', $overtime->id) }}" 
+           class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium px-10 py-3.5 rounded-lg shadow transition">
+           Back to Overtime Request Details
+        </a>
+    </div>
         </p>
     </div>
 </div>

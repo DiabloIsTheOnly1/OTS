@@ -178,21 +178,38 @@
 
                         <!-- Edit Mode -->
                         <div class="edit-mode hidden">
-                            <input type="number" 
-                                name="total_hours" 
-                                step="0.25" 
-                                min="0.25" 
-                                max="24" 
-                                required
-                                class="w-full text-center text-3xl font-bold text-indigo-700 bg-white border-4 border-indigo-400 rounded-xl px-4 py-3 focus:ring-4 focus:ring-indigo-200 focus:border-indigo-600 outline-none transition-all"
-                                value="{{ old('total_hours', $overtime->total_hours) }}"
-                                placeholder="4.5">
-                            <p class="mt-2 text-xs text-gray-600">Enter in decimal: 4.5 = 4 hours 30 minutes</p>
+                            
+                            @php
+                            $total = old('requested_hours_h') !== null 
+                                    ? old('requested_hours_h') + (old('requested_hours_m') ?? 0) / 60 
+                                    : $overtime->total_hours ?? 0;
+                            $hours = floor($total);
+                            $minutes = round(($total - $hours) * 60);
+                            @endphp
+
+                            <!-- Hours Input -->
+                            <div class="flex justify-center gap-4">
+                                <div class="flex flex-col items-center">
+                                    <input type="number" 
+                                           name="requested_hours_h"
+                                           min="0" max="12"
+                                           value="{{ old('requested_hours_h', $hours) }}"
+                                           class="w-20 text-center rounded border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+
+                                </div>
+
+                                <!-- Minutes Input -->
+                                <div class="flex flex-col items-center">
+                                    <input type="number" 
+                                           name="requested_hours_m"
+                                           min="0" max="59"
+                                           value="{{ old('requested_hours_m', $minutes) }}"
+                                           class="w-20 text-center rounded border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-
-
 
                     <!-- Reg No -->
                     <div class="md:col-span-2">

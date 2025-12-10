@@ -2,9 +2,9 @@
 
 @section('content')
     <!-- Prevent overlap with topbar on mobile -->
-    <div class="pt-[65px] sm:pt-6 lg:pt-4 transition-all">
+    <div class="pt-[20px] sm:pt-6 lg:pt-4 transition-all">
 
-        <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 
             <div>
                 <h1 class="text-3xl font-bold text-blue-700 tracking-tight">

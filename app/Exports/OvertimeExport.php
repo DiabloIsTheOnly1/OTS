@@ -22,42 +22,51 @@ class OvertimeExport implements FromQuery, WithHeadings, WithMapping, ShouldAuto
         return $this->query;
     }
 
+    public function map($overtime): array
+    {
+        // Calculate total actual hours
+        $totalSec = $overtime->clocks->sum('total_time_taken');
+        $total_hm = $totalSec > 0 
+            ? sprintf('%02d:%02d', floor($totalSec / 3600), floor(($totalSec % 3600) / 60))
+            : '-';
+
+        // Requested hours (decimal → HH:MM)
+        $hours = floor($overtime->total_hours ?? 0);
+        $minutes = round((($overtime->total_hours ?? 0) - $hours) * 60);
+
+        $requested_hm = sprintf('%02d:%02d', $hours, $minutes); 
+
+        return [
+            $overtime->date->format('d M Y'),
+            $overtime->staff?->staff_name ?? '-',
+            $overtime->branch?->name ?? '-',
+            $overtime->department?->department_name ?? '-',
+            // Concatenate all clock sessions in one cell
+            $overtime->clocks->map(function($c){
+                $in  = $c->clock_in?->format('H:i') ?? '-';
+                $out = $c->clock_out?->format('H:i') ?? '-';
+                $total = $c->total_time_taken 
+                    ? sprintf('%02d:%02d', floor($c->total_time_taken / 3600), floor(($c->total_time_taken % 3600)/60))
+                    : '-';
+                return "In: $in → Out: $out ($total)";
+            })->implode("\n"),
+            $requested_hm,
+            $total_hm,
+            $overtime->remarks ?? '-',
+        ];
+    }
+
     public function headings(): array
     {
         return [
             'Date',
-            'Employee Name',
+            'Employee',
             'Branch',
             'Department',
             'Clock Sessions',
             'Requested Hours',
             'Actual Hours',
             'Remarks',
-        ];
-    }
-
-    public function map($overtime): array
-    {
-        // Format clock sessions nicely: In: 09:00 - Out: 17:30 (8h 30m) | In: 18:00 - Out: 20:00 (2h)
-        $clockSessions = $overtime->clocks->map(function ($session) {
-            $in  = $session->clock_in?->format('H:i') ?? '-';
-            $out = $session->clock_out?->format('H:i') ?? '-';
-            return "In: {$in} - Out: {$out} ({$session->total_hm})";
-        })->implode(' | ');
-
-        if ($clockSessions === '') {
-            $clockSessions = '-';
-        }
-
-        return [
-            $overtime->date->format('d M Y'),
-            $overtime->staff->staff_name ?? 'N/A',
-            $overtime->branch?->name ?? 'N/A',
-            $overtime->department?->department_name ?? 'N/A',
-            $clockSessions,
-            $overtime->requested_hm ?? '-',
-            $overtime->total_hm ?? '-',
-            $overtime->remarks ?? '-',
         ];
     }
 }

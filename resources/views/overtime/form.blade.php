@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="pt-20 md:pt-8 min-h-screen bg-gray-50">
+<div class="pt-5 md:pt-8 min-h-screen bg-gray-50">
 
     {{-- Success & Error Messages --}}
     @if (session('success'))
@@ -93,34 +93,59 @@
                         <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
-
-                <div>
-                    
-                </div>
+                <div></div>
             </div>
 
-            <!-- Total Hours Only -->
-            <div class="border-t-2 border-dashed border-gray-300 pt-8">
-                <h3 class="text-2xl font-bold text-gray-800 mb-8 text-center">Overtime Hours</h3>
+            <!-- Overtime Hours Card -->
+            <div class="border-t border-gray-300 pt-10">
+                <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">Overtime Hours</h3>
 
-                <div class="max-w-md mx-auto">
-                    <label class="block text-sm font-semibold text-gray-700 mb-3 text-center">
+                <div class="max-w-md mx-auto bg-gray-50 border border-gray-200 rounded-2xl p-6 shadow-sm">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2 text-center">
                         Total Overtime Hours Requested <span class="text-red-500">*</span>
                     </label>
-                    <input type="number" 
-                           name="requested_hours" 
-                           id="requested_hours"
-                           step="0.25" 
-                           min="0.25" 
-                           max="12"
-                           required
-                           placeholder="e.g. 2.5"
-                           class="w-full text-center text-4xl font-bold text-blue-700 border-2 border-gray-300 rounded-xl px-6 py-8 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition"
-                           value="{{ old('requested_hours', $overtime->requested_hours ?? '') }}">
-                    <p class="text-center text-sm text-gray-500 mt-3">
-                        Enter hours in decimal (e.g. 1.5 = 1 hour 30 mins)
+
+                        @php
+                            $total = old('requested_hours_h') !== null 
+                                    ? old('requested_hours_h') + (old('requested_hours_m') ?? 0) / 60 
+                                    : $overtime->total_hours ?? 0;
+
+                            $hours = floor($total);
+                            $minutes = round(($total - $hours) * 60);
+                        @endphp
+
+                    <div class="flex justify-center gap-4 mb-2">
+                        <!-- Hours -->
+                        <div class="flex flex-col items-center">
+                            <input type="number" 
+                            name="requested_hours_h" 
+                            id="requested_hours_h"
+                            min="0" max="12"
+                            class="w-24 text-center text-3xl font-bold text-blue-700 border border-gray-300 rounded-xl px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+                            value="{{ old('requested_hours_h', $hours) }}">
+                            <span class="text-sm text-gray-500 mt-1">Hours</span>
+                        </div>
+
+                        <!-- Minutes -->
+                        <div class="flex flex-col items-center">
+                            <input type="number" 
+                            name="requested_hours_m" 
+                            id="requested_hours_m"
+                            min="0" max="59" step="5"
+                            class="w-24 text-center text-3xl font-bold text-blue-700 border border-gray-300 rounded-xl px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition"
+                            value="{{ old('requested_hours_m', $minutes) }}">
+                            <span class="text-sm text-gray-500 mt-1">Minutes</span>
+                        </div>
+                    </div>
+
+                    <p class="text-center text-sm text-gray-500 mt-2">
+                        Enter hours and minutes (e.g., 1 hour 30 minutes = 01h 30m)
                     </p>
-                    @error('requested_hours')
+
+                    @error('requested_hours_h')
+                        <p class="mt-2 text-center text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                    @error('requested_hours_m')
                         <p class="mt-2 text-center text-sm text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
@@ -148,9 +173,9 @@
             </div>
 
             <!-- Submit Button -->
-            <div class="text-center pt-12">
+            <div class="text-center mt-6">
                 <button type="submit"
-                        class="inline-flex items-center gap-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xl px-20 py-6 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
+                        class="inline-flex items-center gap-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-m px-10 py-6 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
                     <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                     </svg>

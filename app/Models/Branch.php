@@ -9,7 +9,7 @@ class Branch extends Model
 {
     use HasFactory;
 
-    protected $table = 'branch'; // <-- FIXED
+    protected $table = 'branch'; 
 
     protected $fillable = ['name'];
 
