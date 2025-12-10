@@ -9,7 +9,7 @@ return new class extends Migration
     public function up()
 {
     Schema::table('overtime_requests', function (Blueprint $table) {
-        $table->decimal('total_hours', 8, 2)->nullable()->after('end_time');
+        $table->decimal('total_hours', 8, 2)->nullable()->after('date');
     });
 }
 

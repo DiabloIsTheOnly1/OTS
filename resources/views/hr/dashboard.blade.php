@@ -92,6 +92,13 @@
                         class="mt-1 px-3 py-1 border w-full rounded-lg border-gray-300 shadow-sm">
                 </div>
 
+                {{-- Month --}}
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 uppercase">Month</label>
+                    <input type="month" name="month" value="{{ request('month') }}"
+                        class="mt-1 px-3 py-1 border w-full rounded-lg border-gray-300 shadow-sm">
+                </div>
+
                 <!-- Status -->
                 <div>
                     <label class="block text-xs font-medium text-gray-600 uppercase">Status</label>
@@ -531,6 +538,10 @@
                         class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium flex items-center gap-2 transition">
                         PDF
                     </button>
+                    <button onclick="monthlyReport()"
+                        class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium flex items-center gap-2 transition">
+                        Monthly Report
+                    </button>
                 </div>
             </div>
         </div>
@@ -563,6 +574,11 @@
 
             function printReport() {
                 iframe.contentWindow.print();
+            }
+
+            function monthlyReport() {
+                const params = new URLSearchParams(window.location.search);
+                window.location.href = '{{ route('hr.overtime.export.excel') }}?' + params.toString();
             }
 
             modal.addEventListener('click', (e) => {

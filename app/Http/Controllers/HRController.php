@@ -8,6 +8,8 @@ use App\Models\OvertimeRequest;
 use App\Models\User;
 use App\Models\Department;
 use Carbon\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\OvertimeExport;
 
 class HRController extends Controller
 {
@@ -68,6 +70,17 @@ class HRController extends Controller
         if ($request->filled('to')) {
             $query->whereDate('date', '<=', $request->to);
         }
+
+        if ($request->filled('month')) {
+    
+            $month = Carbon::createFromFormat('Y-m', $request->month)->startOfMonth();
+            $startOfMonth = $month->copy()->startOfMonth();
+            $endOfMonth = $month->copy()->endOfMonth();
+
+            $query->whereBetween('date', [$startOfMonth, $endOfMonth]);
+        }
+
+
 
         // -------------------------------
         // Fetch results
@@ -268,5 +281,8 @@ class HRController extends Controller
 
         return view('hr.overtime_form_view', compact('overtime'));
     }
+
+   
+
 
 }

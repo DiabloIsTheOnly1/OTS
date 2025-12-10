@@ -22,8 +22,8 @@ return new class extends Migration {
             // $table->time('start_time')->nullable();
             // $table->time('end_time')->nullable();
 
-            $table->decimal('total_hours', 8, 2)->nullable()->after('end_time');
-            $table->decimal('approved_hours', 8, 2)->nullable()->after('total_hours');
+            // $table->decimal('total_hours', 8, 2)->nullable();
+            $table->decimal('approved_hours', 8, 2)->nullable();
             $table->text('type_of_work')->nullable();
             $table->text('reg_no')->nullable();
 

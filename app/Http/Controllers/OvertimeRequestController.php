@@ -41,60 +41,80 @@ class OvertimeRequestController extends Controller
     }
 
     public function index(Request $request)
-    {
-        // Handle branch/dept from QR redirect
-        if ($request->has('branch') && $request->has('dept')) {
-            session([
-                'ot_branch_id' => $request->branch,
-                'ot_department_id' => $request->dept
-            ]);
-            return redirect()->route('overtime.index');
-        }
-
-        $branchId = session('ot_branch_id');
-        $departmentId = session('ot_department_id');
-
-        $branch = Branch::find($branchId);
-        $department = Department::find($departmentId);
-
-        $query = OvertimeRequest::with(['branch', 'department', 'clocks', 'staff'])
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
-            ->when($departmentId, fn($q) => $q->where('department_id', $departmentId));
-
-        if ($request->filled('name')) {
-            $query->whereHas('staff', fn($q) => $q->where('staff_name', 'like', "%{$request->name}%"));
-        }
-        if ($request->filled('from'))
-            $query->whereDate('date', '>=', $request->from);
-        if ($request->filled('to'))
-            $query->whereDate('date', '<=', $request->to);
-        if ($request->filled('status'))
-            $query->where('status', $request->status);
-
-        $requests = $query->paginate(15);
-
-        // ONLY ONE LOOP — THIS IS THE ONLY PLACE WE TOUCH THE DATA
-        foreach ($requests as $req) {
-            $totalSec = $req->clocks->sum('total_time_taken');
-
-            $hours = floor($totalSec / 3600);
-            $minutes = floor(($totalSec % 3600) / 60);
-
-            $req->actual_hm = $hours . ':' . str_pad($minutes, 2, '0', STR_PAD_LEFT); // add this
-            $req->total_hm = $req->actual_hm; // optional, can keep both
-
-            // Clock display
-            $req->clock_in_display = $req->clocks->min('clock_in')?->format('H:i') ?? '-';
-            $req->clock_out_display = $req->clocks->max('clock_out')?->format('H:i') ?? '-';
-
-            // Requested hours
-            $hoursReq = floor($req->total_hours ?? 0);
-            $minutesReq = round(($req->total_hours ?? 0 - $hoursReq) * 60);
-            $req->requested_hm = sprintf('%02d:%02d', $hoursReq, $minutesReq);
-        }
-
-        return view('overtime.index', compact('requests', 'branch', 'department'));
+{
+    // Handle branch/dept from QR redirect
+    if ($request->has('branch') && $request->has('dept')) {
+        session([
+            'ot_branch_id' => $request->branch,
+            'ot_department_id' => $request->dept
+        ]);
+        return redirect()->route('overtime.index');
     }
+
+    $branchId = session('ot_branch_id');
+    $departmentId = session('ot_department_id');
+
+    $branch = Branch::find($branchId);
+    $department = Department::find($departmentId);
+
+    $query = OvertimeRequest::with(['branch', 'department', 'clocks', 'staff'])
+        ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+        ->when($departmentId, fn($q) => $q->where('department_id', $departmentId));
+
+    // Search name
+    if ($request->filled('name')) {
+        $query->whereHas('staff', fn($q) => 
+            $q->where('staff_name', 'like', "%{$request->name}%")
+        );
+    }
+
+    // Date range filters
+    if ($request->filled('from'))
+        $query->whereDate('date', '>=', $request->from);
+
+    if ($request->filled('to'))
+        $query->whereDate('date', '<=', $request->to);
+
+    //  MONTH FILTER
+    if ($request->filled('month')) {
+        $query->whereMonth('date', $request->month);
+    }
+
+    if ($request->filled('year')) {
+        $query->whereYear('date', $request->year);
+    }
+
+    // Status filter
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
+
+    // Pagination
+    $requests = $query->paginate(15);
+
+    // COMPUTE TOTALS + TIME FORMATTING
+    foreach ($requests as $req) {
+        $totalSec = $req->clocks->sum('total_time_taken');
+
+        $hours = floor($totalSec / 3600);
+        $minutes = floor(($totalSec % 3600) / 60);
+
+        $req->actual_hm = $hours . ':' . str_pad($minutes, 2, '0', STR_PAD_LEFT);
+        $req->total_hm = $req->actual_hm;
+
+        // Clock display
+        $req->clock_in_display = $req->clocks->min('clock_in')?->format('H:i') ?? '-';
+        $req->clock_out_display = $req->clocks->max('clock_out')?->format('H:i') ?? '-';
+
+        // Requested hours
+        $hoursReq = floor($req->total_hours ?? 0);
+        $minutesReq = round(($req->total_hours ?? 0 - $hoursReq) * 60);
+        $req->requested_hm = sprintf('%02d:%02d', $hoursReq, $minutesReq);
+    }
+
+    return view('overtime.index', compact('requests', 'branch', 'department'));
+}
+
 
 
     // Show OT request form
@@ -275,17 +295,7 @@ public function update(Request $request, OvertimeRequest $overtime)
         ]);
     }
 
-    private function formatRequestedHours($overtime)
-    {
-        if (!$overtime->total_hours || $overtime->total_hours <= 0) {
-            return '-';
-        }
-
-        $hours = floor($overtime->total_hours);
-        $minutes = round(($overtime->total_hours - $hours) * 60);
-
-        return sprintf('%02d:%02d', $hours, $minutes);
-    }
+ 
 
 
     public function clockOut($id)
@@ -354,7 +364,7 @@ public function update(Request $request, OvertimeRequest $overtime)
 {
     $query = $this->buildOvertimeQuery($request);
 
-    return Excel::download(new OvertimeExport($query), 'overtime_requests_' . now()->format('Y-m-d') . '.xlsx');
+    return Excel::download(new OvertimeExport($query), 'Overtime_requests_' . now()->format('Y-m-d') . '.xlsx');
 }
 
 
@@ -379,10 +389,25 @@ public function exportPdf(Request $request)
     $pdf = Pdf::loadView('hr.pdf', compact('overtimes'))
         ->setPaper('a4', 'landscape');
 
-    return $pdf->download('overtime_requests_' . now()->format('Y-m-d') . '.pdf');
+    return $pdf->download('Overtime_requests_' . now()->format('Y-m-d') . '.pdf');
 }
 
-// Example: Extracted filter logic (copy from your index method and adjust)
+ public function exportMonthlyExcel(Request $request)
+{
+    $month = $request->month;
+
+    if (!$month) {
+        return back()->with('error', 'Please select a month first.');
+    }
+
+    $data = OvertimeRequest::with(['staff', 'branch', 'department'])
+                ->whereMonth('date', $month)
+                ->get();
+
+    return Excel::download(new OvertimeExport($data), "Overtime_Month_$month.xlsx");
+}
+
+
 private function buildOvertimeQuery(Request $request)
 {
     $query = OvertimeRequest::with(['staff', 'branch', 'department', 'clocks']);
@@ -404,11 +429,21 @@ private function buildOvertimeQuery(Request $request)
     if ($request->to) {
         $query->whereDate('date', '<=', $request->to);
     }
+
+    if ($request->month) {
+        [$year, $month] = explode('-', $request->month);
+        $query->whereYear('date', $year)->whereMonth('date', $month);
+    }
+
+    if ($request->year) {
+        $query->whereYear('date', $request->year);
+    }
+
     if ($request->status) {
         $query->where('status', $request->status);
     }
 
-    return $query->orderBy('date', 'desc'); // Add sorting as needed
+    return $query->orderBy('date', 'desc'); 
 }
 
 public function preview(Request $request)
@@ -416,16 +451,16 @@ public function preview(Request $request)
     $query = $this->buildOvertimeQuery($request);
     $overtimes = $query->get();
 
-    // SAME LOOP AS index() AND exportPdf()
+    
     foreach ($overtimes as $req) {
 
-        // Actual hours from clock sessions
+        
         $totalSec = $req->clocks->sum('total_time_taken');
         $req->total_hm = $totalSec > 0 
             ? sprintf('%02d:%02d', floor($totalSec / 3600), floor(($totalSec % 3600) / 60))
             : '-';
 
-        // Requested hours from total_hours (decimal → HH:MM)
+        
         $hours = floor($req->total_hours ?? 0);
         $minutes = round((($req->total_hours ?? 0) - $hours) * 60);
 
@@ -440,10 +475,10 @@ public function clockDetails($id)
 {
     $overtime = OvertimeRequest::with('staff', 'branch', 'department', 'clocks')->findOrFail($id);
 
-    // Calculate remaining OT hours
+   
     $totalHours = $overtime->total_hours ?? 0;
     $totalSec = $overtime->clocks->sum('total_time_taken');
-    $clockedHours = $totalSec / 3600; // Convert seconds to hours
+    $clockedHours = $totalSec / 3600; 
     $remainingHours = max(0, $totalHours - $clockedHours);
 
     return view('overtime.clock-details', compact('overtime', 'remainingHours'));
