@@ -218,6 +218,9 @@
                                                         {{ $session->clock_in?->format('H:i') ?? '-' }} -
                                                         <span class="text-gray-600">Out:</span>
                                                         {{ $session->clock_out?->format('H:i') ?? '-' }}
+                                                        @if ($session->auto_flag)
+                                                            <span class="text-xs italic text-orange-500">Auto</span>
+                                                        @endif
                                                     </div>
                                                     <span
                                                         class="text-blue-600 font-bold text-xs bg-blue-50 px-2 py-0.5 rounded">
@@ -248,20 +251,20 @@
                                     }
                                 @endphp
                                 <!-- Total -->
-                                <td class="p-3 text-blue-700 text-center">
-                                    @if ($r->status === 'approved' && $r->approved_hours !== null)
-                                        {{-- PARTIAL APPROVAL --}}
-                                        @if ($r->approved_hm !== $r->actual_hm)
-                                            <span class="font-bold text-purple-700 font-bold">{{ $r->approved_hm }}</span>
-                                            <p class="text-xs text-purple-500">(Approved Hour)</p>
+                                <td class="p-3 text-center">
 
-                                            {{-- FULL APPROVAL --}}
-                                        @else
-                                            <span class="text-green-700 font-bold">{{ $r->approved_hm }}</span>
+                                    {{-- Always show actual --}}
+                                    <div class="font-bold text-blue-700 text-sm">
+                                        {{ $r->actual_hm }}
+                                    </div>
+
+                                    @if ($r->status === 'approved')
+                                        @if ($r->approved_hm)
+                                            <div class="text-purple-700 text-xs font-semibold">
+                                                Approved: {{ $r->approved_hm }}
+                                                {{-- <span class="text-purple-500 font-bold">(Partial)</span> --}}
+                                            </div>
                                         @endif
-                                    @else
-                                        {{-- PENDING → show actual worked --}}
-                                        <span class="font-bold">{{ $r->actual_hm }}</span>
                                     @endif
                                 </td>
 
@@ -447,7 +450,7 @@
 
                                         <div class="flex justify-between font-bold text-sm">
                                             <span>Actual Hours:</span>
-                                            <span class="text-blue-700">{{ $r->total_hm }}</span>
+                                            <span class="text-blue-700">{{ $r->actual_hm }}</span>
                                         </div>
 
                                         <div class="text-center">
@@ -484,6 +487,11 @@
                     </tbody>
                 </table>
             </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="p-4">
+            <x-pagination :paginator="$requests" />
         </div>
 
         {{-- JS for remark edit toggle --}}

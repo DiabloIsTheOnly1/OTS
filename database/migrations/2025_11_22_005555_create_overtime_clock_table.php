@@ -15,6 +15,7 @@ return new class extends Migration
 
             $table->dateTime('clock_in')->nullable();
             $table->dateTime('clock_out')->nullable();
+            $table->boolean('auto_flag')->default(false);
             // Store total time taken as integer seconds to make arithmetic safe
             $table->integer('total_time_taken')->nullable();
 

@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\OvertimeRequest;
 use App\Models\User;
 use App\Models\Department;
+use App\Models\OvertimeClock;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\OvertimeExport;
@@ -20,6 +21,7 @@ class HRController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
+        $perPage = request('per_page', 15);
 
         // -------------------------------
         // Branch access
@@ -33,6 +35,12 @@ class HRController extends Controller
             $accessibleDepartments = Department::pluck('id')->toArray();
         } else {
             $accessibleDepartments = [$user->department_id];
+        }
+
+        $activeClocks = OvertimeClock::whereNull('clock_out')->get();
+
+        foreach ($activeClocks as $clock) {
+            $clock->autoCloseIfExceeded($clock->overtimeRequest->total_hours);
         }
 
         // -------------------------------
@@ -87,7 +95,8 @@ class HRController extends Controller
         // -------------------------------
         $requests = $query->orderBy('status', 'asc')
             ->orderBy('date', 'desc')
-            ->get();
+            ->paginate($perPage)
+            ->withQueryString();
 
         // -------------------------------
         // Compute Actual & Requested Hours (NO DECIMALS)
@@ -134,7 +143,6 @@ class HRController extends Controller
         return view('hr.dashboard', compact('requests', 'branches', 'departments'));
     }
 
-
     public function approveFull($id)
     {
         $r = OvertimeRequest::findOrFail($id);
@@ -160,6 +168,7 @@ class HRController extends Controller
 
         // Calculate actual minutes
         $actualMinutes = intval($r->clocks->sum('total_time_taken') / 60);
+        $employee = $r->staff->staff_name;
 
         $r->update([
             // 'approved_hours' => $actualMinutes / 60,
@@ -168,7 +177,7 @@ class HRController extends Controller
             'status' => 'approved'
         ]);
 
-        return back()->with('success', 'Full overtime approved.');
+        return back()->with('success', 'Approved overtime for ' . $employee . '.');
     }
 
     public function approvePartial(Request $request, $id)
@@ -204,6 +213,8 @@ class HRController extends Controller
             return back()->with('error', 'Approved minutes cannot exceed actual worked minutes.');
         }
 
+        $employee = $r->staff->staff_name;
+
         $r->update([
             'approved_hours' => $approved / 60,
             'approved_by' => auth()->id(),
@@ -211,7 +222,7 @@ class HRController extends Controller
             'status' => 'approved'
         ]);
 
-        return back()->with('success', 'Partial overtime approved.');
+        return back()->with('success', 'Approved overtime hour for ' . $employee . '.');
     }
 
 
@@ -241,13 +252,15 @@ class HRController extends Controller
             }
         }
 
+        $employee = $overtimeRequest->staff->staff_name;
+
         $overtimeRequest->update([
             'status' => 'rejected',
             'approved_by' => $user->id,
             'approved_at' => now(),
         ]);
 
-        return back()->with('success', 'Overtime request rejected.');
+        return back()->with('success', 'Rejected overtime request for ' . $employee . '.');
     }
 
     public function updateRemarks(Request $request, $id)

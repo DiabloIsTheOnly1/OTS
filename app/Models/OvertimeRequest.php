@@ -65,9 +65,20 @@ class OvertimeRequest extends Model
         return $this->hasMany(OvertimeClock::class);
     }
 
-        public function clockSessions()
-{
-    return $this->hasMany(OvertimeClock::class, 'overtime_request_id');
-}
+    public function getRequestedHmAttribute()
+    {
+        $requested = $this->total_hours ?? 0;
+
+        $requestedMinutes = floor($requested * 60);
+        $hours = floor($requestedMinutes / 60);
+        $minutes = $requestedMinutes % 60;
+
+        return sprintf('%02d:%02d', $hours, $minutes);
+    }
+
+    public function clockSessions()
+    {
+        return $this->hasMany(OvertimeClock::class, 'overtime_request_id');
+    }
 }
 

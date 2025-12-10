@@ -157,44 +157,44 @@ class OvertimeRequestController extends Controller
 
     // Store OT request
     public function store(Request $request)
-{
-    $validated = $request->validate([
-        'staff_id' => 'required|exists:staff,id',
-        'branch_id' => 'required|exists:branch,id',
-        'department_id' => 'required|exists:departments,id',
-        'date' => 'required|date',
-        'reg_no' => 'nullable|string|max:100',
-        'requested_hours_h' => 'required|integer|min:0|max:12',
-        'requested_hours_m' => 'required|integer|min:0|max:59',
-        'type_of_work' => 'nullable|string',
-    ]);
+    {
+        $validated = $request->validate([
+            'staff_id' => 'required|exists:staff,id',
+            'branch_id' => 'required|exists:branch,id',
+            'department_id' => 'required|exists:departments,id',
+            'date' => 'required|date',
+            'reg_no' => 'nullable|string|max:100',
+            'requested_hours_h' => 'required|integer|min:0|max:12',
+            'requested_hours_m' => 'required|integer|min:0|max:59',
+            'type_of_work' => 'nullable|string',
+        ]);
 
-   
-    // Combine hours & minutes safely
+
+        // Combine hours & minutes safely
         $hours = $validated['requested_hours_h'] ?? 0;
         $minutes = $validated['requested_hours_m'] ?? 0;
         $totalHours = $hours + ($minutes / 60);
 
 
-    $overtime = OvertimeRequest::create([
-        'staff_id'      => $validated['staff_id'],
-        'branch_id'     => $validated['branch_id'],
-        'department_id' => $validated['department_id'],
-        'date'          => $validated['date'],
-        'reg_no'        => $validated['reg_no'] ?? null,
-        'type_of_work'  => $validated['type_of_work'] ?? null,
-        'total_hours'   => $totalHours,
-    ]);
+        $overtime = OvertimeRequest::create([
+            'staff_id' => $validated['staff_id'],
+            'branch_id' => $validated['branch_id'],
+            'department_id' => $validated['department_id'],
+            'date' => $validated['date'],
+            'reg_no' => $validated['reg_no'] ?? null,
+            'type_of_work' => $validated['type_of_work'] ?? null,
+            'total_hours' => $totalHours,
+        ]);
 
-    // Save session for branch/dept
-    session([
-        'ot_branch_id' => $validated['branch_id'],
-        'ot_department_id' => $validated['department_id'],
-    ]);
+        // Save session for branch/dept
+        session([
+            'ot_branch_id' => $validated['branch_id'],
+            'ot_department_id' => $validated['department_id'],
+        ]);
 
-    return redirect()->route('overtime.success', $overtime->id)
-        ->with('submitted', true);
-}
+        return redirect()->route('overtime.success', $overtime->id)
+            ->with('submitted', true);
+    }
     public function edit($id)
     {
         $overtime = OvertimeRequest::findOrFail($id);
@@ -225,43 +225,48 @@ class OvertimeRequestController extends Controller
         ));
     }
 
-public function update(Request $request, OvertimeRequest $overtime)
-{
-    if ($overtime->clocks()->exists()) {
-        return back()->with('error', 'Cannot edit: Staff has already clocked in!');
-    }
+    public function update(Request $request, OvertimeRequest $overtime)
+    {
+        if ($overtime->clocks()->exists()) {
+            return back()->with('error', 'Cannot edit: Staff has already clocked in!');
+        }
 
-    $validated = $request->validate([
-        'staff_id' => 'required|exists:staff,id',
-        'date' => 'required|date',
-        'requested_hours_h' => 'required|integer|min:0|max:24',
-        'requested_hours_m' => 'required|integer|min:0|max:59',
-        'reg_no' => 'nullable|string|max:50',
-        'type_of_work' => 'nullable|string',
-        'remarks' => 'nullable|string',
-    ]);
+        $validated = $request->validate([
+            'staff_id' => 'required|exists:staff,id',
+            'date' => 'required|date',
+            'requested_hours_h' => 'required|integer|min:0|max:24',
+            'requested_hours_m' => 'required|integer|min:0|max:59',
+            'reg_no' => 'nullable|string|max:50',
+            'type_of_work' => 'nullable|string',
+            'remarks' => 'nullable|string',
+        ]);
 
-    // Combine hours & minutes
+        // Combine hours & minutes
         $hours = $validated['requested_hours_h'] ?? 0;
         $minutes = $validated['requested_hours_m'] ?? 0;
         $totalHours = $hours + ($minutes / 60);
 
-    $overtime->update([
-        'staff_id'     => $validated['staff_id'],
-        'date'         => $validated['date'],
-        'total_hours'  => $totalHours,
-        'reg_no'       => $validated['reg_no'] ?? null,
-        'type_of_work' => $validated['type_of_work'] ?? null,
-        'remarks'      => $validated['remarks'] ?? null,
-    ]);
+        $overtime->update([
+            'staff_id' => $validated['staff_id'],
+            'date' => $validated['date'],
+            'total_hours' => $totalHours,
+            'reg_no' => $validated['reg_no'] ?? null,
+            'type_of_work' => $validated['type_of_work'] ?? null,
+            'remarks' => $validated['remarks'] ?? null,
+        ]);
 
-    return back()->with('success', 'Overtime request updated successfully!');
-}
-
+        return back()->with('success', 'Overtime request updated successfully!');
+    }
 
     public function details($id)
     {
         $overtime = OvertimeRequest::with('clocks')->findOrFail($id);
+
+        $activeClocks = OvertimeClock::whereNull('clock_out')->get();
+
+        foreach ($activeClocks as $clock) {
+            $clock->autoCloseIfExceeded($clock->overtimeRequest->total_hours);
+        }
 
         session([
             'ot_branch_id' => $overtime->branch_id,
@@ -276,12 +281,31 @@ public function update(Request $request, OvertimeRequest $overtime)
     {
         $overtime = OvertimeRequest::findOrFail($id);
 
-        // Functionality: Restrict to only 1 clock session per OT request
-        if ($overtime->clocks()->exists()){
-            return back()->with('error', 'You have already clocked in for this overtime request.');
+        // --- 1. Prevent extra clock-in if already reached requested hours ---
+
+        // Sum all completed clocks for this overtime request
+        $totalSeconds = OvertimeClock::where('overtime_request_id', $overtime->id)
+            ->whereNotNull('clock_out')
+            ->sum('total_time_taken');
+
+        // Requested time in seconds
+        $requestedSeconds = (int) round($overtime->total_hours * 3600);
+
+        if ($totalSeconds >= $requestedSeconds) {
+            return back()->with('error', 'You have already completed the requested overtime hours. No more clock-ins allowed.');
         }
-        
-        // Create new clock entry
+
+        // --- 2. Prevent clock-in if there is an active session ---
+        $lastClock = OvertimeClock::where('overtime_request_id', $overtime->id)
+            ->whereNull('clock_out')
+            ->latest()
+            ->first();
+
+        if ($lastClock) {
+            return back()->with('error', 'Please clock out before clocking in again.');
+        }
+
+        // --- 3. Create new clock entry ---
         $clock = OvertimeClock::create([
             'overtime_request_id' => $overtime->id,
             'clock_in' => now(),
@@ -295,36 +319,34 @@ public function update(Request $request, OvertimeRequest $overtime)
         ]);
     }
 
- 
-
-
     public function clockOut($id)
     {
         $overtime = OvertimeRequest::findOrFail($id);
 
-        // Get the latest incomplete clock entry
-        $clock = OvertimeClock::where('overtime_request_id', $overtime->id)
+        $clock = OvertimeClock::where('overtime_request_id', $id)
             ->whereNull('clock_out')
             ->latest()
             ->first();
 
+        // First try to auto-close if exceeded
+        if ($clock && $clock->autoCloseIfExceeded($overtime->total_hours)) {
+            return back()->with('info', 'System has already auto clocked out this session.');
+        }
+
+        // After auto-close, no active entry remains
         if (!$clock) {
             return back()->with('error', 'No active clock-in found.');
         }
 
+        // Prevent manual clock-out if already auto clocked out
+        if ($clock->auto_flag) {
+            return back()->with('error', 'You were already auto clocked out by the system.');
+        }
+
+        // Perform normal manual clock-out
         $clock->clock_out = now();
-
-        // Calculate total seconds for this session
-        $start = $clock->clock_in instanceof \Carbon\Carbon
-            ? $clock->clock_in
-            : \Carbon\Carbon::parse($clock->clock_in);
-
-        $end = $clock->clock_out instanceof \Carbon\Carbon
-            ? $clock->clock_out
-            : \Carbon\Carbon::parse($clock->clock_out);
-
-        $clock->total_time_taken = $start->diffInSeconds($end);
-
+        $clock->total_time_taken = $clock->clock_in->diffInSeconds($clock->clock_out);
+        $clock->auto_flag = false;
         $clock->save();
 
         return view('overtime.clock_success', [
@@ -361,33 +383,33 @@ public function update(Request $request, OvertimeRequest $overtime)
     //For PDF Export and Excel Export
 
     public function exportExcel(Request $request)
-{
-    $query = $this->buildOvertimeQuery($request);
+    {
+        $query = $this->buildOvertimeQuery($request);
 
     return Excel::download(new OvertimeExport($query), 'Overtime_requests_' . now()->format('Y-m-d') . '.xlsx');
 }
 
 
-public function exportPdf(Request $request)
-{
-    $query = $this->buildOvertimeQuery($request);
-    $overtimes = $query->get();
+    public function exportPdf(Request $request)
+    {
+        $query = $this->buildOvertimeQuery($request);
+        $overtimes = $query->get();
 
-    // Same formatting loop
-    foreach ($overtimes as $req) {
-        $totalSec = $req->clocks->sum('total_time_taken');
-        $req->total_hm = $totalSec > 0 
-            ? sprintf('%02d:%02d', floor($totalSec / 3600), floor(($totalSec % 3600) / 60))
-            : '-';
+        // Same formatting loop
+        foreach ($overtimes as $req) {
+            $totalSec = $req->clocks->sum('total_time_taken');
+            $req->total_hm = $totalSec > 0
+                ? sprintf('%02d:%02d', floor($totalSec / 3600), floor(($totalSec % 3600) / 60))
+                : '-';
 
-        $hours = floor($req->total_hours ?? 0);
-        $minutes = round((($req->total_hours ?? 0) - $hours) * 60);
+            $hours = floor($req->total_hours ?? 0);
+            $minutes = round((($req->total_hours ?? 0) - $hours) * 60);
 
-        $req->requested_hm = sprintf('%02d:%02d', $hours, $minutes); 
-    }
+            $req->requested_hm = sprintf('%02d:%02d', $hours, $minutes);
+        }
 
-    $pdf = Pdf::loadView('hr.pdf', compact('overtimes'))
-        ->setPaper('a4', 'landscape');
+        $pdf = Pdf::loadView('hr.pdf', compact('overtimes'))
+            ->setPaper('a4', 'landscape');
 
     return $pdf->download('Overtime_requests_' . now()->format('Y-m-d') . '.pdf');
 }
@@ -446,10 +468,10 @@ private function buildOvertimeQuery(Request $request)
     return $query->orderBy('date', 'desc'); 
 }
 
-public function preview(Request $request)
-{
-    $query = $this->buildOvertimeQuery($request);
-    $overtimes = $query->get();
+    public function preview(Request $request)
+    {
+        $query = $this->buildOvertimeQuery($request);
+        $overtimes = $query->get();
 
     
     foreach ($overtimes as $req) {
@@ -464,16 +486,16 @@ public function preview(Request $request)
         $hours = floor($req->total_hours ?? 0);
         $minutes = round((($req->total_hours ?? 0) - $hours) * 60);
 
-        $req->requested_hm = sprintf('%02d:%02d', $hours, $minutes); 
+            $req->requested_hm = sprintf('%02d:%02d', $hours, $minutes);
+        }
+
+        return view('hr.preview', compact('overtimes'));
     }
 
-    return view('hr.preview', compact('overtimes'));
-}
 
-
-public function clockDetails($id)
-{
-    $overtime = OvertimeRequest::with('staff', 'branch', 'department', 'clocks')->findOrFail($id);
+    public function clockDetails($id)
+    {
+        $overtime = OvertimeRequest::with('staff', 'branch', 'department', 'clocks')->findOrFail($id);
 
    
     $totalHours = $overtime->total_hours ?? 0;
@@ -481,8 +503,8 @@ public function clockDetails($id)
     $clockedHours = $totalSec / 3600; 
     $remainingHours = max(0, $totalHours - $clockedHours);
 
-    return view('overtime.clock-details', compact('overtime', 'remainingHours'));
-}
+        return view('overtime.clock-details', compact('overtime', 'remainingHours'));
+    }
 
 
 }
