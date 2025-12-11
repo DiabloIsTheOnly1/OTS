@@ -546,10 +546,10 @@
                         class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium flex items-center gap-2 transition">
                         PDF
                     </button>
-                    <button onclick="monthlyReport()"
+                    {{-- <button onclick="monthlyReport()"
                         class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium flex items-center gap-2 transition">
                         Monthly Report
-                    </button>
+                    </button> --}}
                 </div>
             </div>
         </div>

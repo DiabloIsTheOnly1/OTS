@@ -432,8 +432,24 @@ class OvertimeRequestController extends Controller
 
 private function buildOvertimeQuery(Request $request)
 {
-    $query = OvertimeRequest::with(['staff', 'branch', 'department', 'clocks']);
+    $user = Auth::user();
 
+    // 1. User allowed branches
+    $userBranchIds = $user->branches()->pluck('branch.id')->toArray();
+
+    // 2. User allowed departments
+    if ($user->access_all_departments) {
+        $departmentIds = Department::pluck('id')->toArray();
+    } else {
+        $departmentIds = [$user->department_id];
+    }
+
+    // 3. Base query with access filtering
+    $query = OvertimeRequest::with(['staff', 'branch', 'department', 'clocks'])
+        ->whereIn('branch_id', $userBranchIds)
+        ->whereIn('department_id', $departmentIds);
+
+    // 4. Apply filters
     if ($request->branch_id) {
         $query->where('branch_id', $request->branch_id);
     }
@@ -465,7 +481,7 @@ private function buildOvertimeQuery(Request $request)
         $query->where('status', $request->status);
     }
 
-    return $query->orderBy('date', 'desc'); 
+    return $query;
 }
 
     public function preview(Request $request)
