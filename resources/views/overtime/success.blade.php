@@ -100,6 +100,21 @@
                         <div class="text-sm text-gray-500">Date</div>
                         <div class="font-medium text-gray-800">{{ $overtime->date->format('d M Y') }}</div>
                     </div>
+                    <div class="text-center">
+                        <div class="text-sm text-gray-500">Requested Hours</div>
+                        <div class="font-medium text-gray-800">
+                            @if($overtime->total_hours > 0)
+                    @php
+                        $h = floor($overtime->total_hours);
+                        $m = round(($overtime->total_hours - $h) * 60);
+                    @endphp
+                    {{ $h }}h
+                    @if($m > 0)
+                        {{ $m }}m
+                    @endif
+                @else
+                    0h
+                @endif
                 </div>
 
                 <!-- Divider -->
