@@ -124,11 +124,11 @@
                 </div>
 
                 <!-- Buttons -->
-                <div class="md:col-span-4 flex justify-end gap-3 mt-3">
+                <div class="md:col-span-4 flex justify-end gap-3 mt-2">
 
                     <!-- Reset Button -->
                     <a href="{{ route('settings.staff') }}"
-                        class="px-2 py-1 border border-gray-300 text-gray-700 rounded-lg bg-gray-100 hover:bg-gray-200">
+                        class="px-2 py-1 text-gray-700 rounded-lg bg-gray-100 hover:bg-gray-300">
                         Reset
                     </a>
 
@@ -193,6 +193,10 @@
 
         </div>
 
+        <!-- Pagination -->
+        <div class="p-4">
+            <x-pagination :paginator="$staff" />
+        </div>
     </div>
 
     {{-- JS --}}

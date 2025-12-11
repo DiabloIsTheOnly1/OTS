@@ -13,21 +13,41 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::with(['department', 'branches'])->orderBy('id')->get();
+        $perPage = request('per_page', 15);
+
+        $query = User::with(['department', 'branches'])->orderBy('id');
+
+        // 🔍 Apply filters
+        if (request('search')) {
+            $query->where(function ($q) {
+                $q->where('name', 'like', '%' . request('search') . '%')
+                    ->orWhere('username', 'like', '%' . request('search') . '%');
+            });
+        }
+
+        if (request('department_id')) {
+            $query->where('department_id', request('department_id'));
+        }
+
+        if (request('branch_id')) {
+            $query->whereHas('branches', function ($q) {
+                $q->where('branches.id', request('branch_id'));
+            });
+        }
+
+        if (request('access_level_id')) {
+            $query->where('access_level_id', request('access_level_id'));
+        }
+
+        $users = $query->paginate($perPage)->withQueryString();
         $departments = Department::orderBy('department_name')->get();
         $branches = Branch::orderBy('name')->get();
         $accessLevels = AccessLevel::orderBy('name')->get();
 
-        return
-            view(
-                'settings.user',
-                compact(
-                    'users',
-                    'departments',
-                    'branches',
-                    'accessLevels'
-                )
-            );
+        return view(
+            'settings.user',
+            compact('users', 'departments', 'branches', 'accessLevels')
+        );
     }
 
     public function store(Request $request)

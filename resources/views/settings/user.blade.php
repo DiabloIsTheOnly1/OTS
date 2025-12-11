@@ -1,7 +1,7 @@
 @extends('settings.index')
 
 @section('settings-content')
-    <div class="container mx-auto px-4 py-4 max-w-4xl">
+    <div class="container mx-auto px-4 py-4 max-w-5xl">
 
         <!-- Header -->
         <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4 p-4 bg-white rounded-xl shadow-sm">
@@ -17,6 +17,68 @@
                 <i class="fas fa-plus-circle mr-2"></i> Add User
             </button>
         </div>
+
+        <!-- Filters -->
+        <form method="GET" class="mb-4 bg-white p-4 rounded-xl shadow-sm">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+                <!-- Search -->
+                <div>
+                    <input type="text" name="search" placeholder="Search name or username..."
+                        value="{{ request('search') }}"
+                        class="w-full px-2 py-1 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <!-- Department -->
+                <div>
+                    <select name="department_id"
+                        class="w-full px-2 py-1 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="">All Departments</option>
+                        @foreach ($departments as $dept)
+                            <option value="{{ $dept->id }}"
+                                {{ request('department_id') == $dept->id ? 'selected' : '' }}>
+                                {{ $dept->department_name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Branch -->
+                <div>
+                    <select name="branch_id" class="w-full px-2 py-1 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="">All Branches</option>
+                        @foreach ($branches as $branch)
+                            <option value="{{ $branch->id }}" {{ request('branch_id') == $branch->id ? 'selected' : '' }}>
+                                {{ $branch->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Access Level -->
+                <div>
+                    <select name="access_level_id"
+                        class="w-full px-2 py-1 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="">All Access Levels</option>
+                        @foreach ($accessLevels as $level)
+                            <option value="{{ $level->id }}"
+                                {{ request('access_level_id') == $level->id ? 'selected' : '' }}>
+                                {{ $level->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex justify-end mt-4 space-x-3">
+                <a href="{{ route('settings.user') }}" class="px-2 py-1 bg-gray-100 hover:bg-gray-300 rounded-lg">
+                    Reset
+                </a>
+                <button type="submit" class="px-2 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                    Apply Filters
+                </button>
+            </div>
+        </form>
 
         <!-- Add / Edit Form -->
         <div id="formSection" class="bg-white rounded-xl shadow-sm p-6 mb-8 hidden">
@@ -189,6 +251,10 @@
 
         </div>
 
+        <!-- Pagination -->
+        <div class="p-4">
+            <x-pagination :paginator="$users" />
+        </div>
     </div>
 
     {{-- JS --}}

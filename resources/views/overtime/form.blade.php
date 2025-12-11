@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="pt-5 md:pt-8 min-h-screen bg-gray-50">
+<div class="pt-5 md:pt-8 min-h-screen">
 
     {{-- Success & Error Messages --}}
     @if (session('success'))
@@ -23,13 +23,13 @@
     @endif
 
     <!-- Header -->
-    <div class="max-w-4xl mx-auto mb-10">
+    <div class="max-w-4xl mx-auto mb-5">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <h1 class="text-3xl md:text-4xl font-bold text-blue-700 text-center md:text-left leading-tight">
                 {{ $overtime->id ? 'Edit Overtime Request' : 'Overtime Request Form' }}
             </h1>
             <a href="{{ url()->previous() }}"
-               class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl font-medium text-sm shadow-sm hover:shadow transition">
+               class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-200 hover:bg-gray-400 text-gray-800 rounded-xl font-medium text-sm shadow-md hover:shadow transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                 </svg>
@@ -164,7 +164,7 @@
                 <label class="block text-sm font-semibold text-gray-700 mb-2">
                     Type of Work <span class="text-red-500">*</span>
                 </label>
-                <textarea name="type_of_work" rows="7" required
+                <textarea name="type_of_work" rows="4" required
                           class="w-full border border-gray-300 rounded-lg p-5 text-base leading-relaxed resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                           placeholder="Please describe the work to be done in detail...">{{ old('type_of_work', $overtime->type_of_work ?? '') }}</textarea>
                 @error('type_of_work')
@@ -173,10 +173,10 @@
             </div>
 
             <!-- Submit Button -->
-            <div class="text-center mt-6">
+            <div class="text-center mt-4">
                 <button type="submit"
-                        class="inline-flex items-center gap-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-m px-10 py-6 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
-                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="inline-flex items-center gap-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-m px-4 py-3 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                     </svg>
                     Submit & Generate QR Code

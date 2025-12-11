@@ -16,6 +16,7 @@ class StaffController extends Controller
     {
         /** @var User $user */
         $user = auth()->user();
+        $perPage = request('per_page', 15);
 
         // Branch access
         $userBranchIds = $user->branches->pluck('id')->toArray();
@@ -47,7 +48,8 @@ class StaffController extends Controller
                 });
             })
             ->orderBy('staff_name')
-            ->get();
+            ->paginate($perPage)
+            ->withQueryString();
 
         // Dropdown options
         $branches = Branch::whereIn('id', $userBranchIds)
