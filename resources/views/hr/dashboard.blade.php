@@ -360,7 +360,7 @@
                                 </td>
 
                                 <!-- Remarks -->
-                                <td class="p-3">
+                                <td class="p-3 overflow-x-auto whitespace-nowrap max-w-32">
                                     <div class="group">
                                         <div class="flex items-center gap-2 remark-display">
                                             <span>{{ $r->remarks ?: '-' }}</span>
