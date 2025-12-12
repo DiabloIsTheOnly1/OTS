@@ -453,31 +453,108 @@
                                             <span class="text-blue-700">{{ $r->actual_hm }}</span>
                                         </div>
 
-                                        <div class="text-center">
-                                            <a href="{{ route('hr.overtime.view', $r->id) }}"
-                                                class="inline-flex items-center justify-center bg-blue-600 text-white px-3 py-2 rounded-lg text-xs hover:bg-blue-700 w-full">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-2"
-                                                    viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                    stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                                                    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z">
-                                                    </path>
-                                                    <circle cx="12" cy="12" r="3">
-                                                    </circle>
-                                                </svg>
-                                                View Form
-                                            </a>
+                                        <div class="grid grid-cols-2 gap-3 mt-3">
+                                        <a href="{{ route('overtime.success', $r->id) }}"
+                                            class="inline-flex items-center justify-center bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs hover:bg-indigo-700">
+                                            <i class="fas fa-qrcode mr-1"></i> QR
+                                        </a>
+                                        <a href="{{ route('hr.overtime.view', $r->id) }}"
+                                            class="inline-flex items-center justify-center bg-blue-600 text-white px-4 py-2 rounded-lg text-xs hover:bg-blue-700">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"></path>
+                                                <circle cx="12" cy="12" r="3"></circle>
+                                            </svg>
+                                            View Form
+                                        </a>
                                         </div>
 
-                                        <div>
-                                            <p class="text-[10px] uppercase font-bold text-gray-500">
-                                                Remarks</p>
-                                            <p class="font-bold text-gray-800 text-xs">
-                                                {{ $r->remarks ?? '-' }}</p>
-                                        </div>
+                                        {{-- Approval buttons --}}
 
+                                    <div class="flex flex-col gap-2 mt-3">
+
+                                    {{-- APPROVE FULL --}}
+                                    <form action="{{ route('hr.overtime.approveFull', $r->id) }}" method="POST"
+                                        onsubmit="return confirm('Approve full actual overtime?');">
+                                        @csrf
+                                        <button
+                                            class="px-3 py-1 text-xs rounded w-full sm:w-auto
+                                                @if ($canApprove) bg-green-600 hover:bg-green-700 text-white
+                                                @else bg-gray-300 text-gray-500 cursor-not-allowed @endif">
+                                            Approve
+                                        </button>
+                                    </form>
+
+                                    {{-- PARTIAL --}}
+                                    
+                                        <div class="w-full">
+                                        <div class="w-full">
+                                            <x-partial-approve 
+                                                :id="$r->id" 
+                                                :actualHm="$r->actual_hm" 
+                                                :actualMinutes="$r->actual_minutes"
+                                                :requestedHm="$r->requested_hm" 
+                                                :requestedMinutes="$r->requested_minutes"
+                                                :canApprove="$canApprove" 
+                                                :canHod="$canHod"
+                                                :canHq="$canHq" />
+                                        </div>
+                                    </div
+                                    
+
+                                    {{-- REJECT --}}
+                                    <form action="{{ route('hr.overtime.reject', $r->id) }}" method="POST"
+                                        onsubmit="return confirm('Reject this request?');">
+                                        @csrf
+                                        <button
+                                            class="px-3 py-1 text-xs rounded w-full sm:w-auto
+                                                @if ($canApprove) bg-red-600 hover:bg-red-700 text-white
+                                                @else bg-gray-300 text-gray-500 cursor-not-allowed @endif">
+                                            Reject
+                                        </button>
+                                    </form>
+
+                                </div>
+
+                             <div>
+                                <p class="text-[10px] uppercase font-bold text-gray-500 mb-1">Remarks</p>
+                                
+                                <div class="group relative">
+                                    <!-- Display -->
+                                    <div class="flex items-center gap-2 remark-display">
+                                        <span class="text-gray-800 text-xs font-medium flex-1">
+                                            {{ $r->remarks ?? '-' }}
+                                        </span>
+                                        <button type="button"
+                                            class="text-blue-600 text-xs font-bold remark-edit-btn opacity-0 group-hover:opacity-100 transition">
+                                            Edit
+                                        </button>
                                     </div>
-                                </td>
-                            </tr>
+
+                                    <!-- Edit Form (hidden by default) -->
+                                    <form action="{{ route('hr.overtime.remarks', $r->id) }}" method="POST"
+                                        class="hidden remark-edit-form mt-2 space-y-2">
+                                        @csrf
+                                        <div class="flex gap-1">
+                                            <input name="remarks" value="{{ $r->remarks }}"
+                                                class="border rounded px-2 py-1 text-xs flex-1 w-full"
+                                                placeholder="Enter remarks...">
+                                            <button type="submit"
+                                                    class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700">
+                                                Save
+                                            </button>
+                                            <button type="button"
+                                                    class="remark-cancel-btn text-gray-500 px-2 py-1 text-xs">
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                    </form>
+                                </div>
+                            </div>
+                             </div>
+                        </td>
+                    </tr>
 
                         @empty
                             <tr>

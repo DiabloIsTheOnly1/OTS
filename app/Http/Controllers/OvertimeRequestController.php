@@ -281,8 +281,6 @@ class OvertimeRequestController extends Controller
     {
         $overtime = OvertimeRequest::findOrFail($id);
 
-        // --- 1. Prevent extra clock-in if already reached requested hours ---
-
         // Sum all completed clocks for this overtime request
         $totalSeconds = OvertimeClock::where('overtime_request_id', $overtime->id)
             ->whereNotNull('clock_out')

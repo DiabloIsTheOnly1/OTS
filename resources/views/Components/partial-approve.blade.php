@@ -9,7 +9,13 @@
 
     {{-- Trigger button --}}
     <button @click="openPartial = true"
-        class="px-3 py-1 text-xs rounded
+        type="button"
+        class="w-full md:w-auto
+            px-4 
+           md:py-1 py-1      
+           text-xs font-medium rounded-lg transition-colors text-center
+           w-full            
+           md:w-auto        
         {{-- {{ $canApprove ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-gray-300 text-gray-500 cursor-not-allowed' }}" --}}
         @if ($canApprove) bg-blue-600 hover:bg-blue-700 text-white
         @elseif (!$canHod && !$canHq) bg-gray-300 text-gray-500 cursor-not-allowed
