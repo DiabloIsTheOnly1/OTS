@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="flex flex-col lg:flex-row lg:space-x-6 space-y-5 lg:space-y-0 px-4 lg:px-0">
+    <div class="flex flex-col lg:flex-row lg:space-x-6 space-y-5 lg:space-y-0 px-4 lg:px-0 mx-0 lg:mx-[60px]">
 
         <!-- Sidebar -->
         <aside class="lg:w-64 w-full bg-white rounded-xl shadow p-5">

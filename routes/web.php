@@ -15,7 +15,7 @@ Route::get('/', [AuthController::class, 'loginPage'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// Admin-only actions
+// Settings
 Route::prefix('settings')->middleware('auth')->group(function () {
 
     Route::get('/', function () {
@@ -73,7 +73,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/hr/dashboard', [HRController::class, 'index'])
         ->name('hr.dashboard');
 
-
     Route::post('/hr/overtime/{id}/approve', [HRController::class, 'approve'])->name('hr.overtime.approve');
     Route::post('/hr/overtime/{id}/approve-full', [HRController::class, 'approveFull'])->name('hr.overtime.approveFull');
     Route::post('/hr/overtime/{id}/conditional-approve', [HRController::class, 'approvePartial'])->name('hr.overtime.approvePartial');
@@ -92,10 +91,15 @@ Route::middleware('auth')->group(function () {
         Route::put('/overtime/{overtime}', [OvertimeRequestController::class, 'update'])
             ->name('overtime.update');
     });
+
+    // Profile routes
+    Route::get('/profile', [AuthController::class, 'show'])->name('profile.show');
+    Route::post('/profile/update-password', [AuthController::class, 'updatePassword'])
+        ->name('profile.updatePassword');
 });
 
 
-// Employee OT form
+// Public Overtime Routes
 
 Route::get('/overtime/index', [OvertimeRequestController::class, 'index'])
     ->name('overtime.index');

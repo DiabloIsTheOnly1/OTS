@@ -268,10 +268,11 @@ class HRController extends Controller
         $request->validate(['remarks' => 'nullable|string']);
 
         $overtime = OvertimeRequest::findOrFail($id);
+        $staffName = $overtime->staff->staff_name;
         $overtime->remarks = $request->remarks;
         $overtime->save();
 
-        return back()->with('success', 'Remarks updated.');
+        return back()->with('success', 'Remarks for '. $staffName .' updated to '. $overtime->remarks .'.');
     }
 
     public function viewForm($id)

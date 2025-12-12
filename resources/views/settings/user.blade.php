@@ -18,68 +18,6 @@
             </button>
         </div>
 
-        <!-- Filters -->
-        <form method="GET" class="mb-4 bg-white p-4 rounded-xl shadow-sm">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-
-                <!-- Search -->
-                <div>
-                    <input type="text" name="search" placeholder="Search name or username..."
-                        value="{{ request('search') }}"
-                        class="w-full px-2 py-1 border rounded-lg focus:ring-2 focus:ring-blue-500">
-                </div>
-
-                <!-- Department -->
-                <div>
-                    <select name="department_id"
-                        class="w-full px-2 py-1 border rounded-lg focus:ring-2 focus:ring-blue-500">
-                        <option value="">All Departments</option>
-                        @foreach ($departments as $dept)
-                            <option value="{{ $dept->id }}"
-                                {{ request('department_id') == $dept->id ? 'selected' : '' }}>
-                                {{ $dept->department_name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <!-- Branch -->
-                <div>
-                    <select name="branch_id" class="w-full px-2 py-1 border rounded-lg focus:ring-2 focus:ring-blue-500">
-                        <option value="">All Branches</option>
-                        @foreach ($branches as $branch)
-                            <option value="{{ $branch->id }}" {{ request('branch_id') == $branch->id ? 'selected' : '' }}>
-                                {{ $branch->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <!-- Access Level -->
-                <div>
-                    <select name="access_level_id"
-                        class="w-full px-2 py-1 border rounded-lg focus:ring-2 focus:ring-blue-500">
-                        <option value="">All Access Levels</option>
-                        @foreach ($accessLevels as $level)
-                            <option value="{{ $level->id }}"
-                                {{ request('access_level_id') == $level->id ? 'selected' : '' }}>
-                                {{ $level->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-            </div>
-
-            <div class="flex justify-end mt-4 space-x-3">
-                <a href="{{ route('settings.user') }}" class="px-2 py-1 bg-gray-100 hover:bg-gray-300 rounded-lg">
-                    Reset
-                </a>
-                <button type="submit" class="px-2 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
-                    Apply Filters
-                </button>
-            </div>
-        </form>
-
         <!-- Add / Edit Form -->
         <div id="formSection" class="bg-white rounded-xl shadow-sm p-6 mb-8 hidden">
             <h2 class="text-xl font-semibold text-gray-800 mb-4" id="userTitle">Add New User</h2>
@@ -174,6 +112,71 @@
             </form>
         </div>
 
+        <!-- Filters -->
+        <form method="GET" class="mb-4 bg-white p-4 rounded-xl shadow-sm">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+                <!-- Search -->
+                <div>
+                    <input type="text" name="search" placeholder="Search name or username..."
+                        value="{{ request('search') }}"
+                        class="w-full px-2 py-1 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <!-- Department -->
+                <div>
+                    <select name="department_id"
+                        class="w-full px-2 py-1 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="">All Departments</option>
+                        @foreach ($departments as $dept)
+                            <option value="{{ $dept->id }}"
+                                {{ request('department_id') == $dept->id ? 'selected' : '' }}>
+                                {{ $dept->department_name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Branch -->
+                <div>
+                    <select name="branch_id" class="w-full px-2 py-1 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="">All Branches</option>
+                        @foreach ($branches as $branch)
+                            <option value="{{ $branch->id }}"
+                                {{ request('branch_id') == $branch->id ? 'selected' : '' }}>
+                                {{ $branch->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Access Level -->
+                <div>
+                    <select name="access_level_id"
+                        class="w-full px-2 py-1 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="">All Access Levels</option>
+                        @foreach ($accessLevels as $level)
+                            <option value="{{ $level->id }}"
+                                {{ request('access_level_id') == $level->id ? 'selected' : '' }}>
+                                {{ $level->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex justify-end mt-4 space-x-3">
+                <a href="{{ route('settings.user') }}" class="px-2 py-1 bg-gray-100 hover:bg-gray-300 rounded-lg">
+                    Reset
+                </a>
+                <button type="submit" class="px-2 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                    Apply Filters
+                </button>
+            </div>
+        </form>
+
+        <x-flash-message />
+        
         <!-- User List -->
         <div class="bg-white rounded-xl shadow-sm overflow-hidden">
 

@@ -79,6 +79,8 @@
         </form>
     </div>
 
+    <x-flash-message />
+    
     <!-- Access Level Card List -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 

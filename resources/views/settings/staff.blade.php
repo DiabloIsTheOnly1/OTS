@@ -140,6 +140,8 @@
             </form>
         </div>
 
+        <x-flash-message />
+
         <!-- Staff List -->
         <div class="bg-white rounded-xl shadow-sm overflow-hidden">
 

@@ -31,7 +31,7 @@ class UserController extends Controller
 
         if (request('branch_id')) {
             $query->whereHas('branches', function ($q) {
-                $q->where('branches.id', request('branch_id'));
+                $q->where('branch.id', request('branch_id'));
             });
         }
 

@@ -13,7 +13,7 @@
         class="w-full md:w-auto
             px-4 
            md:py-1 py-1      
-           text-xs font-medium rounded-lg transition-colors text-center
+           text-xs font-medium rounded transition-colors text-center
            w-full            
            md:w-auto        
         {{-- {{ $canApprove ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-gray-300 text-gray-500 cursor-not-allowed' }}" --}}
@@ -53,8 +53,8 @@
             <label class="text-sm font-medium">Approve (HH:MM)</label>
 
             <input type="text" x-model="hm" class="border w-full px-2 py-1 rounded mt-1 text-sm"
-                placeholder="HH:MM"
-                @input="
+                placeholder="HH:MM">
+                {{-- @input="
                 let max = {{ $actualMinutes }};
                 let v = toMinutes(hm);
                 if (v > max) {
@@ -62,7 +62,7 @@
                     let m = max % 60;
                     hm = String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
                 }
-            ">
+            "> --}}
 
             <input type="hidden" name="approved_minutes" :value="toMinutes(hm)">
 

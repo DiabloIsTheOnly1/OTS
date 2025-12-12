@@ -19,7 +19,7 @@
     @include('layouts.topbar')
 
     {{-- Page Content --}}
-    <div class="container mx-auto py-4 px-4">
+    <div class="container-fluid mx-auto py-4 px-4 sm:px-8 lg:px-10">
         @yield('content')
     </div>
 
