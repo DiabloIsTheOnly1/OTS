@@ -176,82 +176,136 @@
         </form>
 
         <x-flash-message />
-        
+
         <!-- User List -->
-        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-
+        <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
             @if ($users->count())
-                <ul class="divide-y divide-gray-200">
-                    @foreach ($users as $user)
-                        <li class="px-4 py-4 hover:bg-gray-50">
-                            <div class="flex justify-between items-center">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50 border-b border-gray-200">
+                            <tr>
+                                <th
+                                    class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    User
+                                </th>
+                                <th
+                                    class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    Access Details
+                                </th>
+                                <th
+                                    class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-32">
+                                    Actions
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            @foreach ($users as $user)
+                                <tr class="hover:bg-gray-50">
+                                    <!-- User Column -->
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center">
+                                                <i class="fas fa-user text-blue-500 text-sm"></i>
+                                            </div>
+                                            <div>
+                                                <div class="font-medium text-gray-900">{{ $user->name }}</div>
+                                                <div class="text-sm text-gray-500">@ {{ $user->username }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
 
-                                <div>
-                                    <div class="text-gray-900 font-medium">
-                                        {{ $user->name }}
-                                    </div>
-                                    <div class="text-gray-600 text-sm">
-                                        Username: {{ $user->username }}
-                                    </div>
-                                    <div class="text-gray-600 text-sm">
-                                        Department:
-                                        @if ($user->access_all_departments)
-                                            <strong>All Departments</strong>
-                                        @else
-                                            <strong>{{ $user->department->department_name ?? '-' }}</strong>
-                                        @endif
-                                    </div>
-                                    <div class="text-gray-500 text-sm">
-                                        Branches:
-                                        @if ($user->branches->count())
-                                            {{ $user->branches->pluck('name')->join(', ') }}
-                                        @else
-                                            -
-                                        @endif
-                                    </div>
-                                    <div class="text-gray-600 text-sm">
-                                        Access Level: {{ $user->accessLevel->name ?? 'N/A' }}
-                                    </div>
-                                </div>
+                                    <!-- Details Column -->
+                                    <td class="px-4 py-3">
+                                        <div class="space-y-1">
+                                            <!-- Department & Access Level -->
+                                            <div class="flex items-center space-x-1">
+                                                <div class="flex items-center px-1">
+                                                <i class="fas fa-building mr-1 text-gray-600 text-xs"></i>
+                                                </div>
+                                                @if ($user->access_all_departments)
+                                                    <span
+                                                        class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700 border border-green-100">
+                                                        All Departments
+                                                    </span>
+                                                @else
+                                                    <span class="text-sm text-gray-700">
+                                                        {{ $user->department->department_name ?? '-' }}
+                                                    </span>
+                                                @endif
+                                            </div>
 
-                                <!-- Actions -->
-                                <div class="flex space-x-2">
+                                            <div class="flex items-center space-x-1">
+                                                 <div class="flex items-center px-1">
+                                                <i class="fa-solid fa-shield-halved mr-1 text-gray-600 text-xs"></i>
+                                                 </div>
+                                                <span
+                                                    class="inline-flex items-center text-xs font-medium text-gray-700">
+                                                    {{ $user->accessLevel->name ?? 'N/A' }}
+                                                </span>
+                                            </div>
 
-                                    <!-- Edit -->
-                                    <button
-                                        class="edit-user text-sm px-2 py-1 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200"
-                                        data-id="{{ $user->id }}" data-name="{{ $user->name }}"
-                                        data-username="{{ $user->username }}" data-dept="{{ $user->department_id }}"
-                                        data-access="{{ $user->access_level_id }}"
-                                        data-access-all="{{ $user->access_all_departments }}"
-                                        data-branches="{{ $user->branches->pluck('id')->join(',') }}">
-                                        <i class="fas fa-edit mr-1"></i> Edit
-                                    </button>
+                                            <!-- Branches -->
+                                            <div class="flex flex-wrap gap-1">
+                                                 <div class="flex items-center px-1">
+                                                <i class="fas fa-code-branch mr-1 text-gray-600 text-xs"></i>
+                                                </div>
+                                                @if ($user->branches->count())
+                                                    @foreach ($user->branches as $branch)
+                                                        <span
+                                                            class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700">
+                                                            {{ $branch->name }}
+                                                        </span>
+                                                    @endforeach
+                                                @else
+                                                    <span class="text-xs text-gray-400 italic">No branches</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </td>
 
-                                    <!-- Delete -->
-                                    <form action="{{ route('settings.user.delete', $user->id) }}" method="POST"
-                                        class="delete-user">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                            class="text-sm px-2 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200">
-                                            <i class="fas fa-trash-alt mr-1"></i> Delete
-                                        </button>
-                                    </form>
-                                </div>
+                                    <!-- Actions Column -->
+                                    <td class="px-4 py-3">
+                                        <div class="flex space-x-2">
+                                            <button
+                                                class="edit-user inline-flex items-center px-2 py-1 text-sm bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200"
+                                                data-id="{{ $user->id }}" data-name="{{ $user->name }}"
+                                                data-username="{{ $user->username }}"
+                                                data-dept="{{ $user->department_id }}"
+                                                data-access="{{ $user->access_level_id }}"
+                                                data-access-all="{{ $user->access_all_departments }}"
+                                                data-branches="{{ $user->branches->pluck('id')->join(',') }}">
+                                                <i class="fas fa-edit mr-1"></i> Edit
+                                            </button>
 
-                            </div>
-                        </li>
-                    @endforeach
-                </ul>
+                                            <form action="{{ route('settings.user.delete', $user->id) }}" method="POST">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit"
+                                                    class="inline-flex items-center px-2 py-1 text-sm bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition"
+                                                    onclick="return confirm('Delete this user?')">
+                                                    <i class="fas fa-trash-alt mr-1"></i> Delete
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             @else
-                <div class="p-12 text-center text-gray-500">
-                    <i class="fas fa-users text-4xl mb-4"></i>
-                    <h3 class="text-lg font-medium">No users yet</h3>
-                    <p>Create your first system user</p>
+                <div class="p-8 text-center">
+                    <div class="inline-flex items-center justify-center w-12 h-12 bg-blue-50 rounded-full mb-3">
+                        <i class="fas fa-users text-blue-500"></i>
+                    </div>
+                    <h3 class="text-sm font-medium text-gray-900 mb-1">No users found</h3>
+                    <p class="text-xs text-gray-500 mb-4">Create your first system user</p>
+                    <button id="addUserBtnEmpty"
+                        class="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition">
+                        <i class="fas fa-plus mr-1.5"></i> Add User
+                    </button>
                 </div>
             @endif
-
         </div>
 
         <!-- Pagination -->
