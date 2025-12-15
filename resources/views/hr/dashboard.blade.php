@@ -153,18 +153,19 @@
         {{-- Responsive table wrapper --}}
         <div class="bg-white shadow-xl rounded-xl overflow-hidden">
             <div class="w-full overflow-x-auto">
-                <table class="w-full min-w-[300px] text-sm">
+                {{-- <table class="w-full min-w-[300px] text-sm"> --}}
+                    <table class="w-full text-sm table-fixed">
                     <thead class="bg-blue-100 text-gray-800 border-b">
                         <tr class="hidden md:table-row">
-                            <th class="p-3 text-left font-semibold whitespace-nowrap">Date</th>
-                            <th class="p-3 text-left font-semibold">Employee</th>
-                            <th class="p-3 font-semibold">Clock in/Out</th>
-                            <th class="p-3 font-semibold text-center whitespace-nowrap">Requested Hours</th>
-                            <th class="p-3 font-semibold text-center whitespace-nowrap">Actual Hours</th>
-                            <th class="p-3 font-semibold text-center whitespace-nowrap">Status</th>
-                            <th class="p-3 font-semibold text-center whitespace-nowrap">Approval</th>
-                            <th class="p-3 text-left font-semibold">Remarks</th>
-                            <th class="p-3 font-semibold text-center whitespace-nowrap">Action</th>
+                            <th class="p-3 w-[110px] text-left font-semibold">Date</th>
+                            <th class="p-3 w-[220px] text-left font-semibold">Employee</th>
+                            <th class="p-3 w-[260px] font-semibold">Clock in/Out</th>
+                            <th class="p-3 w-[140px] font-semibold text-center">Requested Hours</th>
+                            <th class="p-3 w-[140px] font-semibold text-center">Actual Hours</th>
+                            <th class="p-3 w-[120px] font-semibold text-center">Status</th>
+                            <th class="p-3 w-[260px] font-semibold text-center">Approval</th>
+                            <th class="p-3 w-[220px] text-left font-semibold">Remarks</th>
+                            <th class="p-3 w-[120px] font-semibold text-center">Action</th>
                         </tr>
                         <tr class="table-row md:hidden">
                             <th>Request</th>
