@@ -162,7 +162,7 @@ class HRController extends Controller
 
         if ($hoursSinceCreated > 48) {
             if (!$canHq) {
-                return back()->with('error', 'Only HQ approvers can approve after 48 hours.')->send();
+                return back()->with('error', 'Only HQ can approve after 48 hours.')->send();
             }
         }
 
@@ -199,7 +199,7 @@ class HRController extends Controller
 
         if ($hoursSinceCreated > 48) {
             if (!$canHq) {
-                return back()->with('error', 'Only HQ approvers can approve after 48 hours.')->send();
+                return back()->with('error', 'Only HQ can approve after 48 hours.')->send();
             }
         }
 
@@ -248,7 +248,7 @@ class HRController extends Controller
 
         if ($hoursSinceCreated > 48) {
             if (!$canHq) {
-                return back()->with('error', 'Only HQ approvers can approve after 48 hour.');
+                return back()->with('error', 'Only HQ can reject after 48 hour.');
             }
         }
 

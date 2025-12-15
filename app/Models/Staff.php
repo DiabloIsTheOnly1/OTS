@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Staff extends Model
 {
     use HasFactory;
+    use SoftDeletes;
 
     protected $table = 'staff';
 
@@ -18,6 +20,8 @@ class Staff extends Model
         'department_id',
     ];
 
+    protected $dates = ['deleted_at'];
+
     public function branch()
     {
         return $this->belongsTo(Branch::class, 'branch_id');
@@ -27,4 +31,6 @@ class Staff extends Model
     {
         return $this->belongsTo(Department::class, 'department_id');
     }
+
+
 }

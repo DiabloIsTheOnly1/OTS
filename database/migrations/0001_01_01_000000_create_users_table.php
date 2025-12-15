@@ -89,6 +89,7 @@ return new class extends Migration {
             $table->unsignedBigInteger('department_id');
 
             $table->timestamps();
+            $table->softDeletes();
 
             // Foreign keys
             $table->foreign('branch_id')->references('id')->on('branch')->onDelete('cascade');

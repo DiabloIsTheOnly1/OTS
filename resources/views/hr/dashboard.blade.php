@@ -154,7 +154,7 @@
         <div class="bg-white shadow-xl rounded-xl overflow-hidden">
             <div class="w-full overflow-x-auto">
                 {{-- <table class="w-full min-w-[300px] text-sm"> --}}
-                    <table class="w-full text-sm table-fixed">
+                <table class="w-full text-sm table-fixed">
                     <thead class="bg-blue-100 text-gray-800 border-b">
                         <tr class="hidden md:table-row">
                             <th class="p-3 w-[110px] text-left font-semibold">Date</th>
@@ -175,6 +175,8 @@
                     <tbody>
                         @forelse($requests as $r)
                             @php
+                                $isDeleted = $r->staff?->trashed();
+
                                 $bg = match ($r->status) {
                                     'pending' => 'bg-yellow-50',
                                     'approved' => 'bg-green-50',
@@ -184,7 +186,7 @@
                             @endphp
 
                             {{-- DESKTOP ROW --}}
-                            <tr class="{{ $bg }} border-b hover:bg-blue-50 transition hidden md:table-row">
+                            <tr class="{{ $isDeleted ? 'opacity-60 bg-gray-50' : $bg }} border-b hover:bg-blue-50 transition hidden md:table-row">
 
                                 <td class="p-3 whitespace-nowrap">
                                     {{ $r->date->format('d M Y') }}
@@ -192,10 +194,24 @@
                                 </td>
 
                                 <td class="p-3">
-                                    <p class="font-semibold">{{ $r->staff->staff_name ?? '-' }}</p>
-                                    <p class="text-xs text-gray-500">{{ $r->branch?->name ?? '-' }} •
-                                        {{ $r->department?->department_name ?? '-' }}</p>
+                                    {{-- @php
+                                        $isDeleted = $r->staff?->trashed();
+                                    @endphp --}}
+
+                                    <p
+                                        class="font-semibold
+                                        {{ $isDeleted ? 'text-gray-400 line-through italic' : '' }}">
+                                        {{ $r->staff->staff_name ?? '-' }}
+                                    </p>
+
+                                    <p
+                                        class="text-xs
+                                        {{ $isDeleted ? 'text-gray-400 line-through' : 'text-gray-500' }}">
+                                        {{ $r->branch?->name ?? '-' }} •
+                                        {{ $r->department?->department_name ?? '-' }}
+                                    </p>
                                 </td>
+
 
                                 <!-- Clock In/Out -->
                                 <td class="p-3">
@@ -271,81 +287,106 @@
 
                                 <!-- Approval -->
                                 <td class="p-3 text-center">
-                                    @if ($r->status === 'pending')
-                                        @php
-                                            $canHod = auth()->user()->canAccess('hod_approval');
-                                            $canHq = auth()->user()->canAccess('hq_approval');
+                                    @if ($isDeleted)
+                                        <div class="flex justify-center gap-2">
+                                            <button
+                                                class="px-3 py-1 text-xs rounded bg-gray-200 text-gray-400 cursor-not-allowed"
+                                                disabled>
+                                                Approve
+                                            </button>
+                                            <button
+                                                class="px-3 py-1 text-xs rounded bg-gray-200 text-gray-400 cursor-not-allowed"
+                                                disabled>
+                                                Partial
+                                            </button>
+                                            <button
+                                                class="px-3 py-1 text-xs rounded bg-gray-200 text-gray-400 cursor-not-allowed"
+                                                disabled>
+                                                Reject
+                                            </button>
+                                        </div>
 
-                                            $createdAt = \Carbon\Carbon::parse($r->created_at);
-                                            $deadline = $createdAt->copy()->addHours(48);
-                                            $now = \Carbon\Carbon::now();
+                                        <p class="text-xs text-gray-400 mt-1 italic">
+                                            Actions disabled (staff deleted)
+                                        </p>
+                                    @else
+                                        @if ($r->status === 'pending')
+                                            @php
+                                                $canHod = auth()->user()->canAccess('hod_approval');
+                                                $canHq = auth()->user()->canAccess('hq_approval');
 
-                                            $remainingSeconds = max(0, $deadline->diffInSeconds($now));
-                                            $hoursSinceCreated = $createdAt->diffInHours($now);
+                                                $createdAt = \Carbon\Carbon::parse($r->created_at);
+                                                $deadline = $createdAt->copy()->addHours(48);
+                                                $now = \Carbon\Carbon::now();
 
-                                            $hodWindow = $hoursSinceCreated <= 48;
-                                            $hqWindow = $hoursSinceCreated > 48;
+                                                $remainingSeconds = max(0, $deadline->diffInSeconds($now));
+                                                $hoursSinceCreated = $createdAt->diffInHours($now);
 
-                                            $canApprove = ($hodWindow && $canHod) || ($hqWindow && $canHq);
-                                        @endphp
+                                                $hodWindow = $hoursSinceCreated <= 48;
+                                                $hqWindow = $hoursSinceCreated > 48;
 
-                                        <!-- Alpine Modal -->
-                                        <div x-data="{
-                                            seconds: {{ $remainingSeconds }},
-                                            openPartial: false,
-                                            hm: '{{ $r->actual_hm }}',
-                                            toMinutes(hm) {
-                                                let [h, m] = hm.split(':').map(Number);
-                                                return (h * 60) + m;
-                                            }
-                                        }" x-init="setInterval(() => { if (seconds > 0) seconds-- }, 1000)">
-                                            <!-- Approve + Reject Buttons -->
-                                            <div class="flex gap-2 justify-center">
+                                                $canApprove = ($hodWindow && $canHod) || ($hqWindow && $canHq);
+                                            @endphp
 
-                                                {{-- APPROVE FULL BUTTON --}}
-                                                <form action="{{ route('hr.overtime.approveFull', $r->id) }}"
-                                                    method="POST"
-                                                    onsubmit="return confirm('Approve full actual overtime?');">
-                                                    @csrf
-                                                    <button
-                                                        class="px-3 py-1 text-xs rounded
+                                            <!-- Alpine Modal -->
+                                            <div x-data="{
+                                                seconds: {{ $remainingSeconds }},
+                                                openPartial: false,
+                                                hm: '{{ $r->actual_hm }}',
+                                                toMinutes(hm) {
+                                                    let [h, m] = hm.split(':').map(Number);
+                                                    return (h * 60) + m;
+                                                }
+                                            }" x-init="setInterval(() => { if (seconds > 0) seconds-- }, 1000)">
+                                                <!-- Approve + Reject Buttons -->
+                                                <div class="flex gap-2 justify-center">
+
+                                                    {{-- APPROVE FULL BUTTON --}}
+                                                    <form action="{{ route('hr.overtime.approveFull', $r->id) }}"
+                                                        method="POST"
+                                                        onsubmit="return confirm('Approve full actual overtime?');">
+                                                        @csrf
+                                                        <button
+                                                            class="px-3 py-1 text-xs rounded
                                                             @if ($canApprove) bg-green-600 hover:bg-green-700 text-white
                                                             @elseif (!$canHod && !$canHq) bg-gray-300 text-gray-500 cursor-not-allowed
                                                             @else bg-gray-800 text-gray-400 cursor-not-allowed @endif">
-                                                        Approve
-                                                    </button>
-                                                </form>
+                                                            Approve
+                                                        </button>
+                                                    </form>
 
-                                                {{-- PARTIAL APPROVAL BUTTON --}}
-                                                <x-partial-approve :id="$r->id" :actualHm="$r->actual_hm" :actualMinutes="$r->actual_minutes"
-                                                    :requestedHm="$r->requested_hm" :requestedMinutes="$r->requested_minutes" :canApprove="$canApprove" :canHod="$canHod"
-                                                    :canHq="$canHq" />
+                                                    {{-- PARTIAL APPROVAL BUTTON --}}
+                                                    <x-partial-approve :id="$r->id" :actualHm="$r->actual_hm" :actualMinutes="$r->actual_minutes"
+                                                        :requestedHm="$r->requested_hm" :requestedMinutes="$r->requested_minutes" :canApprove="$canApprove"
+                                                        :canHod="$canHod" :canHq="$canHq" />
 
-                                                {{-- Reject --}}
-                                                <form action="{{ route('hr.overtime.reject', $r->id) }}" method="POST"
-                                                    onsubmit="return confirm('Reject this request?');">
-                                                    @csrf
-                                                    <button
-                                                        class="px-3 py-1 text-xs rounded
+                                                    {{-- Reject --}}
+                                                    <form action="{{ route('hr.overtime.reject', $r->id) }}"
+                                                        method="POST" onsubmit="return confirm('Reject this request?');">
+                                                        @csrf
+                                                        <button
+                                                            class="px-3 py-1 text-xs rounded
                                                             @if ($canApprove) bg-red-600 hover:bg-red-700 text-white
                                                             @elseif (!$canHod && !$canHq) bg-gray-300 text-gray-500 cursor-not-allowed
                                                             @else bg-gray-800 text-gray-400 cursor-not-allowed @endif">
-                                                        Reject
-                                                    </button>
-                                                </form>
+                                                            Reject
+                                                        </button>
+                                                    </form>
 
+                                                </div>
+
+                                                <!-- HQ notice -->
+                                                <p x-show="{{ $hqWindow ? 'true' : 'false' }}"
+                                                    class="text-xs text-red-600 mt-1">
+                                                    HQ approval required
+                                                </p>
                                             </div>
-
-                                            <!-- HQ notice -->
-                                            <p x-show="{{ $hqWindow ? 'true' : 'false' }}"
-                                                class="text-xs text-red-600 mt-1">
-                                                HQ approval required
+                                        @else
+                                            <p class="text-xs">{{ $r->status == 'approved' ? 'Approved' : 'Rejected' }} by
                                             </p>
-                                        </div>
-                                    @else
-                                        <p class="text-xs">{{ $r->status == 'approved' ? 'Approved' : 'Rejected' }} by</p>
-                                        <span
-                                            class="font-bold text-gray-800 text-xs">{{ $r->approver?->username ?? '-' }}</span>
+                                            <span
+                                                class="font-bold text-gray-800 text-xs">{{ $r->approver?->username ?? '-' }}</span>
+                                        @endif
                                     @endif
                                 </td>
 
@@ -359,13 +400,16 @@
                                                 {{ $r->remarks ?: '-' }}
                                             </p>
 
-                                            <button type="button"
-                                                class="hidden group-hover:inline text-blue-600 text-xs remark-edit-btn mt-1">✏️
-                                            </button>
+                                            @if (!$isDeleted)
+                                                <button type="button"
+                                                    class="hidden group-hover:inline text-blue-600 text-xs remark-edit-btn mt-1">✏️
+                                                </button>
+                                            @endif
                                         </div>
 
                                         {{-- Edit Mode --}}
-                                        <form action="{{ route('hr.overtime.remarks', $r->id) }}" method="POST"
+                                        <form @if ($isDeleted) onsubmit="return false;" @endif
+                                            action="{{ route('hr.overtime.remarks', $r->id) }}" method="POST"
                                             class="hidden remark-edit-form mt-2 flex flex-col gap-2">@csrf
 
                                             <textarea name="remarks" rows="3" class="border w-full px-2 py-1 rounded text-xs break-words">{{ $r->remarks }}</textarea>
@@ -381,16 +425,23 @@
                                 </td>
 
                                 <td class="p-3 text-center">
-                                    <a href="{{ route('overtime.success', $r->id) }}"
-                                        class="px-2 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 text-xs inline-flex items-center whitespace-nowrap">
+                                    <a href="{{ $isDeleted ? '#' : route('overtime.success', $r->id) }}"
+                                        class="px-2 py-1 rounded text-xs inline-flex items-center whitespace-nowrap
+                                        {{ $isDeleted
+                                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed pointer-events-none'
+                                            : 'bg-blue-100 text-blue-600 hover:bg-blue-200' }}">
                                         <i class="fas fa-qrcode mr-1"></i> QR
                                     </a>
-                                    <a href="{{ route('hr.overtime.view', $r->id) }}"
-                                        class="px-2 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 text-xs inline-flex items-center whitespace-nowrap"
-                                        title="View Overtime Request">
-                                        <i class="fa-solid fa-eye mr-1"></i> View
+
+                                    <a href="{{ $isDeleted ? '#' : route('hr.overtime.view', $r->id) }}"
+                                        class="px-2 py-1 rounded text-xs inline-flex items-center whitespace-nowrap
+                                        {{ $isDeleted
+                                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed pointer-events-none'
+                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">
+                                                                    <i class="fa-solid fa-eye mr-1"></i> View
                                     </a>
                                 </td>
+
                             </tr>
 
                             {{-- MOBILE CARD ROW --}}

@@ -37,7 +37,7 @@ class OvertimeRequest extends Model
     // Relationships
     public function staff()
     {
-        return $this->belongsTo(Staff::class, 'staff_id');
+        return $this->belongsTo(Staff::class, 'staff_id')->withTrashed();
     }
 
     public function branch()

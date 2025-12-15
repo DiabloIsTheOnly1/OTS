@@ -55,8 +55,19 @@ class BranchController extends Controller
      */
     public function destroy($id)
     {
-        Branch::findOrFail($id)->delete();
+        $branch = Branch::findOrFail($id);
 
-        return redirect()->back()->with('success', 'Branch deleted.');
+        if (
+            $branch->staff()->exists() ||
+            $branch->users()->exists() ||
+            $branch->overtimeRequests()->exists()
+        ) {
+            return redirect()->back()
+                ->with('error', 'Cannot delete branch because it is already linked to staff, users, or overtime requests.');
+        }
+
+        $branch->delete();
+
+        return redirect()->back()->with('success', 'Branch deleted successfully.');
     }
 }

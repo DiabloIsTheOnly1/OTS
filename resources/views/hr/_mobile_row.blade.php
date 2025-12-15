@@ -6,7 +6,7 @@
             {{-- Employee Info --}}
             <div>
                 <p class="font-bold text-gray-900">
-                    {{ $r->staff->staff_name }}</p>
+                    {{ $r->staff->staff_name ?? '-' }}</p>
                 <p class="text-xs text-gray-500">
                     {{ $r->branch?->name ?? '-' }} •
                     {{ $r->department?->department_name ?? '-' }}</p>

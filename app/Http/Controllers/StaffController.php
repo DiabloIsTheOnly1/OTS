@@ -120,9 +120,9 @@ class StaffController extends Controller
     // Delete record
     public function destroy($id)
     {
-        $staff = Staff::findOrFail($id);
-        $staff->delete();
+        Staff::findOrFail($id)->delete();
 
         return redirect()->route('settings.staff')->with('success', 'Staff deleted successfully.');
     }
+
 }
