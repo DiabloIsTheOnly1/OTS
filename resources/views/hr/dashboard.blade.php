@@ -151,7 +151,6 @@
         <x-flash-message />
 
         <div class="flex justify-between items-center mb-4">
-            <h2 class="text-lg font-semibold text-gray-800">Overtime</h2>
 
             <div class="flex gap-2">
                 <button id="btnRequests" class="px-4 py-2 text-sm rounded bg-blue-600 text-white">
