@@ -178,7 +178,7 @@
         <x-flash-message />
 
         <!-- User List -->
-        <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+        <div class="hidden md:block bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
             @if ($users->count())
                 <div class="overflow-x-auto">
                     <table class="w-full">
@@ -308,12 +308,95 @@
             @endif
         </div>
 
+        <!-- Mobile View -->
+        <div class="md:hidden space-y-3">
+            @foreach ($users as $user)
+                <div class="bg-white rounded-xl shadow-sm border p-4 relative z-10">
+
+                    <!-- User -->
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center">
+                            <i class="fas fa-user text-blue-500 text-sm"></i>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-900">{{ $user->name }}</p>
+                            <p class="text-xs text-gray-500">{{'@'. $user->username }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Details -->
+                    <div class="mt-3 text-sm space-y-2">
+
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-building text-gray-500 text-xs"></i>
+                            @if ($user->access_all_departments)
+                                <span class="text-green-600 font-medium">All Departments</span>
+                            @else
+                                <span>{{ $user->department->department_name ?? '-' }}</span>
+                            @endif
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-shield-halved text-gray-500 text-xs"></i>
+                            <span>{{ $user->accessLevel->name ?? 'N/A' }}</span>
+                        </div>
+
+                        <div class="flex flex-wrap gap-1">
+                            <i class="fas fa-code-branch text-gray-500 text-xs mr-1"></i>
+                            @if ($user->branches->count())
+                                @foreach ($user->branches as $branch)
+                                    <span class="px-2 py-0.5 rounded-full text-xs bg-blue-50 text-blue-700">
+                                        {{ $branch->name }}
+                                    </span>
+                                @endforeach
+                            @else
+                                <span class="text-xs text-gray-400 italic">No branches</span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="mt-4 flex gap-2">
+
+                    <!-- Edit Button -->
+                    <button
+                        class="edit-user flex-1 px-3 py-2 text-xs bg-yellow-100 text-yellow-700 rounded-lg flex items-center justify-center"
+                        data-id="{{ $user->id }}"
+                        data-name="{{ $user->name }}"
+                        data-username="{{ $user->username }}"
+                        data-dept="{{ $user->department_id }}"
+                        data-access="{{ $user->access_level_id }}"
+                        data-access-all="{{ $user->access_all_departments }}"
+                        data-branches="{{ $user->branches->pluck('id')->join(',') }}">
+                        <i class="fas fa-edit mr-1"></i> Edit
+                    </button>
+
+                    <!-- Delete Button -->
+                    <form action="{{ route('settings.user.delete', $user->id) }}" method="POST" class="flex-1">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit"
+                            class="w-full px-3 py-2 text-xs bg-red-50 text-red-700 rounded-lg flex items-center justify-center"
+                            onclick="return confirm('Delete this user?')">
+                            <i class="fas fa-trash-alt mr-1"></i> Delete
+                        </button>
+                    </form>
+
+                </div>
+
+
+                </div>
+            @endforeach
+        </div>
+
+
         <!-- Pagination -->
         <div class="p-4">
             <x-pagination :paginator="$users" />
         </div>
     </div>
 
+        
     {{-- JS --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {

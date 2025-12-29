@@ -47,7 +47,7 @@
         }
     </style>
 
-    <div class="mx-auto max-w-4xl flex flex-col sm:flex-row justify-between mb-6 print:hidden">
+    <div class="mx-auto  max-w-4xl flex flex-col sm:flex-row gap-4 sm:items-center justify-between mb-6 px-4 sm:pc-0 print:hidden">
         <div>
             <h1 class="text-3xl font-bold text-gray-800 text-left">
                 <i class="fas fa-qrcode text-blue-500 mr-3"></i>
@@ -57,9 +57,9 @@
                 Scan the QR code below to clock in or out for your overtime.
             </p>
         </div>
-        <div class="mt-2">
+        <div class="mt-4 sm:mt-2 w-full sm:w-auto">
             <a href="{{ url()->previous() }}"
-                class="inline-flex items-center gap-2 bg-gray-200 text-gray-800 px-5 py-2 rounded-xl hover:bg-gray-300 transition-all font-bold text-lg shadow-md hover:shadow-lg">
+                class="w-full sm:w-auto justify-center inline-flex items-center gap-2 bg-gray-200 text-gray-700 px-5 py-3 sm:py-2 rounded-xl hover:bg-gray-300 transition-all font-bold text-base sm:text-lg shadow-md hover:shadow-lg">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                 </svg>
@@ -67,6 +67,7 @@
             </a>
         </div>
     </div>
+    
     <div class="flex items-center justify-center bg-gray-50 py-4 px-4 mx-auto max-w-4xl">
         <div class="w-full max-w-md">
             @if (session('submitted'))
@@ -98,8 +99,9 @@
                     </div>
                     <div class="text-center">
                         <div class="text-sm text-gray-500">Date</div>
-                        <div class="font-medium text-gray-800">{{ $overtime->date->format('d M Y') }}</div>
+                        <div class="font-medium text-gray-800">{{ $overtime->date->format('d M Y') }}</div> 
                     </div>
+
                     <div class="text-center">
                         <div class="text-sm text-gray-500">Requested Hours</div>
                         <div class="font-medium text-gray-800">
