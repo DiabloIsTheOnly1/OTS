@@ -1,7 +1,7 @@
 @extends('settings.index')
 
 @section('settings-content')
-    <div class="container mx-auto px-4 py-4 max-w-5xl">
+    <div class="container mx-auto px-4 py-4 max-w-6xl">
 
         <!-- Header -->
         <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4 p-4 bg-white rounded-xl shadow-sm">
@@ -87,12 +87,21 @@
 
                 <!-- Branches -->
                 <div class="mt-4">
-                    <label class="block text-gray-700 text-sm font-medium mb-2">Branches Access</label>
+                    <div class="flex items-center space-x-5 mb-2">
+                        <label class="block text-gray-700 text-sm font-medium">
+                            Branches Access
+                        </label>
+
+                        <label class="flex items-center space-x-2 text-xs">
+                            <input type="checkbox" id="selectAllBranches" class="rounded">
+                            <span>Select All</span>
+                        </label>
+                    </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
                         @foreach ($branches as $branch)
                             <label class="flex items-center space-x-2">
-                                <input type="checkbox" name="branches[]" class="branch-checkbox"
+                                <input type="checkbox" name="branches[]" class="branch-checkbox rounded"
                                     value="{{ $branch->id }}">
                                 <span>{{ $branch->name }}</span>
                             </label>
@@ -220,7 +229,7 @@
                                             <!-- Department & Access Level -->
                                             <div class="flex items-center space-x-1">
                                                 <div class="flex items-center px-1">
-                                                <i class="fas fa-building mr-1 text-gray-600 text-xs"></i>
+                                                    <i class="fas fa-building mr-1 text-gray-600 text-xs"></i>
                                                 </div>
                                                 @if ($user->access_all_departments)
                                                     <span
@@ -235,19 +244,18 @@
                                             </div>
 
                                             <div class="flex items-center space-x-1">
-                                                 <div class="flex items-center px-1">
-                                                <i class="fa-solid fa-shield-halved mr-1 text-gray-600 text-xs"></i>
-                                                 </div>
-                                                <span
-                                                    class="inline-flex items-center text-xs font-medium text-gray-700">
+                                                <div class="flex items-center px-1">
+                                                    <i class="fa-solid fa-shield-halved mr-1 text-gray-600 text-xs"></i>
+                                                </div>
+                                                <span class="inline-flex items-center text-xs font-medium text-gray-700">
                                                     {{ $user->accessLevel->name ?? 'N/A' }}
                                                 </span>
                                             </div>
 
                                             <!-- Branches -->
                                             <div class="flex flex-wrap gap-1">
-                                                 <div class="flex items-center px-1">
-                                                <i class="fas fa-code-branch mr-1 text-gray-600 text-xs"></i>
+                                                <div class="flex items-center px-1">
+                                                    <i class="fas fa-code-branch mr-1 text-gray-600 text-xs"></i>
                                                 </div>
                                                 @if ($user->branches->count())
                                                     @foreach ($user->branches as $branch)
@@ -320,7 +328,7 @@
                         </div>
                         <div>
                             <p class="font-semibold text-gray-900">{{ $user->name }}</p>
-                            <p class="text-xs text-gray-500">{{'@'. $user->username }}</p>
+                            <p class="text-xs text-gray-500">{{ '@' . $user->username }}</p>
                         </div>
                     </div>
 
@@ -358,31 +366,29 @@
                     <!-- Actions -->
                     <div class="mt-4 flex gap-2">
 
-                    <!-- Edit Button -->
-                    <button
-                        class="edit-user flex-1 px-3 py-2 text-xs bg-yellow-100 text-yellow-700 rounded-lg flex items-center justify-center"
-                        data-id="{{ $user->id }}"
-                        data-name="{{ $user->name }}"
-                        data-username="{{ $user->username }}"
-                        data-dept="{{ $user->department_id }}"
-                        data-access="{{ $user->access_level_id }}"
-                        data-access-all="{{ $user->access_all_departments }}"
-                        data-branches="{{ $user->branches->pluck('id')->join(',') }}">
-                        <i class="fas fa-edit mr-1"></i> Edit
-                    </button>
-
-                    <!-- Delete Button -->
-                    <form action="{{ route('settings.user.delete', $user->id) }}" method="POST" class="flex-1">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit"
-                            class="w-full px-3 py-2 text-xs bg-red-50 text-red-700 rounded-lg flex items-center justify-center"
-                            onclick="return confirm('Delete this user?')">
-                            <i class="fas fa-trash-alt mr-1"></i> Delete
+                        <!-- Edit Button -->
+                        <button
+                            class="edit-user flex-1 px-3 py-2 text-xs bg-yellow-100 text-yellow-700 rounded-lg flex items-center justify-center"
+                            data-id="{{ $user->id }}" data-name="{{ $user->name }}"
+                            data-username="{{ $user->username }}" data-dept="{{ $user->department_id }}"
+                            data-access="{{ $user->access_level_id }}"
+                            data-access-all="{{ $user->access_all_departments }}"
+                            data-branches="{{ $user->branches->pluck('id')->join(',') }}">
+                            <i class="fas fa-edit mr-1"></i> Edit
                         </button>
-                    </form>
 
-                </div>
+                        <!-- Delete Button -->
+                        <form action="{{ route('settings.user.delete', $user->id) }}" method="POST" class="flex-1">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit"
+                                class="w-full px-3 py-2 text-xs bg-red-50 text-red-700 rounded-lg flex items-center justify-center"
+                                onclick="return confirm('Delete this user?')">
+                                <i class="fas fa-trash-alt mr-1"></i> Delete
+                            </button>
+                        </form>
+
+                    </div>
 
 
                 </div>
@@ -396,7 +402,7 @@
         </div>
     </div>
 
-        
+
     {{-- JS --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -520,6 +526,21 @@
 
         document.addEventListener('DOMContentLoaded', toggleDepartment);
         document.querySelector('#accessAllCheckbox').addEventListener('change', toggleDepartment);
+
+        const selectAll = document.getElementById('selectAllBranches');
+        const branchCheckboxes = document.querySelectorAll('.branch-checkbox');
+
+        // Select / Deselect all
+        selectAll.addEventListener('change', function() {
+            branchCheckboxes.forEach(cb => cb.checked = this.checked);
+        });
+
+        // Sync "Select All" state when individual branches change
+        branchCheckboxes.forEach(cb => {
+            cb.addEventListener('change', () => {
+                selectAll.checked = [...branchCheckboxes].every(c => c.checked);
+            });
+        });
     </script>
 
 @endsection

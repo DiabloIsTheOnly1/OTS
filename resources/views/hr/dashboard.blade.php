@@ -150,7 +150,7 @@
         <!-- Flash Messages -->
         <x-flash-message />
 
-        <div class="flex justify-between items-center mb-4">
+        {{-- <div class="flex justify-between items-center mb-4">
 
             <div class="flex gap-2">
                 <button id="btnRequests" class="px-4 py-2 text-sm rounded bg-blue-600 text-white">
@@ -161,7 +161,7 @@
                     OT Summary
                 </button>
             </div>
-        </div>
+        </div> --}}
 
         <div id="requestsTable">
             @include('hr._ot_requests_table')

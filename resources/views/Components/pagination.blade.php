@@ -79,7 +79,7 @@
                     @php
                         $pages = [];
 
-                        if ($total <= 20) {
+                        if ($total <= 10) {
                             // Show all pages
                             $pages = range(1, $total);
                         } else {
