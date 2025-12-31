@@ -11,11 +11,18 @@ class BranchController extends Controller
     /**
      * List all branches
      */
-    public function index()
+    public function index(Request $request)
     {
-        $branches = Branch::orderBy('id', 'asc')->get();
+       $search = $request ->query('search');
 
-        return view('settings.branch', compact('branches'));
+         $branches = Branch::when($search, function ($query, $search) {
+                $query->where('name', 'LIKE', "%$search%");
+          })
+          ->orderBy('name')
+          ->paginate(10)
+          ->withQueryString();
+
+          return view('settings.branch', compact('branches'));
     }
 
     /**

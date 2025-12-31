@@ -48,6 +48,34 @@
     </div>
 
     <x-flash-message />
+
+     <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
+            <form method="GET" id="departmentFilterForm" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+
+                <!-- Search -->
+                <div class="col-span-1 md:col-span-2">
+                    <label class="text-gray-700 text-sm font-medium mb-1 block">Search</label>
+                    <input type="text" name="search" value="{{ request('search') }}"
+                        placeholder="Search branch..."
+                        class="w-full px-2 py-1 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                </div>
+
+                <!-- Buttons -->
+                <div class="md:col-span-4 flex justify-end gap-3 mt-2">
+
+                    <!-- Reset Button -->
+                    <a href="{{ route('settings.department') }}"
+                        class="px-2 py-1 text-gray-700 rounded-lg bg-gray-100 hover:bg-gray-300">
+                        Reset
+                    </a>
+
+                    <!-- Filter Button -->
+                    <button type="submit" class="px-2 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                        Apply Filter
+                    </button>
+                </div>
+            </form>
+        </div>
     
     <!-- Department List -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
@@ -94,6 +122,13 @@
         @endif
 
     </div>
+
+       <div class="p-4">
+            <x-pagination :paginator="$departments" />
+        </div>
+    </div>
+
+   
 
 </div>
 

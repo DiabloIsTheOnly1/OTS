@@ -8,10 +8,18 @@ use App\Models\Department;
 
 class DepartmentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $departments = Department::orderBy('id')->get();
-        return view('settings.department', compact('departments'));
+        $search = $request ->query('search');
+
+         $departments = Department::when($search, function ($query, $search) {
+                $query->where('department_name', 'LIKE', "%$search%");
+          })
+          ->orderBy('department_name')
+          ->paginate(10)
+          ->withQueryString();
+
+          return view('settings.department', compact('departments'));
     }
 
     public function store(Request $request)
