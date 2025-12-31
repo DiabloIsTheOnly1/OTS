@@ -33,7 +33,7 @@
 
                 <!-- Shine effect on hover -->
                 <span
-                    class="absolute inset-0 -translate-x-full bg-white/20 skew-x-12 transition-transform duration-700 group-hover:translate-x-full"></span>
+                    class=" inset-0 -translate-x-full bg-white/20 skew-x-12 transition-transform duration-700 group-hover:translate-x-full"></span>
             </a>
             @endcanAccess
         </div>
