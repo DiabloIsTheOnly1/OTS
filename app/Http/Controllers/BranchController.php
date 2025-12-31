@@ -30,15 +30,24 @@ class BranchController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-        ]);
+      $request->validate([
+        'name' => [
+            'required',
+            'string',
+            'max:255',
+            function ($attribute, $value, $fail) {
+                if (Branch::whereRaw('LOWER(name) = ?', [strtolower($value)])->exists()) {
+                    $fail('This branch already exists.');
+                }
+            }
+        ],
+    ]);
 
-        Branch::create([
-            'name' => $request->name,
-        ]);
+    Branch::create([
+        'name' => trim($request->name),
+    ]);
 
-        return redirect()->back()->with('success', 'Branch created successfully.');
+    return redirect()->back()->with('success', 'Branch created successfully.');
     }
 
     /**
@@ -46,15 +55,28 @@ class BranchController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-        ]);
+       $request->validate([
+        'name' => [
+            'required',
+            'string',
+            'max:255',
+            function ($attribute, $value, $fail) use ($id) {
+                if (
+                    Branch::whereRaw('LOWER(name) = ?', [strtolower($value)])
+                        ->where('id', '!=', $id)
+                        ->exists()
+                ) {
+                    $fail('This branch already exists.');
+                }
+            }
+        ],
+    ]);
 
-        $branch = Branch::findOrFail($id);
-        $branch->name = $request->input('name');
-        $branch->save();
+    $branch = Branch::findOrFail($id);
+    $branch->name = trim($request->name);
+    $branch->save();
 
-        return redirect()->back()->with('success', 'Branch updated successfully!');
+    return redirect()->back()->with('success', 'Branch updated successfully!');
     }
 
     /**

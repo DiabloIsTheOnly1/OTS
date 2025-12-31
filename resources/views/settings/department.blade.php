@@ -19,19 +19,27 @@
     </div>
 
     <!-- Add / Edit Form -->
-    <div id="formSection" class="bg-white rounded-xl shadow-sm p-6 mb-8 hidden">
-        <h2 class="text-xl font-semibold text-gray-800 mb-4" id="deptTitle">Add New Department</h2>
+    <div id="formSection"
+         class="bg-white rounded-xl shadow-sm p-6 mb-8 {{ $errors->any() ? '' : 'hidden' }}">
+
+        <h2 class="text-xl font-semibold text-gray-800 mb-4" id="deptTitle">
+            {{ $errors->any() ? 'Add New Department' : 'Add New Department' }}
+        </h2>
 
         <form id="deptForm" method="POST" action="{{ route('settings.department.store') }}">
             @csrf
             <input type="hidden" id="formMethod" name="_method" value="POST">
-            <input type="hidden" id="deptId">
+            <input type="hidden" id="deptId" name="id" value="{{ old('id') }}">
 
             <div class="mb-4">
                 <label class="block text-gray-700 text-sm font-medium mb-2">Department Name</label>
                 <input type="text" id="dept-name" name="department_name"
+                       value="{{ old('department_name') }}"
                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                        placeholder="Enter department name" required>
+                @error('department_name')
+                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                @enderror
             </div>
 
             <div class="flex justify-end space-x-3">
@@ -49,46 +57,37 @@
 
     <x-flash-message />
 
-     <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
-            <form method="GET" id="departmentFilterForm" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+    <!-- Filter/Search Form -->
+    <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
+        <form method="GET" id="departmentFilterForm" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <div class="col-span-1 md:col-span-2">
+                <label class="text-gray-700 text-sm font-medium mb-1 block">Search</label>
+                <input type="text" name="search" value="{{ request('search') }}"
+                       placeholder="Search department..."
+                       class="w-full px-2 py-1 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+            </div>
 
-                <!-- Search -->
-                <div class="col-span-1 md:col-span-2">
-                    <label class="text-gray-700 text-sm font-medium mb-1 block">Search</label>
-                    <input type="text" name="search" value="{{ request('search') }}"
-                        placeholder="Search branch..."
-                        class="w-full px-2 py-1 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-                </div>
+            <div class="md:col-span-4 flex justify-end gap-3 mt-2">
+                <a href="{{ route('settings.department') }}"
+                   class="px-2 py-1 text-gray-700 rounded-lg bg-gray-100 hover:bg-gray-300">
+                    Reset
+                </a>
+                <button type="submit"
+                        class="px-2 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                    Apply Filter
+                </button>
+            </div>
+        </form>
+    </div>
 
-                <!-- Buttons -->
-                <div class="md:col-span-4 flex justify-end gap-3 mt-2">
-
-                    <!-- Reset Button -->
-                    <a href="{{ route('settings.department') }}"
-                        class="px-2 py-1 text-gray-700 rounded-lg bg-gray-100 hover:bg-gray-300">
-                        Reset
-                    </a>
-
-                    <!-- Filter Button -->
-                    <button type="submit" class="px-2 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
-                        Apply Filter
-                    </button>
-                </div>
-            </form>
-        </div>
-    
     <!-- Department List -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-
         @if($departments->count())
             <ul class="divide-y divide-gray-200">
                 @foreach($departments as $dept)
                     <li class="flex justify-between items-center px-4 py-4 hover:bg-gray-50">
-
                         <span class="text-gray-800 font-medium">{{ $dept->department_name }}</span>
-
                         <div class="flex space-x-2">
-
                             <!-- Edit -->
                             <button class="edit-dept text-sm px-2 py-1 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200"
                                     data-id="{{ $dept->id }}"
@@ -108,11 +107,9 @@
                                 </button>
                             </form>
                         </div>
-
                     </li>
                 @endforeach
             </ul>
-
         @else
             <div class="p-12 text-center text-gray-500">
                 <i class="fas fa-building text-4xl mb-4"></i>
@@ -120,39 +117,36 @@
                 <p>Get started by adding your first department</p>
             </div>
         @endif
-
     </div>
 
-       <div class="p-4">
-            <x-pagination :paginator="$departments" />
-        </div>
+    <div class="p-4">
+        <x-pagination :paginator="$departments" />
     </div>
-
-   
-
 </div>
 
 {{-- JS --}}
 <script>
-    function initDepartmentPageJS(container = document) {
-        const formSection = container.querySelector('#formSection');
-        const formTitle = container.querySelector('#deptTitle');
-        const deptForm = container.querySelector('#deptForm');
-        const formMethod = container.querySelector('#formMethod');
-        const nameInput = container.querySelector('#dept-name');
-        const deptIdInput = container.querySelector('#deptId');
+    document.addEventListener('DOMContentLoaded', function () {
+        const formSection = document.querySelector('#formSection');
+        const formTitle = document.querySelector('#deptTitle');
+        const deptForm = document.querySelector('#deptForm');
+        const formMethod = document.querySelector('#formMethod');
+        const nameInput = document.querySelector('#dept-name');
+        const deptIdInput = document.querySelector('#deptId');
 
-        container.addEventListener('click', function(e) {
+        // Show form if validation errors exist
+        @if($errors->any())
+            formSection.classList.remove('hidden');
+        @endif
 
-            // Add Dept
+        document.addEventListener('click', function(e) {
+            // Add Department
             if (e.target.closest('#addDeptBtn')) {
                 formTitle.textContent = 'Add New Department';
                 formMethod.value = 'POST';
                 deptForm.action = "{{ route('settings.department.store') }}";
-
                 nameInput.value = '';
                 deptIdInput.value = '';
-
                 formSection.classList.remove('hidden');
             }
 
@@ -161,18 +155,15 @@
                 formSection.classList.add('hidden');
             }
 
-            // Edit Dept
+            // Edit Department
             if (e.target.closest('.edit-dept')) {
                 const btn = e.target.closest('.edit-dept');
                 const id = btn.dataset.id;
-
                 formTitle.textContent = 'Edit Department';
                 formMethod.value = 'PUT';
                 deptForm.action = "/settings/department/" + id;
-
                 nameInput.value = btn.dataset.name;
                 deptIdInput.value = id;
-
                 formSection.classList.remove('hidden');
             }
 
@@ -183,9 +174,6 @@
                 }
             }
         });
-    }
-
-    initDepartmentPageJS();
+    });
 </script>
-
 @endsection

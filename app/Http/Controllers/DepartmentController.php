@@ -24,12 +24,21 @@ class DepartmentController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'department_name' => 'required|string|max:255'
+       $request->validate([
+            'department_name' => [
+                'required',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail) {
+                    if (Department::whereRaw('LOWER(department_name) = ?', [strtolower($value)])->exists()) {
+                        $fail('This department already exists.');
+                    }
+                }
+            ],
         ]);
 
         Department::create([
-            'department_name' => $request->department_name
+            'department_name' => trim($request->department_name),
         ]);
 
         return redirect()->back()->with('success', 'Department created successfully!');
@@ -37,21 +46,39 @@ class DepartmentController extends Controller
 
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'department_name' => 'required|string|max:255'
+    $request->validate([
+            'department_name' => [
+                'required',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail) use ($id) {
+                    if (
+                        Department::whereRaw('LOWER(department_name) = ?', [strtolower($value)])
+                            ->where('id', '!=', $id)
+                            ->exists()
+                    ) {
+                        $fail('This department already exists.');
+                    }
+                }
+            ],
         ]);
 
         $department = Department::findOrFail($id);
         $department->update([
-            'department_name' => $request->department_name
+            'department_name' => trim($request->department_name),
         ]);
-
         return redirect()->back()->with('success', 'Department updated successfully!');
     }
 
-    public function destroy($id)
-    {
-        Department::findOrFail($id)->delete();
+    public function destroy($id){
+    $department = Department::findOrFail($id);
+
+        // Optional: check if department has staff linked
+        if ($department->staff()->exists()) {
+            return redirect()->back()->with('error', 'Cannot delete department because it has staff linked.');
+        }
+
+        $department->delete();
         return redirect()->back()->with('success', 'Department deleted.');
     }
 }

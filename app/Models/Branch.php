@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
+
 class Branch extends Model
 {
     use HasFactory;
@@ -31,4 +32,6 @@ class Branch extends Model
     {
         return $this->belongsToMany(User::class, 'branch_user');
     }
+
+    
 }
