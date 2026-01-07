@@ -10,6 +10,7 @@
                     <th class="p-3 w-[260px] font-semibold">Clock in/Out</th>
                     <th class="p-3 w-[140px] font-semibold text-center">Requested Hours</th>
                     <th class="p-3 w-[140px] font-semibold text-center">Actual Hours</th>
+                    <th class="p-3 w-[140px] font-semibold text-center">Type of Work</th>
                     <th class="p-3 w-[120px] font-semibold text-center">Status</th>
                     <th class="p-3 w-[260px] font-semibold text-center">Approval</th>
                     <th class="p-3 w-[220px] text-left font-semibold">Remarks</th>
@@ -121,6 +122,13 @@
                                     </div>
                                 @endif
                             @endif
+                        </td>
+
+                        {{-- Type of Work --}}
+                        <td class="p-3 text-center">
+                            <span class="text-gray-700 text-sm  whitespace-pre-line break-words">
+                                {{ $r->type_of_work }}
+                            </span>
                         </td>
 
                         <!-- Status -->
@@ -281,10 +289,12 @@
                             </div>
                         </td>
 
+                        {{-- Action  --}}
                         <td class="p-3 text-center">
+                        <div class="flex justify-center gap-2">
                             <a href="{{ $isDeleted ? '#' : route('overtime.success', $r->id) }}"
                                 class="px-2 py-1 rounded text-xs inline-flex items-center whitespace-nowrap
-                                        {{ $isDeleted
+                                    {{ $isDeleted
                                             ? 'bg-gray-200 text-gray-400 cursor-not-allowed pointer-events-none'
                                             : 'bg-blue-100 text-blue-600 hover:bg-blue-200' }}">
                                 <i class="fas fa-qrcode mr-1"></i> QR
@@ -292,12 +302,14 @@
 
                             <a href="{{ $isDeleted ? '#' : route('hr.overtime.view', $r->id) }}"
                                 class="px-2 py-1 rounded text-xs inline-flex items-center whitespace-nowrap
-                                        {{ $isDeleted
+                                    {{ $isDeleted
                                             ? 'bg-gray-200 text-gray-400 cursor-not-allowed pointer-events-none'
                                             : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">
                                 <i class="fa-solid fa-eye mr-1"></i> View
                             </a>
-                        </td>
+                        </div>
+                    </td>
+
 
                     </tr>
 

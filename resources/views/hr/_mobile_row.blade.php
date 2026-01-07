@@ -61,6 +61,18 @@
                 <span class="text-blue-700">{{ $r->actual_hm }}</span>
             </div>
 
+            {{-- Type of Work --}}
+            <div class="rounded-lg bg-gray-50 p-3">
+            <p class="text-[10px] font-bold uppercase tracking-wide text-gray-400 mb-1">
+                Type of Work
+            </p>
+            <p class="text-sm text-gray-700 leading-relaxed break-words whitespace-pre-line">
+                {{ $r->type_of_work }}
+            </p>
+            </div>
+
+            
+
             {{-- Approval Buttons --}}
             <div class="flex flex-col gap-2 mt-3">
                 @if ($r->status === 'pending')
