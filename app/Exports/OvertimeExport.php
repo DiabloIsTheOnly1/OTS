@@ -41,7 +41,7 @@ class OvertimeExport implements FromQuery, WithHeadings, WithMapping, ShouldAuto
             $overtime->staff?->staff_name ?? '-',
             $overtime->branch?->name ?? '-',
             $overtime->department?->department_name ?? '-',
-            // Concatenate all clock sessions in one cell
+            $overtime->type_of_work ?? '-',
             $overtime->clocks->map(function($c){
                 $in  = $c->clock_in?->format('H:i') ?? '-';
                 $out = $c->clock_out?->format('H:i') ?? '-';
@@ -63,6 +63,7 @@ class OvertimeExport implements FromQuery, WithHeadings, WithMapping, ShouldAuto
             'Employee',
             'Branch',
             'Department',
+            'Type of Work',
             'Clock Sessions',
             'Requested Hours',
             'Actual Hours',
