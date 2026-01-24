@@ -246,11 +246,29 @@
                                         </p>
                                     </div>
                                 @else
-                                    <p class="text-xs">{{ $r->status == 'approved' ? 'Approved' : 'Rejected' }} by
+                                    <p class="text-xs">
+                                        {{ ucfirst($r->status) }} by
                                     </p>
-                                    <span
-                                        class="font-bold text-gray-800 text-xs">{{ $r->approver?->username ?? '-' }}</span>
-                                    <p class="italic text-gray-800 text-xs">{{ $r->approved_at?->format('d M Y H:i') ?? '-' }}</p>
+
+                                    <span class="font-bold text-gray-800 text-xs">
+                                        {{ $r->approver?->username ?? '-' }}
+                                    </span>
+
+                                    <p class="italic text-gray-800 text-xs">
+                                        {{ $r->approved_at?->format('d M Y H:i') ?? '-' }}
+                                    </p>
+
+                                    @if (auth()->user()->canAccess('hq_approval'))
+                                        <form action="{{ route('hr.overtime.revertPending', $r->id) }}" method="POST"
+                                            class="mt-1"
+                                            onsubmit="return confirm('Revert this request back to pending?');">
+                                            @csrf
+                                            <button
+                                                class="px-3 py-1 text-xs rounded bg-yellow-500 hover:bg-yellow-600 text-white">
+                                                Revert to Pending
+                                            </button>
+                                        </form>
+                                    @endif
                                 @endif
                             @endif
                         </td>
@@ -291,24 +309,24 @@
 
                         {{-- Action  --}}
                         <td class="p-3 text-center">
-                        <div class="flex justify-center gap-2">
-                            <a href="{{ $isDeleted ? '#' : route('overtime.success', $r->id) }}"
-                                class="px-2 py-1 rounded text-xs inline-flex items-center whitespace-nowrap
+                            <div class="flex justify-center gap-2">
+                                <a href="{{ $isDeleted ? '#' : route('overtime.success', $r->id) }}"
+                                    class="px-2 py-1 rounded text-xs inline-flex items-center whitespace-nowrap
                                     {{ $isDeleted
-                                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed pointer-events-none'
-                                            : 'bg-blue-100 text-blue-600 hover:bg-blue-200' }}">
-                                <i class="fas fa-qrcode mr-1"></i> QR
-                            </a>
+                                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed pointer-events-none'
+                                        : 'bg-blue-100 text-blue-600 hover:bg-blue-200' }}">
+                                    <i class="fas fa-qrcode mr-1"></i> QR
+                                </a>
 
-                            <a href="{{ $isDeleted ? '#' : route('hr.overtime.view', $r->id) }}"
-                                class="px-2 py-1 rounded text-xs inline-flex items-center whitespace-nowrap
+                                <a href="{{ $isDeleted ? '#' : route('hr.overtime.view', $r->id) }}"
+                                    class="px-2 py-1 rounded text-xs inline-flex items-center whitespace-nowrap
                                     {{ $isDeleted
-                                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed pointer-events-none'
-                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">
-                                <i class="fa-solid fa-eye mr-1"></i> View
-                            </a>
-                        </div>
-                    </td>
+                                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed pointer-events-none'
+                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">
+                                    <i class="fa-solid fa-eye mr-1"></i> View
+                                </a>
+                            </div>
+                        </td>
 
 
                     </tr>

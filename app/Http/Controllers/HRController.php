@@ -273,7 +273,9 @@ class HRController extends Controller
 
         }
         // Actual minutes
-        $actualMinutes = intval($r->clocks->sum('total_time_taken') / 60);
+        $actualMinutes = $firstClockIn
+            ? intval($r->clocks->sum('total_time_taken') / 60)
+            : PHP_INT_MAX; // HQ can approve any amount
 
         // Requested to approve
         $approved = intval($request->approved_minutes);
@@ -341,6 +343,33 @@ class HRController extends Controller
 
         return back()->with('success', 'Rejected overtime request for ' . $employee . '.');
     }
+
+    public function revertPending($id)
+    {
+        $user = auth()->user();
+
+        if (!$user->canAccess('hq_approval')) {
+            abort(403, 'Unauthorized');
+        }
+
+        $request = OvertimeRequest::findOrFail($id);
+
+        // Optional safety: only allow revert if already approved/rejected
+        if (!in_array($request->status, ['approved', 'rejected'])) {
+            return back()->with('error', 'Only approved or rejected requests can be reverted.');
+        }
+
+        $employee = $request->staff->staff_name;
+        $request->update([
+            'status' => 'pending',
+            'approved_by' => null,
+            'approved_at' => null,
+            'approved_hours' => null,
+        ]);
+
+        return back()->with('success', 'Overtime request for ' . $employee . ' reverted to pending.');
+    }
+
 
     public function updateRemarks(Request $request, $id)
     {
