@@ -13,16 +13,17 @@ class BranchController extends Controller
      */
     public function index(Request $request)
     {
-       $search = $request ->query('search');
+        $search = $request->query('search');
+        $perPage = $request->query('per_page', 15);
 
-         $branches = Branch::when($search, function ($query, $search) {
-                $query->where('name', 'LIKE', "%$search%");
-          })
-          ->orderBy('name')
-          ->paginate(10)
-          ->withQueryString();
+        $branches = Branch::when($search, function ($query, $search) {
+            $query->where('name', 'LIKE', "%$search%");
+        })
+            ->orderBy('name')
+            ->paginate($perPage)
+            ->withQueryString();
 
-          return view('settings.branch', compact('branches'));
+        return view('settings.branch', compact('branches'));
     }
 
     /**

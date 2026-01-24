@@ -37,7 +37,7 @@
                             <div>
                                 <label class="text-sm font-medium text-gray-500 block mb-1">Department</label>
                                 <p class="text-gray-900 font-medium">
-                                    {{ $user->department->name ?? '-' }}
+                                    {{ $user->department->name ?? 'Access to all departments' }}
                                 </p>
                             </div>
                             <div>

@@ -94,16 +94,16 @@
 
 
     {{-- Clock In / Out Buttons --}}
-    <div class="flex flex-col sm:flex-row justify-center gap-4 pt-4 border-t">
+    <div class="flex justify-center gap-4 pt-4 border-t">
         <form action="{{ route('clock.in', $overtime->id) }}" method="POST" class="w-full sm:w-auto">
             @csrf
-            <button class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-medium px-10 py-3 rounded-lg shadow transition">
+            <button class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-medium px-8 py-3 rounded-lg shadow transition">
                 Clock In
             </button>
         </form>
         <form action="{{ route('clock.out', $overtime->id) }}" method="POST" class="w-full sm:w-auto">
             @csrf
-            <button class="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white font-medium px-10 py-3 rounded-lg shadow transition">
+            <button class="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white font-medium px-5 py-3 rounded-lg shadow transition">
                 Clock Out
             </button>
         </form>

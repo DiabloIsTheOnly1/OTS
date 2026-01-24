@@ -11,12 +11,13 @@ class DepartmentController extends Controller
     public function index(Request $request)
     {
         $search = $request ->query('search');
+        $perPage = $request ->query('per_page', 15);
 
          $departments = Department::when($search, function ($query, $search) {
                 $query->where('department_name', 'LIKE', "%$search%");
           })
           ->orderBy('department_name')
-          ->paginate(10)
+          ->paginate($perPage)
           ->withQueryString();
 
           return view('settings.department', compact('departments'));

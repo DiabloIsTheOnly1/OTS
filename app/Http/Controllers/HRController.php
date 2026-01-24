@@ -50,9 +50,9 @@ class HRController extends Controller
         // --------------------------------------------------
 // MONTH CONTEXT (DEFAULT = CURRENT MONTH)
 // --------------------------------------------------
-        $month = $request->filled('month')
-            ? Carbon::createFromFormat('Y-m', $request->month)
-            : now();
+        // $month = $request->filled('month')
+        //     ? Carbon::createFromFormat('Y-m', $request->month)
+        //     : now();
 
         // --------------------------------------------------
 // Base query
@@ -66,11 +66,11 @@ class HRController extends Controller
             'rejector'
         ])
             ->whereIn('branch_id', $accessibleBranches)
-            ->whereIn('department_id', $accessibleDepartments)
-            ->whereBetween('date', [
-                $month->copy()->startOfMonth(),
-                $month->copy()->endOfMonth()
-            ]);
+            ->whereIn('department_id', $accessibleDepartments);
+        // ->whereBetween('date', [
+        //     $month->copy()->startOfMonth(),
+        //     $month->copy()->endOfMonth()
+        // ]);
 
 
         if ($request->filled('status')) {
@@ -141,10 +141,10 @@ class HRController extends Controller
         // OT SUMMARY – GROUPED BY STAFF
         // --------------------------------------------------
         $otSummary = (clone $baseQuery)
-            ->whereBetween('date', [
-                $month->copy()->startOfMonth(),
-                $month->copy()->endOfMonth()
-            ])
+            // ->whereBetween('date', [
+            //     $month->copy()->startOfMonth(),
+            //     $month->copy()->endOfMonth()
+            // ])
             ->with(['staff', 'clocks'])
             ->orderBy('staff_id')
             ->orderBy('date')
@@ -203,25 +203,27 @@ class HRController extends Controller
         $r = OvertimeRequest::findOrFail($id);
         $user = Auth::user();
 
+        $canHod = $user->canAccess('hod_approval');
+        $canHq = $user->canAccess('hq_approval');
+
         $firstClockIn = $r->clocks()
             ->orderBy('clock_in', 'asc')
             ->value('clock_in');
 
-        if (!$firstClockIn) {
+        if (!$firstClockIn && !$canHq) {
             return back()->with('error', 'No clock-in record found.');
         }
 
-        $hoursSinceFirstClockIn = $firstClockIn->diffInHours(now());
+        if ($firstClockIn) {
+            $hoursSinceFirstClockIn = $firstClockIn->diffInHours(now());
 
-        $canHod = $user->canAccess('hod_approval');
-        $canHq = $user->canAccess('hq_approval');
+            if ($hoursSinceFirstClockIn <= 48 && !$canHod) {
+                return back()->with('error', 'Only HOD can approve within the first 48 hours.');
+            }
 
-        if ($hoursSinceFirstClockIn <= 48 && !$canHod) {
-            return back()->with('error', 'Only HOD can approve within the first 48 hours.');
-        }
-
-        if ($hoursSinceFirstClockIn > 48 && !$canHq) {
-            return back()->with('error', 'Only HQ can approve after 48 hours.');
+            if ($hoursSinceFirstClockIn > 48 && !$canHq) {
+                return back()->with('error', 'Only HQ can approve after 48 hours.');
+            }
         }
 
         $actualMinutes = intval($r->clocks->sum('total_time_taken') / 60);
@@ -242,31 +244,34 @@ class HRController extends Controller
         $r = OvertimeRequest::findOrFail($id);
 
         $user = Auth::user();
-        $firstClockIn = $r->clocks()
-            ->orderBy('clock_in', 'asc')
-            ->value('clock_in');
-
-        if (!$firstClockIn) {
-            return back()->with('error', 'No clock-in record found.');
-        }
-
-        $hoursSinceFirstClockIn = $firstClockIn->diffInHours(now());
 
         $canHod = $user->canAccess('hod_approval');
         $canHq = $user->canAccess('hq_approval');
 
-        if ($hoursSinceFirstClockIn <= 48) {
-            if (!$canHod) {
-                return back()->with('error', 'Only HOD can approve within the first 48 hours.')->send();
-            }
+        $firstClockIn = $r->clocks()
+            ->orderBy('clock_in', 'asc')
+            ->value('clock_in');
+
+        if (!$firstClockIn && !$canHq) {
+            return back()->with('error', 'No clock-in record found.');
         }
 
-        if ($hoursSinceFirstClockIn > 48) {
-            if (!$canHq) {
-                return back()->with('error', 'Only HQ can approve after 48 hours.')->send();
-            }
-        }
+        if ($firstClockIn) {
+            $hoursSinceFirstClockIn = $firstClockIn->diffInHours(now());
 
+            if ($hoursSinceFirstClockIn <= 48) {
+                if (!$canHod) {
+                    return back()->with('error', 'Only HOD can approve within the first 48 hours.')->send();
+                }
+            }
+
+            if ($hoursSinceFirstClockIn > 48) {
+                if (!$canHq) {
+                    return back()->with('error', 'Only HQ can approve after 48 hours.')->send();
+                }
+            }
+
+        }
         // Actual minutes
         $actualMinutes = intval($r->clocks->sum('total_time_taken') / 60);
 
@@ -297,30 +302,32 @@ class HRController extends Controller
     {
         $overtimeRequest = OvertimeRequest::findOrFail($id);
         $user = Auth::user();
-        $firstClockIn = $overtimeRequest->clocks()
-            ->orderBy('clock_in', 'asc')
-            ->value('clock_in');
-
-        if (!$firstClockIn) {
-            return back()->with('error', 'No clock-in record found.');
-        }
-
-        $hoursSinceFirstClockIn = $firstClockIn->diffInHours(now());
-
 
         $canHod = $user->canAccess('hod_approval');
         $canHq = $user->canAccess('hq_approval');
 
-        // HOD window (0–48 hours)
-        if ($hoursSinceFirstClockIn <= 48) {
-            if (!$canHod) {
-                return back()->with('error', 'Only HOD can approve within the first 48 hour.');
-            }
+        $firstClockIn = $overtimeRequest->clocks()
+            ->orderBy('clock_in', 'asc')
+            ->value('clock_in');
+
+        if (!$firstClockIn && !$canHq) {
+            return back()->with('error', 'No clock-in record found.');
         }
 
-        if ($hoursSinceFirstClockIn > 48) {
-            if (!$canHq) {
-                return back()->with('error', 'Only HQ can reject after 48 hour.');
+        if ($firstClockIn) {
+            $hoursSinceFirstClockIn = $firstClockIn->diffInHours(now());
+
+            // HOD window (0–48 hours)
+            if ($hoursSinceFirstClockIn <= 48) {
+                if (!$canHod) {
+                    return back()->with('error', 'Only HOD can approve within the first 48 hour.');
+                }
+            }
+
+            if ($hoursSinceFirstClockIn > 48) {
+                if (!$canHq) {
+                    return back()->with('error', 'Only HQ can reject after 48 hour.');
+                }
             }
         }
 
