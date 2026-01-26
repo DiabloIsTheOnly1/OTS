@@ -63,15 +63,15 @@
 
             {{-- Type of Work --}}
             <div class="rounded-lg bg-gray-50 p-3">
-            <p class="text-[10px] font-bold uppercase tracking-wide text-gray-400 mb-1">
-                Type of Work
-            </p>
-            <p class="text-sm text-gray-700 leading-relaxed break-words whitespace-pre-line">
-                {{ $r->type_of_work }}
-            </p>
+                <p class="text-[10px] font-bold uppercase tracking-wide text-gray-400 mb-1">
+                    Type of Work
+                </p>
+                <p class="text-sm text-gray-700 leading-relaxed break-words whitespace-pre-line">
+                    {{ $r->type_of_work }}
+                </p>
             </div>
 
-            
+
 
             {{-- Approval Buttons --}}
             <div class="flex flex-col gap-2 mt-3">
@@ -114,13 +114,36 @@
                         </button>
                     </form>
                 @else
-                    <div class="flex justify-between text-sm">
-                        <p class="text-xs">{{ $r->status == 'approved' ? 'Approved' : 'Rejected' }} by</p>
-                        <span class="font-bold text-gray-800 text-sm">
-                            {{ $r->approver?->username ?? '-' }}
-                        </span>
+                    <div class="space-y-2">
+
+                        <div class="flex justify-between text-sm">
+                            <p class="text-xs">
+                                {{ ucfirst($r->status) }} by
+                            </p>
+                            <span class="font-bold text-gray-800 text-sm">
+                                {{ $r->approver?->username ?? '-' }}
+                            </span>
+                        </div>
+
+                        <p class="text-[10px] italic text-gray-500">
+                            {{ $r->approved_at?->format('d M Y H:i') ?? '-' }}
+                        </p>
+
+                        @if (auth()->user()->canAccess('hq_approval'))
+                            <form action="{{ route('hr.overtime.revertPending', $r->id) }}" method="POST"
+                                onsubmit="return confirm('Revert this request back to pending?');">
+                                @csrf
+                                <button
+                                    class="w-full px-3 py-1.5 text-xs rounded
+                           bg-yellow-500 hover:bg-yellow-600 text-white">
+                                    Revert to Pending
+                                </button>
+                            </form>
+                        @endif
+
                     </div>
                 @endif
+
             </div>
 
             {{-- Remarks --}}

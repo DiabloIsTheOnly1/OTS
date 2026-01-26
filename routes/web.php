@@ -85,7 +85,7 @@ Route::middleware('auth')->group(function () {
         ->name('hr.overtime.remarks');
 
     //View Overtime Form - HR
-    Route::get('/overtime/view/{id}', [HRController::class, 'viewForm'])->name('hr.overtime.view');
+    // Route::get('/overtime/view/{id}', [HRController::class, 'viewForm'])->name('hr.overtime.view');
 
     Route::middleware('access:manage_request')->group(function () {
         Route::get('/overtime/request-form', [OvertimeRequestController::class, 'create'])->name('overtime.create');
@@ -106,6 +106,7 @@ Route::middleware('auth')->group(function () {
 
 Route::get('/overtime/index', [OvertimeRequestController::class, 'index'])
     ->name('overtime.index');
+Route::get('/overtime/view/{id}', [HRController::class, 'viewForm'])->name('hr.overtime.view');
 
 // Overtime submission + detail page
 Route::post('/overtime/submit', [OvertimeRequestController::class, 'store'])->name('overtime.submit');

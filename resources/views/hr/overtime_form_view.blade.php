@@ -42,6 +42,8 @@
         <div class="flex flex-col sm:flex-row justify-center md:justify-end gap-3">
 
             <!-- Back Button -->
+            @auth
+                
             <a href="{{ route('hr.dashboard') }}"
                class="inline-flex items-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl font-medium text-sm shadow-sm hover:shadow transition-all duration-200">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -49,6 +51,7 @@
                 </svg>
                 <span>Back to List</span>
             </a>
+            @endauth
 
             <!-- Edit / Save-Cancel Buttons -->
             <div class="flex flex-col sm:flex-row gap-3">

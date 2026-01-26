@@ -32,7 +32,7 @@
 
     <body class="bg-gray-50 min-h-screen">
 
-        <div class="container mx-auto px-4 py-8 max-w-7xl">
+        <div class="container mx-auto px-4 py-8 max-w-10xl">
 
             <header
                 class="flex flex-col md:flex-row md:items-center md:justify-between mb-4 p-6 bg-white rounded-xl shadow-sm">
@@ -57,10 +57,10 @@
                     <i class="fas fa-plus-circle mr-2"></i> New Request
                 </a> --}}
 
-                </header>
+            </header>
 
             <!-- Branch / Department Summary -->
-            <div class="mb-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {{-- <div class="mb-2 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <!-- Branch Card -->
                 <div class="bg-white shadow-sm rounded-xl p-4 border border-gray-100 flex items-center space-x-3">
                     <div class="p-3 rounded-lg bg-blue-50 text-blue-600">
@@ -82,7 +82,7 @@
                         <p class="text-base md:text-lg font-semibold text-gray-800">{{ $department->department_name }}</p>
                     </div>
                 </div>
-            </div>
+            </div> --}}
 
             <!-- Flash Messages -->
             @if (session('success'))
@@ -115,11 +115,11 @@
                 </div> --}}
 
                     <!-- Employee -->
-                    <div>
+                    {{-- <div>
                         <label class="block text-xs md:text-sm font-medium text-gray-700">Employee</label>
                         <input type="text" name="name" value="{{ request('name') }}"
                             class="mt-1 px-3 py-1 border w-full rounded-lg border-gray-300 shadow-sm text-sm">
-                    </div>
+                    </div> --}}
 
                     <!-- From -->
                     <div>
@@ -165,75 +165,136 @@
             </div>
 
             <!-- ===== TABLE SECTION ===== -->
-            <div class="bg-white rounded-lg shadow overflow-hidden">
+            <div class="rounded-lg shadow overflow-hidden">
 
-                <!-- MOBILE STACKED VIEW -->
-                <div class="block md:hidden">
+                <!-- MOBILE CLEAN VIEW -->
+                <div class="block md:hidden space-y-2">
+
                     @foreach ($requests as $req)
-                        <div class="border-b border-gray-200 p-4 hover:bg-gray-50 transition space-y-2">
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-4 space-y-2">
 
-                            <div class="flex justify-between">
-                                <span class="text-xs text-gray-500 uppercase">Employee</span>
-                                <span class="text-sm font-bold text-gray-900">{{ $req->staff->staff_name ?? '-' }}</span>
+                            {{-- Employee --}}
+                            <div>
+                                <p class="text-sm font-semibold text-gray-900">
+                                    {{ $req->staff->staff_name ?? '-' }}
+                                </p>
+                                <p class="text-xs text-gray-500">
+                                    {{ $req->branch->name ?? '-' }} • {{ $req->department->department_name ?? '-' }}
+                                </p>
                             </div>
 
-                            <div class="flex justify-between">
-                                <span class="text-xs text-gray-500 uppercase">Branch</span>
-                                <span class="text-sm">{{ $req->branch->name ?? '-' }}</span>
+                            {{-- Meta Row --}}
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="text-gray-500">
+                                    {{ \Carbon\Carbon::parse($req->date)->format('d M Y') }}
+                                </span>
+
+                                @if ($req->status === 'pending')
+                                    <span class="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-600">Pending</span>
+                                @elseif($req->status === 'approved')
+                                    <span class="px-3 py-1 text-xs rounded-full bg-green-100 text-green-700">Approved</span>
+                                @elseif($req->status === 'rejected')
+                                    <span class="px-3 py-1 text-xs rounded-full bg-red-100 text-red-600">Rejected</span>
+                                @endif
                             </div>
 
-                            <div class="flex justify-between">
-                                <span class="text-xs text-gray-500 uppercase">Date</span>
-                                <span class="text-sm">{{ \Carbon\Carbon::parse($req->date)->format('d M Y') }}</span>
-                            </div>
+                            {{-- Clock Sessions --}}
+                            @if ($req->clocks->count())
+                                <div class="space-y-2">
+                                    @foreach ($req->clocks as $session)
+                                        <div
+                                            class="flex justify-between items-center bg-gray-50 rounded-xl px-3 py-2 text-sm">
+                                            <div class="text-gray-700">
+                                                {{ $session->clock_in?->format('H:i') ?? '-' }}
+                                                —
+                                                {{ $session->clock_out?->format('H:i') ?? '-' }}
+                                                @if ($session->auto_flag)
+                                                    <span class="text-xs italic text-orange-500 ml-1">(Auto)</span>
+                                                @endif
+                                            </div>
 
-                            <div class="flex justify-between">
-                                <span class="text-xs text-gray-500 uppercase">Total Time</span>
-                                <span class="text-sm font-semibold text-blue-600">{{ $req->total_hm ?? '00:00' }}</span>
-                            </div>
+                                            <span class="text-xs font-semibold text-blue-600">
+                                                {{ $session->total_hm }}
+                                            </span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
 
-                            <div class="flex justify-between">
-                                <span class="text-xs text-gray-500 uppercase">Status</span>
+                            @php
+                                // APPROVED HOURS (if approved)
+                                if ($req->approved_hours !== null) {
+                                    $apprHours = floor($req->approved_hours);
+                                    $apprMinutes = round(($req->approved_hours - $apprHours) * 60);
+                                    $req->approved_hm = sprintf('%02d:%02d', $apprHours, $apprMinutes);
+                                }
+                            @endphp
+                            {{-- Hours Summary --}}
+                            <div class="grid grid-cols-3 text-center gap-2">
                                 <div>
-                                    @if ($req->status === 'pending')
-                                        <span
-                                            class="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full">Pending</span>
-                                    @elseif($req->status === 'approved')
-                                        <span
-                                            class="px-2 py-1 text-xs bg-green-100 text-green-700 rounded-full">Approved</span>
-                                    @elseif($req->status === 'rejected')
-                                        <span class="px-2 py-1 text-xs bg-red-100 text-red-600 rounded-full">Rejected</span>
-                                    @endif
+                                    <p class="text-xs text-gray-400">Requested</p>
+                                    <p class="text-sm font-semibold text-amber-700">
+                                        {{ $req->requested_hm ?? '-' }}
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <p class="text-xs text-gray-400">Actual</p>
+                                    <p class="text-sm font-semibold text-blue-700">
+                                        {{ $req->actual_hm }}
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <p class="text-xs text-gray-400">Approved</p>
+                                    <p class="text-sm font-semibold text-purple-700">
+                                        @if ($req->approved_hm)
+                                            {{ $req->approved_hm }}
+                                        @elseif ($req->status === 'approved')
+                                            {{ $req->actual_hm }}
+                                        @else
+                                            —
+                                        @endif
+                                    </p>
                                 </div>
                             </div>
 
-                            <!-- ACTION BUTTON -->
+                            {{-- Remarks --}}
+                            @if ($req->remarks)
+                                <div class="text-sm text-gray-600 leading-relaxed border-l-2 border-gray-200 pl-3">
+                                    {{ $req->remarks }}
+                                </div>
+                            @endif
+
+                            {{-- Action --}}
                             <div class="flex justify-end pt-2">
                                 <a href="{{ route('overtime.success', $req->id) }}"
-                                    class="px-3 py-2 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 text-xs inline-flex items-center">
+                                    class="px-2 py-1 rounded inline-flex items-center text-sm font-medium bg-blue-100 text-blue-600 hover:text-blue-700">
                                     <i class="fas fa-qrcode mr-1"></i> QR
                                 </a>
                             </div>
 
-                            <div class="text-xs text-gray-600 text-right">
-                                Department: {{ $req->department->department_name ?? '-' }}
-                            </div>
-
                         </div>
                     @endforeach
+
                 </div>
+
 
                 <!-- DESKTOP RESPONSIVE + SCROLLABLE ON SMALL -->
                 <div class="overflow-x-auto">
-                    <table class="min-w-[600px] md:min-w-full divide-y divide-gray-200">
+                    <table class="bg-white  min-w-[600px] md:min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-100 whitespace-nowrap">
                             <tr class="hidden md:table-row">
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Employee</th>
-                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Branch</th>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Clock In/Out</th>
-                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Total Time</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Clock In/Out
+                                </th>
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Requested
+                                    Hours</th>
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Actual Hours
+                                </th>
                                 <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Status</th>
+                                <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Remark</th>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                             </tr>
                         </thead>
@@ -243,37 +304,71 @@
                                 <tr class="hover:bg-gray-50 transition hidden md:table-row">
                                     <td class="px-4 py-3 text-sm font-semibold text-gray-900 whitespace-nowrap">
                                         {{ $req->staff->staff_name ?? '-' }}
-                                        <div class="text-xs text-gray-600">Dept:
+                                        <div class="text-xs text-gray-600">
+                                            {{ $req->branch->name ?? '-' }} •
                                             {{ $req->department->department_name ?? '-' }}</div>
                                     </td>
-
-                                    <td class="px-4 py-3 text-sm whitespace-nowrap text-center">
-                                        {{ $req->branch->name ?? '-' }}</td>
                                     <td class="px-4 py-3 text-sm whitespace-nowrap">
                                         {{ \Carbon\Carbon::parse($req->date)->format('d M Y') }}</td>
-                                    <td class="px-4 py-3 text-sm">
-                                        <div class="text-gray-700">
-                                            <span class="font-medium">In: </span>{{ $req->clock_in_display }} - 
-                                            <span class="font-medium">Out: </span>{{ $req->clock_out_display }}
+                                    <!-- Clock In/Out -->
+                                    <td class="p-3">
+                                        <div class="space-y-1">
+                                            @forelse ($req->clocks as $session)
+                                                <div class="px-2 py-1 bg-gray-50 rounded-lg border border-gray-200">
+                                                    <div class="flex items-center justify-between text-sm">
+                                                        <div class="lg:flex-col">
+                                                            <span class="text-gray-600">In:</span>
+                                                            {{ $session->clock_in?->format('H:i') ?? '-' }} -
+                                                            <span class="text-gray-600">Out:</span>
+                                                            {{ $session->clock_out?->format('H:i') ?? '-' }}
+                                                            @if ($session->auto_flag)
+                                                                <span class="text-xs italic text-orange-500">Auto</span>
+                                                            @endif
+                                                        </div>
+                                                        <span
+                                                            class="text-blue-600 font-bold text-xs bg-blue-50 px-2 py-0.5 rounded">
+                                                            {{ $session->total_hm }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            @empty
+                                                <span class="text-gray-400">-</span>
+                                            @endforelse
                                         </div>
                                     </td>
-                                    <td class="px-4 py-3 text-sm whitespace-nowrap text-center">
-                                        <div class="font-medium text-blue-700">{{ $req->total_hm ?? '00:00' }}</div>
-                                        {{-- <div class="flex items-center justify-between">
-                                            <div class="flex items-center space-x-3">
-                                                <div class="flex items-center space-x-1">
-                                                    <span class="font-medium text-gray-600">In:</span>
-                                                    <span class="text-gray-900">{{ $req->clock_in_display }}</span>
+
+                                    <!-- Requested -->
+                                    <td class="p-3 text-center">
+                                        <span
+                                            class="inline-block bg-amber-100 text-amber-800 font-bold px-3 py-1 rounded-full text-sm">
+                                            {{ $req->requested_hm ?? '-' }}
+                                        </span>
+                                    </td>
+
+                                    @php
+                                        // APPROVED HOURS (if approved)
+                                        if ($req->approved_hours !== null) {
+                                            $apprHours = floor($req->approved_hours);
+                                            $apprMinutes = round(($req->approved_hours - $apprHours) * 60);
+                                            $req->approved_hm = sprintf('%02d:%02d', $apprHours, $apprMinutes);
+                                        }
+                                    @endphp
+                                    <!-- Total -->
+                                    <td class="p-3 text-center">
+
+                                        {{-- Always show actual --}}
+                                        <div class="font-bold text-blue-700 text-sm">
+                                            {{ $req->actual_hm }}
+                                        </div>
+
+                                        @if ($req->status === 'approved')
+                                            @if ($req->approved_hm)
+                                                <div class="text-purple-700 text-xs font-semibold">
+                                                    Approved: {{ $req->approved_hm }}
+                                                    {{-- <span class="text-purple-500 font-bold">(Partial)</span> --}}
                                                 </div>
-                                                <div class="flex items-center space-x-1">
-                                                    <span class="font-medium text-gray-600">Out:</span>
-                                                    <span class="text-gray-900">{{ $req->clock_out_display }}</span>
-                                                </div>
-                                            </div>
-                                            <div class="font-medium text-blue-600 text-xs bg-blue-50 px-2 py-1 rounded">
-                                                {{ $req->total_hm ?? '00:00' }}
-                                            </div>
-                                        </div> --}}
+                                            @endif
+                                        @endif
                                     </td>
 
                                     <td class="px-4 py-3 text-sm whitespace-nowrap text-center">
@@ -289,10 +384,18 @@
                                         @endif
                                     </td>
 
+                                    <td class="px-4 py-3 text-sm whitespace-pre-line break-words max-w-52">
+                                        {{ $req->remarks ?? '—' }}
+                                    </td>
+
                                     <td class="px-4 py-3 text-sm">
                                         <a href="{{ route('overtime.success', $req->id) }}"
                                             class="px-2 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 text-xs inline-flex items-center whitespace-nowrap">
                                             <i class="fas fa-qrcode mr-1"></i> QR
+                                        </a>
+                                        <a href="{{ route('hr.overtime.view', $req->id) }}"
+                                            class="px-2 py-1 rounded text-xs inline-flex items-center whitespace-nowrap">
+                                            <i class="fa-solid fa-eye mr-1"></i> View
                                         </a>
                                     </td>
                                 </tr>
