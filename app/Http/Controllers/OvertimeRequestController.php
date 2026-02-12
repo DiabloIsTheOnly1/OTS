@@ -43,42 +43,25 @@ class OvertimeRequestController extends Controller
 
     public function index(Request $request)
     {
-        // Handle branch/dept from QR redirect
-        if ($request->has('branch') && $request->has('dept')) {
-            session([
-                'ot_branch_id' => $request->branch,
-                'ot_department_id' => $request->dept
-            ]);
-            return redirect()->route('overtime.index');
+        $staffId = $request->employee_id;
+
+        // Safety check (prevent showing all data if missing)
+        if (!$staffId) {
+            abort(404);
         }
-
-        $branchId = session('ot_branch_id');
-        $departmentId = session('ot_department_id');
-
-        $branch = Branch::find($branchId);
-        $department = Department::find($departmentId);
 
         $query = OvertimeRequest::with(['branch', 'department', 'clocks', 'staff'])
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
-            ->when($departmentId, fn($q) => $q->where('department_id', $departmentId));
+            ->where('staff_id', $staffId);
 
-        // Search name
-        if ($request->filled('name')) {
-            $query->whereHas(
-                'staff',
-                fn($q) =>
-                $q->where('staff_name', 'like', "%{$request->name}%")
-            );
+        // Optional: keep date & status filter if needed
+        if ($request->filled('from')) {
+            $query->whereDate('date', '>=', $request->from);
         }
 
-        // Date range filters
-        if ($request->filled('from'))
-            $query->whereDate('date', '>=', $request->from);
-
-        if ($request->filled('to'))
+        if ($request->filled('to')) {
             $query->whereDate('date', '<=', $request->to);
+        }
 
-        //  MONTH FILTER
         if ($request->filled('month')) {
             $query->whereMonth('date', $request->month);
         }
@@ -87,15 +70,15 @@ class OvertimeRequestController extends Controller
             $query->whereYear('date', $request->year);
         }
 
-        // Status filter
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
-        // Pagination
-        $requests = $query->paginate(15);
+        $requests = $query->latest()
+            ->paginate(15)
+            ->appends($request->query());
 
-        // COMPUTE TOTALS + TIME FORMATTING
+        // Time formatting
         foreach ($requests as $req) {
             $totalSec = $req->clocks->sum('total_time_taken');
 
@@ -105,20 +88,16 @@ class OvertimeRequestController extends Controller
             $req->actual_hm = $hours . ':' . str_pad($minutes, 2, '0', STR_PAD_LEFT);
             $req->total_hm = $req->actual_hm;
 
-            // Clock display
             $req->clock_in_display = $req->clocks->min('clock_in')?->format('H:i') ?? '-';
             $req->clock_out_display = $req->clocks->max('clock_out')?->format('H:i') ?? '-';
 
-            // Requested hours
             $hoursReq = floor($req->total_hours ?? 0);
             $minutesReq = round(($req->total_hours ?? 0 - $hoursReq) * 60);
             $req->requested_hm = sprintf('%02d:%02d', $hoursReq, $minutesReq);
         }
 
-        return view('overtime.index', compact('requests', 'branch', 'department'));
+        return view('overtime.index', compact('requests', 'staffId'));
     }
-
-
 
     // Show OT request form
     public function create()

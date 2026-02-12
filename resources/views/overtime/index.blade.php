@@ -101,6 +101,9 @@
             <div class="bg-white rounded-lg shadow-sm p-6 mb-4">
                 <form method="GET" action="{{ route('overtime.index') }}"
                     class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 md:gap-4 items-end">
+
+                    <input type="hidden" name="employee_id" value="{{ $staffId }}">
+                    
                     <!-- Branch -->
                     {{-- <div>
                     <label class="block text-xs md:text-sm font-medium text-gray-700">Branch</label>
@@ -156,7 +159,7 @@
                             Filter
                         </button>
 
-                        <a href="{{ route('overtime.index') }}"
+                        <a href="{{ route('overtime.index', ['employee_id' => request('employee_id')]) }}"
                             class="flex-1 text-center px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg shadow-sm text-sm md:text-base">
                             Reset
                         </a>
