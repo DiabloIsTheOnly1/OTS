@@ -109,13 +109,19 @@ class OvertimeRequestController extends Controller
 
         // 2. Determine which departments user can access
         if ($user->access_all_departments) {
-            // User can access all departments
+
             $departmentIds = Department::pluck('id')->toArray();
-            $departments = Department::all();
+            $departments = Department::orderBy('department_name')->get();
+
         } else {
-            // User only belongs to ONE department
-            $departmentIds = [$user->department_id];
-            $departments = Department::whereIn('id', $departmentIds)->get();
+
+            $departmentIds = $user->departments()
+                ->pluck('departments.id')
+                ->toArray();
+
+            $departments = $user->departments()
+                ->orderBy('department_name')
+                ->get();
         }
 
         // 3. Branch list = only user's branches
@@ -134,13 +140,12 @@ class OvertimeRequestController extends Controller
             ->pluck('staff_id')
             ->toArray();
 
-
-        // 4. Filter staff by user's branch + allowed department(s)
+        // 4. Filter staff by user's branches + allowed departments
         $staffs = Staff::whereIn('branch_id', $userBranchIds)
             ->whereIn('department_id', $departmentIds)
-            ->whereNotIn('id', $blockedStaffIds) // 👈 ADD THIS
+            ->whereNotIn('id', $blockedStaffIds)
+            ->orderBy('staff_name')
             ->get();
-
 
         // Empty model for create mode
         $overtime = new OvertimeRequest();
@@ -227,21 +232,55 @@ class OvertimeRequestController extends Controller
         $overtime = OvertimeRequest::findOrFail($id);
 
         $user = Auth::user();
+
+        // User branches
         $userBranchIds = $user->branches()->pluck('branch.id')->toArray();
 
+        // User departments
         if ($user->access_all_departments) {
             $departmentIds = Department::pluck('id')->toArray();
+            $departments = Department::orderBy('department_name')->get();
         } else {
-            $departmentIds = [$user->department_id];
+            $departmentIds = $user->departments()
+                ->pluck('departments.id')
+                ->toArray();
+
+            $departments = $user->departments()
+                ->orderBy('department_name')
+                ->get();
         }
 
-        $branches = Branch::whereIn('id', $userBranchIds)->get();
-        $departments = Department::whereIn('id', $departmentIds)->get();
-        $staffs = Staff::whereIn('branch_id', $userBranchIds)
-            ->whereIn('department_id', $departmentIds)
+        // Branch list
+        $branches = Branch::whereIn('id', $userBranchIds)
+            ->orderBy('branch_name')
             ->get();
 
-        // Pass total_hours as requested_hours for the form
+        // Current month range
+        $startOfMonth = Carbon::now()->startOfMonth();
+        $endOfMonth = Carbon::now()->endOfMonth();
+
+        // Staff who have reached 40 approved OT hours this month,
+        // excluding the current overtime request being edited
+        $blockedStaffIds = OvertimeRequest::where('status', 'approved')
+            ->where('id', '!=', $overtime->id)
+            ->whereBetween('date', [$startOfMonth, $endOfMonth])
+            ->selectRaw('staff_id, SUM(total_hours) as total')
+            ->groupBy('staff_id')
+            ->havingRaw('SUM(total_hours) >= 40')
+            ->pluck('staff_id')
+            ->toArray();
+
+        // Allow the currently selected staff even if blocked
+        $staffs = Staff::whereIn('branch_id', $userBranchIds)
+            ->whereIn('department_id', $departmentIds)
+            ->where(function ($query) use ($blockedStaffIds, $overtime) {
+                $query->whereNotIn('id', $blockedStaffIds)
+                    ->orWhere('id', $overtime->staff_id);
+            })
+            ->orderBy('staff_name')
+            ->get();
+
+        // For the form
         $overtime->requested_hours = $overtime->total_hours;
 
         return view('overtime.form', compact(
@@ -457,52 +496,73 @@ class OvertimeRequestController extends Controller
 
     private function buildOvertimeQuery(Request $request)
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        // 1. User allowed branches
+        // User allowed branches
         $userBranchIds = $user->branches()->pluck('branch.id')->toArray();
 
-        // 2. User allowed departments
+        // User allowed departments (Many-to-Many)
         if ($user->access_all_departments) {
             $departmentIds = Department::pluck('id')->toArray();
         } else {
-            $departmentIds = [$user->department_id];
+            $departmentIds = $user->departments()->pluck('departments.id')->toArray();
         }
 
-        // 3. Base query with access filtering
-        $query = OvertimeRequest::with(['staff', 'branch', 'department', 'clocks'])
-            ->whereIn('branch_id', $userBranchIds)
-            ->whereIn('department_id', $departmentIds);
+        // Base query
+        $query = OvertimeRequest::with([
+            'staff',
+            'branch',
+            'department',
+            'clocks'
+        ])
+            ->whereIn('branch_id', $userBranchIds);
 
-        // 4. Apply filters
-        if ($request->branch_id) {
+        // Apply department restriction only if user doesn't have access to all
+        if (!$user->access_all_departments) {
+            // Prevent returning everything if no departments assigned
+            if (empty($departmentIds)) {
+                $query->whereRaw('1 = 0');
+            } else {
+                $query->whereIn('department_id', $departmentIds);
+            }
+        }
+
+        // Filters
+        if ($request->filled('branch_id')) {
             $query->where('branch_id', $request->branch_id);
         }
-        if ($request->department_id) {
+
+        if ($request->filled('department_id')) {
             $query->where('department_id', $request->department_id);
         }
-        if ($request->name) {
+
+        if ($request->filled('name')) {
             $query->whereHas('staff', function ($q) use ($request) {
                 $q->where('staff_name', 'like', '%' . $request->name . '%');
             });
         }
-        if ($request->from) {
+
+        if ($request->filled('from')) {
             $query->whereDate('date', '>=', $request->from);
         }
-        if ($request->to) {
+
+        if ($request->filled('to')) {
             $query->whereDate('date', '<=', $request->to);
         }
 
-        if ($request->month) {
+        if ($request->filled('month')) {
             [$year, $month] = explode('-', $request->month);
-            $query->whereYear('date', $year)->whereMonth('date', $month);
+
+            $query->whereYear('date', $year)
+                ->whereMonth('date', $month);
         }
 
-        if ($request->year) {
+        if ($request->filled('year')) {
             $query->whereYear('date', $request->year);
         }
 
-        if ($request->status) {
+        if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 

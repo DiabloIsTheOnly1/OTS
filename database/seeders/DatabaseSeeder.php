@@ -16,6 +16,9 @@ class DatabaseSeeder extends Seeder
         // Create departments
         $department1 = Department::create(['department_name' => 'Human Resource',]);
         $department2 = Department::create(['department_name' => 'Account',]);
+        $department3 = Department::create(['department_name' => 'IT',]);
+        $department4 = Department::create(['department_name' => 'Finance',]);
+        
 
         // Create branches
         $branch1 = Branch::create(['name' => 'HQKK']);
@@ -45,6 +48,20 @@ class DatabaseSeeder extends Seeder
         $admin = User::create([
             'name' => 'Admin User',
             'username' => 'admin',
+            'password' => 'password', // auto-hashed
+            'access_all_departments' => 1,
+            'access_level_id' => $accessLevel1->id,
+        ]);
+        $user1 = User::create([
+            'name' => 'User One',
+            'username' => 'user1',
+            'password' => 'password', // auto-hashed
+            'department_id' => $department2->id,
+            'access_level_id' => $accessLevel1->id,
+        ]);
+        $user2 = User::create([
+            'name' => 'User Two',
+            'username' => 'user2',
             'password' => 'password', // auto-hashed
             'department_id' => $department1->id,
             'access_level_id' => $accessLevel1->id,

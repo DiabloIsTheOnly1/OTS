@@ -9,20 +9,20 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
-    {
-        Schema::table('branch', function (Blueprint $table) {
-            $table->string('name_lower')->unique();
-        });
-    }
+    // public function up(): void
+    // {
+    //     Schema::table('branch', function (Blueprint $table) {
+    //         $table->string('name_lower')->unique();
+    //     });
+    // }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        Schema::table('branch', function (Blueprint $table) {
-            //
-        });
-    }
+    // /**
+    //  * Reverse the migrations.
+    //  */
+    // public function down(): void
+    // {
+    //     Schema::table('branch', function (Blueprint $table) {
+    //         //
+    //     });
+    // }
 };

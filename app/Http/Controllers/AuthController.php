@@ -35,9 +35,12 @@ class AuthController extends Controller
 
     public function show()
     {
-        $user = Auth::user()->load(['branches', 'department']);
-        return view('profile', compact('user'));
+        $user = Auth::user()->load([
+            'branches',
+            'departments',
+        ]);
 
+        return view('profile', compact('user'));
     }
 
     public function updatePassword(Request $request)

@@ -23,7 +23,7 @@ class HRController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        $perPage = request('per_page', 15);
+        $perPage = $request->input('per_page', 15);
 
         // -------------------------------
         // Branch access
@@ -31,105 +31,104 @@ class HRController extends Controller
         $accessibleBranches = $user->branches()->pluck('branch.id')->toArray();
 
         // -------------------------------
-        // Department access
+        // Department access (UPDATED)
         // -------------------------------
         if ($user->access_all_departments) {
             $accessibleDepartments = Department::pluck('id')->toArray();
         } else {
-            $accessibleDepartments = [$user->department_id];
+            $accessibleDepartments = $user->departments()
+                ->pluck('departments.id')
+                ->toArray();
         }
 
         // -------------------------------
         // Auto-close active clocks
         // -------------------------------
         $activeClocks = OvertimeClock::whereNull('clock_out')->get();
+
         foreach ($activeClocks as $clock) {
             $clock->autoCloseIfExceeded($clock->overtimeRequest->total_hours);
         }
 
-        // --------------------------------------------------
-// MONTH CONTEXT (DEFAULT = CURRENT MONTH)
-// --------------------------------------------------
-        // $month = $request->filled('month')
-        //     ? Carbon::createFromFormat('Y-m', $request->month)
-        //     : now();
-
-        // --------------------------------------------------
-// Base query
-// --------------------------------------------------
+        // -------------------------------
+        // Base query
+        // -------------------------------
         $baseQuery = OvertimeRequest::with([
             'staff',
             'branch',
             'department',
             'clocks',
             'approver',
-            'rejector'
+            'rejector',
         ])
             ->whereIn('branch_id', $accessibleBranches)
             ->whereIn('department_id', $accessibleDepartments);
-        // ->whereBetween('date', [
-        //     $month->copy()->startOfMonth(),
-        //     $month->copy()->endOfMonth()
-        // ]);
 
-
+        // -------------------------------
+        // Filters
+        // -------------------------------
         if ($request->filled('status')) {
             $baseQuery->where('status', $request->status);
         }
 
-        if ($request->filled('branch_id') && in_array($request->branch_id, $accessibleBranches)) {
+        if (
+            $request->filled('branch_id') &&
+            in_array($request->branch_id, $accessibleBranches)
+        ) {
             $baseQuery->where('branch_id', $request->branch_id);
         }
 
-        if ($request->filled('department_id') && in_array($request->department_id, $accessibleDepartments)) {
+        if (
+            $request->filled('department_id') &&
+            in_array($request->department_id, $accessibleDepartments)
+        ) {
             $baseQuery->where('department_id', $request->department_id);
         }
 
-        if ($request->filled('from')) {
-            $baseQuery->whereDate('date', '>=', $request->from);
+        if ($request->filled('month')) {
+
+            [$year, $month] = explode('-', $request->month);
+
+            $baseQuery->whereYear('date', $year)
+                ->whereMonth('date', $month);
+
+        } else {
+
+            if ($request->filled('from')) {
+                $baseQuery->whereDate('date', '>=', $request->from);
+            }
+
+            if ($request->filled('to')) {
+                $baseQuery->whereDate('date', '<=', $request->to);
+            }
+
         }
-
-        if ($request->filled('to')) {
-            $baseQuery->whereDate('date', '<=', $request->to);
-        }
-
-        // if ($request->filled('month')) {
-        //     $month = Carbon::createFromFormat('Y-m', $request->month);
-        //     $baseQuery->whereBetween('date', [
-        //         $month->startOfMonth(),
-        //         $month->endOfMonth()
-        //     ]);
-        // }
-
-        // =====================================================
-        // 1️⃣ REQUEST LIST (PAGINATED)
-        // =====================================================
+        // -------------------------------
+        // Request List
+        // -------------------------------
         $requests = (clone $baseQuery)
-            ->orderBy('status', 'asc')
-            ->orderBy('date', 'desc')
+            ->orderBy('status')
+            ->orderByDesc('date')
             ->paginate($perPage)
             ->withQueryString();
 
-        // -------------------------------
-        // Compute hours (existing logic)
-        // -------------------------------
         foreach ($requests as $r) {
 
-            // ACTUAL
-            $totalSeconds = $r->clocks->sum('total_time_taken');
-            $totalMinutes = floor($totalSeconds / 60);
-            $r->actual_minutes = $totalMinutes;
+            // Actual OT
+            $seconds = $r->clocks->sum('total_time_taken');
+            $minutes = floor($seconds / 60);
 
+            $r->actual_minutes = $minutes;
             $r->actual_hm = sprintf(
                 '%02d:%02d',
-                floor($totalMinutes / 60),
-                $totalMinutes % 60
+                floor($minutes / 60),
+                $minutes % 60
             );
 
-            // REQUESTED
+            // Requested OT
             $requestedMinutes = floor(($r->total_hours ?? 0) * 60);
-            $r->requested_minutes = $requestedMinutes;
 
+            $r->requested_minutes = $requestedMinutes;
             $r->requested_hm = sprintf(
                 '%02d:%02d',
                 floor($requestedMinutes / 60),
@@ -137,14 +136,10 @@ class HRController extends Controller
             );
         }
 
-        // --------------------------------------------------
-        // OT SUMMARY – GROUPED BY STAFF
-        // --------------------------------------------------
+        // -------------------------------
+        // OT Summary
+        // -------------------------------
         $otSummary = (clone $baseQuery)
-            // ->whereBetween('date', [
-            //     $month->copy()->startOfMonth(),
-            //     $month->copy()->endOfMonth()
-            // ])
             ->with(['staff', 'clocks'])
             ->orderBy('staff_id')
             ->orderBy('date')
@@ -155,11 +150,11 @@ class HRController extends Controller
                 $totalMinutes = 0;
 
                 $rows->each(function ($r) use (&$totalMinutes) {
-                    // actual minutes already computed via clocks
+
                     $seconds = $r->clocks->sum('total_time_taken');
                     $minutes = floor($seconds / 60);
-                    $r->actual_minutes = $minutes;
 
+                    $r->actual_minutes = $minutes;
                     $r->actual_hm = sprintf(
                         '%02d:%02d',
                         floor($minutes / 60),
@@ -176,7 +171,7 @@ class HRController extends Controller
                         '%02d:%02d',
                         floor($totalMinutes / 60),
                         $totalMinutes % 60
-                    )
+                    ),
                 ];
             });
 
@@ -186,8 +181,8 @@ class HRController extends Controller
         $branches = $user->branches()->get();
 
         $departments = $user->access_all_departments
-            ? Department::all()
-            : Department::where('id', $user->department_id)->get();
+            ? Department::orderBy('department_name')->get()
+            : $user->departments()->orderBy('department_name')->get();
 
         return view('hr.dashboard', compact(
             'requests',

@@ -68,6 +68,35 @@
             background-color: #3b82f6 !important;
             color: white;
         }
+
+        .select2-container--default .select2-selection--multiple {
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            min-height: 38px;
+            padding: 2px 6px;
+        }
+
+        .select2-container--default.select2-container--focus .select2-selection--multiple {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, .2);
+        }
+
+        .select2-container {
+            width: 100% !important;
+        }
+
+        .select2-selection__choice {
+            display: none !important;
+        }
+
+        .select2-selection__rendered {
+            display: flex !important;
+            align-items: center;
+        }
+
+        .select2-selection__placeholder {
+            margin-left: 6px;
+        }
     </style>
 
 </head>

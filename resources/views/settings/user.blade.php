@@ -64,23 +64,25 @@
                     </div>
 
                     <!-- Department -->
-                    <div>
-                        <label class="block text-gray-700 text-sm font-medium mb-2">Department</label>
-                        <select id="department" name="department_id"
-                            class="w-full px-3 py-1 border rounded-lg focus:ring-2 focus:ring-blue-500">
-                            <option value="">-- None --</option>
-                            @foreach ($departments as $dept)
-                                <option value="{{ $dept->id }}">{{ $dept->department_name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="mt-3 flex items-center">
-                        <label class="inline-flex items-center mt-4">
-                            <input type="checkbox" name="access_all_departments" value="1" class="rounded"
-                                id="accessAllCheckbox">
-                            <span class="ml-2">Access All Departments</span>
+                    <div class="md:col-span-2">
+                        <label class="block text-gray-700 text-sm font-medium mb-2">
+                            Department
                         </label>
+
+                        <select id="department" name="departments[]" multiple class="w-full">
+
+                            <option value="__all__">Select All Departments</option>
+
+                            @foreach ($departments as $dept)
+                                <option value="{{ $dept->id }}">
+                                    {{ $dept->department_name }}
+                                </option>
+                            @endforeach
+
+                        </select>
+
+                        <div id="departmentBadges" class="flex flex-wrap gap-2 mt-2">
+                        </div>
                     </div>
 
                 </div>
@@ -135,7 +137,7 @@
                 <!-- Department -->
                 <div>
                     <select name="department_id"
-                        class="w-full px-2 py-1 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                        class="w-full px-2 py-1 border rounded-lg focus:ring-2 focus:ring-blue-500 text-sm">
                         <option value="">All Departments</option>
                         @foreach ($departments as $dept)
                             <option value="{{ $dept->id }}"
@@ -231,16 +233,14 @@
                                                 <div class="flex items-center px-1">
                                                     <i class="fas fa-building mr-1 text-gray-600 text-xs"></i>
                                                 </div>
-                                                @if ($user->access_all_departments)
-                                                    <span
-                                                        class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700 border border-green-100">
-                                                        All Departments
-                                                    </span>
-                                                @else
-                                                    <span class="text-sm text-gray-700">
-                                                        {{ $user->department->department_name ?? '-' }}
-                                                    </span>
-                                                @endif
+                                                <span class="text-sm text-gray-700">
+                                                    @foreach ($user->departments as $department)
+                                                        <span
+                                                            class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-green-50 text-green-700">
+                                                            {{ $department->department_name }}
+                                                        </span>
+                                                    @endforeach
+                                                </span>
                                             </div>
 
                                             <div class="flex items-center space-x-1">
@@ -278,7 +278,7 @@
                                                 class="edit-user inline-flex items-center px-2 py-1 text-sm bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200"
                                                 data-id="{{ $user->id }}" data-name="{{ $user->name }}"
                                                 data-username="{{ $user->username }}"
-                                                data-dept="{{ $user->department_id }}"
+                                                data-departments="{{ $user->departments->count() ? $user->departments->pluck('id')->implode(',') : $user->department_id }}"
                                                 data-access="{{ $user->access_level_id }}"
                                                 data-access-all="{{ $user->access_all_departments }}"
                                                 data-branches="{{ $user->branches->pluck('id')->join(',') }}">
@@ -436,13 +436,30 @@
                 passwordInput.value = "";
                 passwordInput.required = true;
                 passwordInput.placeholder = "At least 4 characters"; // ⭐ NEW
-                deptInput.value = "";
+                $('#department').val(null).trigger('change');
+
                 accessLevelInput.value = "";
-                accessAllCheckbox.checked = false;
+
+                Array.from(deptInput.options).forEach(option => {
+                    option.selected = false;
+                });
+
+                $('#department').on('change', function() {
+
+                    renderDepartmentBadges();
+
+                    // Refresh checkbox icons
+                    const isOpen = $('.select2-container--open').length > 0;
+
+                    if (isOpen) {
+                        $('#department').select2('close');
+                        $('#department').select2('open');
+                    }
+
+                });
 
                 branchCheckboxes.forEach(cb => cb.checked = false);
 
-                toggleDepartment();
                 formSection.classList.remove('hidden');
             };
 
@@ -469,14 +486,34 @@
                 userIdInput.value = id;
                 nameInput.value = btn.dataset.name;
                 usernameInput.value = btn.dataset.username;
-                deptInput.value = btn.dataset.dept;
                 accessLevelInput.value = btn.dataset.access;
 
                 passwordInput.value = "";
                 passwordInput.required = false;
                 passwordInput.placeholder = "Leave blank to keep existing"; // ⭐ NEW
 
-                accessAllCheckbox.checked = btn.dataset.accessAll == 1;
+                const selectedDepartments = (btn.dataset.departments || '')
+                    .split(',')
+                    .filter(Boolean);
+
+                $('#department')
+                    .val(selectedDepartments)
+                    .trigger('change');
+
+
+                $('#department').on('change', function() {
+
+                    renderDepartmentBadges();
+
+                    // Refresh checkbox icons
+                    const isOpen = $('.select2-container--open').length > 0;
+
+                    if (isOpen) {
+                        $('#department').select2('close');
+                        $('#department').select2('open');
+                    }
+
+                });
 
                 const selectedBranches = btn.dataset.branches.split(',').filter(x => x);
 
@@ -484,7 +521,7 @@
                     cb.checked = selectedBranches.includes(cb.value)
                 );
 
-                toggleDepartment();
+
                 formSection.classList.remove('hidden');
             });
 
@@ -503,29 +540,138 @@
              * FIX: Department must NOT stay disabled when submitting
              * ------------------------------- */
             userForm.addEventListener('submit', function() {
-                document.querySelector('select[name="department_id"]').disabled = false;
+                $('#department option[value="__all__"]').prop('selected', false);
             });
 
         });
 
-        /** -------------------------------
-         * Enable/Disable Department Field
-         * ------------------------------- */
-        function toggleDepartment() {
-            const checkbox = document.querySelector('#accessAllCheckbox');
-            const departmentSelect = document.querySelector('#department');
-
-            if (checkbox.checked) {
-                departmentSelect.disabled = true;
-                departmentSelect.classList.add('opacity-50');
-            } else {
-                departmentSelect.disabled = false;
-                departmentSelect.classList.remove('opacity-50');
+        $('#department').select2({
+            width: '100%',
+            placeholder: 'Select department(s)',
+            closeOnSelect: false,
+            allowClear: true,
+            templateResult: formatDepartment,
+            templateSelection: function() {
+                // Keep the input clean
+                return "Select department(s)";
+            },
+            escapeMarkup: function(markup) {
+                return markup;
             }
+        });
+
+        const departmentSelect = $('#department');
+
+        let selectingAll = false;
+
+        $('#department').on('change', function() {
+
+            if (selectingAll) return;
+
+            const values = $(this).val() || [];
+
+            if (values.includes('__all__')) {
+
+                selectingAll = true;
+
+                $('#department option').prop('selected', true);
+
+                // Remove "__all__" from submitted values
+                $('#department option[value="__all__"]').prop('selected', false);
+
+                $(this).trigger('change.select2');
+
+                selectingAll = false;
+            }
+
+            renderDepartmentBadges();
+
+        });
+
+        function formatDepartment(option) {
+
+            if (!option.id) {
+                return option.text;
+            }
+
+            const values = $('#department').val() || [];
+
+            let selected = false;
+
+            if (option.id === '__all__') {
+
+                const totalDepartments = $('#department option').not('[value="__all__"]').length;
+                selected = values.length === totalDepartments;
+
+            } else {
+
+                selected = values.includes(option.id);
+
+            }
+
+            return `
+                        <div class="flex items-center justify-between w-full">
+                            <div class="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    class="mr-3 pointer-events-none"
+                                    ${selected ? 'checked' : ''}
+                                >
+                                <span>${option.text}</span>
+                            </div>
+                        </div>
+                    `;
         }
 
-        document.addEventListener('DOMContentLoaded', toggleDepartment);
-        document.querySelector('#accessAllCheckbox').addEventListener('change', toggleDepartment);
+        function renderDepartmentBadges() {
+
+            const container = $('#departmentBadges');
+
+            container.empty();
+
+            $('#department option:selected').each(function() {
+
+                if ($(this).val() === '__all__')
+                    return;
+
+                container.append(`
+            <span
+                class="department-badge inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs"
+                data-id="${$(this).val()}">
+
+                ${$(this).text()}
+
+                <button
+                    type="button"
+                    class="ml-2 text-blue-600 hover:text-red-600 removeDepartment">
+
+                    <i class="fas fa-times"></i>
+
+                </button>
+
+            </span>
+        `);
+
+            });
+
+        }
+
+        $(document).on('click', '.removeDepartment', function() {
+
+            const id = $(this)
+                .closest('.department-badge')
+                .data('id')
+                .toString();
+
+            let values = $('#department').val() || [];
+
+            values = values.filter(v => v !== id);
+
+            $('#department')
+                .val(values)
+                .trigger('change');
+
+        });
 
         const selectAll = document.getElementById('selectAllBranches');
         const branchCheckboxes = document.querySelectorAll('.branch-checkbox');

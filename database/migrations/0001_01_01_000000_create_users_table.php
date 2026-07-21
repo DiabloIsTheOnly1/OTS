@@ -64,6 +64,13 @@ return new class extends Migration {
             $table->timestamps();
         });
 
+        Schema::create('department_user', function (Blueprint $table) {
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('department_id')->constrained()->cascadeOnDelete();
+
+            $table->primary(['user_id', 'department_id']);
+        });
+
         // 4. USER ↔ BRANCH Pivot
         Schema::create('branch_user', function (Blueprint $table) {
             $table->id();
@@ -116,6 +123,7 @@ return new class extends Migration {
         Schema::dropIfExists('branch_user');
         Schema::dropIfExists('branch');
         Schema::dropIfExists('departments');
+        Schema::dropIfExists('department_user');
         Schema::dropIfExists('access_levels');
         Schema::dropIfExists('users');
         Schema::dropIfExists('password_reset_tokens');

@@ -8,14 +8,17 @@ use App\Models\Branch;
 use App\Models\Department;
 use App\Models\AccessLevel;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
     public function index()
     {
+
+
         $perPage = request('per_page', 15);
 
-        $query = User::with(['department', 'branches'])->orderBy('id');
+        $query = User::with(['departments', 'branches'])->orderBy('id');
 
         // 🔍 Apply filters
         if (request('search')) {
@@ -56,7 +59,8 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'username' => 'required|string|max:100|unique:users,username',
             'password' => 'required|string|min:1',
-            'department_id' => 'nullable|exists:departments,id',
+            'departments' => 'nullable|array',
+            'departments.*' => 'exists:departments,id',
             'branches' => 'array',
             'access_all_departments' => 'boolean',
             'access_level_id' => 'required|exists:access_levels,id',
@@ -66,11 +70,11 @@ class UserController extends Controller
             'name' => $request->name,
             'username' => $request->username,
             'password' => $request->password,
-            'department_id' => $request->department_id,
-            'access_all_departments' => $request->access_all_departments ? 1 : 0,
+            'access_all_departments' => $request->boolean('access_all_departments'),
             'access_level_id' => $request->access_level_id,
         ]);
 
+        $user->departments()->sync($request->departments ?? []);
         $user->branches()->sync($request->branches ?? []);
 
         return redirect()->back()->with('success', 'User created successfully!');
@@ -84,7 +88,8 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'username' => 'required|string|max:100|unique:users,username,' . $user->id,
             'password' => 'nullable|string|min:4',
-            'department_id' => 'nullable|exists:departments,id',
+            'departments' => 'nullable|array',
+            'departments.*' => 'exists:departments,id',
             'branches' => 'array',
             'access_all_departments' => 'boolean',
             'access_level_id' => 'required|exists:access_levels,id',
@@ -92,7 +97,7 @@ class UserController extends Controller
 
         $user->name = $request->name;
         $user->username = $request->username;
-        $user->department_id = $request->department_id;
+        $user->departments()->sync($request->departments ?? []);
         $user->access_all_departments = $request->access_all_departments ? 1 : 0;
         $user->access_level_id = $request->access_level_id;
 
@@ -100,8 +105,24 @@ class UserController extends Controller
             $user->password = $request->password;
         }
 
+        // Get selected departments
+        $departments = $request->departments ?? [];
+
+        // If this user has never been migrated,
+// keep the old department_id as well.
+        if ($user->departments()->count() == 0 && !empty($user->department_id)) {
+            $departments[] = $user->department_id;
+        }
+
+        // Remove duplicates
+        $departments = array_unique($departments);
+
+        // Save
+        $user->departments()->sync($departments);
+
         $user->save();
         $user->branches()->sync($request->branches ?? []);
+        $user->departments()->sync($request->departments ?? []);
 
         return redirect()->back()->with('success', 'User updated successfully!');
     }

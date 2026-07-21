@@ -34,9 +34,9 @@ class User extends Authenticatable
     /**
      * A user belongs to one department
      */
-    public function department()
+    public function departments()
     {
-        return $this->belongsTo(Department::class);
+        return $this->belongsToMany(Department::class);
     }
 
     /**
